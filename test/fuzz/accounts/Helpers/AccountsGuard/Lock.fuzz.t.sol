@@ -22,7 +22,7 @@ contract Lock_AccountsGuard_Fuzz_Test is AccountsGuard_Fuzz_Test {
     /*//////////////////////////////////////////////////////////////
                               TESTS
     //////////////////////////////////////////////////////////////*/
-    function testFuzz_Revert_lock_Paused(address caller, bytes4 selector) public {
+    function testFuzz_Revert_lock_Paused(address caller) public {
         // Given: Guard is paused.
         vm.prank(users.owner);
         accountsGuard.setPauseFlag(true);
@@ -31,16 +31,12 @@ contract Lock_AccountsGuard_Fuzz_Test is AccountsGuard_Fuzz_Test {
         // Then: It should revert.
         vm.prank(caller);
         vm.expectRevert(AccountsGuard.Paused.selector);
-        accountsGuard.lock(true, selector);
+        accountsGuard.lock(true);
     }
 
-    function testFuzz_Revert_lock_Reentered(
-        address caller,
-        address account_,
-        bool pauseCheck,
-        bytes4 selector,
-        uint32 blockNumber
-    ) public {
+    function testFuzz_Revert_lock_Reentered(address caller, address account_, bool pauseCheck, uint32 blockNumber)
+        public
+    {
         // Given: Guard is Locked.
         vm.assume(account_ != address(0));
         accountsGuard.setAccount(account_);
@@ -53,13 +49,12 @@ contract Lock_AccountsGuard_Fuzz_Test is AccountsGuard_Fuzz_Test {
         // Then: It should revert.
         vm.prank(caller);
         vm.expectRevert(AccountsGuard.Reentered.selector);
-        accountsGuard.lock(pauseCheck, selector);
+        accountsGuard.lock(pauseCheck);
     }
 
     function testFuzz_Revert_lock_NotAnAccount(
         address caller,
         bool pauseCheck,
-        bytes4 selector,
         uint32 oldBlockNumber,
         uint32 blockNumber
     ) public {
@@ -75,15 +70,12 @@ contract Lock_AccountsGuard_Fuzz_Test is AccountsGuard_Fuzz_Test {
         // Then: It should revert.
         vm.prank(caller);
         vm.expectRevert(AccountsGuard.OnlyAccount.selector);
-        accountsGuard.lock(pauseCheck, selector);
+        accountsGuard.lock(pauseCheck);
     }
 
-    function testFuzz_Success_lock_NoPauseCheck_NoAccountSet(
-        bool pauseFlag,
-        bytes4 selector,
-        uint32 oldBlockNumber,
-        uint32 blockNumber
-    ) public {
+    function testFuzz_Success_lock_NoPauseCheck_NoAccountSet(bool pauseFlag, uint32 oldBlockNumber, uint32 blockNumber)
+        public
+    {
         // Given: pause flag is set.
         vm.prank(users.owner);
         accountsGuard.setPauseFlag(pauseFlag);
@@ -94,23 +86,17 @@ contract Lock_AccountsGuard_Fuzz_Test is AccountsGuard_Fuzz_Test {
         vm.roll(blockNumber);
 
         // When: lock is called.
-        // Then: Correct event is emitted.
         vm.prank(address(account));
-        vm.expectEmit(address(accountsGuard));
-        emit AccountsGuard.Lock(address(account), selector);
-        accountsGuard.lock(false, selector);
+        accountsGuard.lock(false);
 
-        // And: Account is Locked.
+        // Then: Account is Locked.
         assertEq(accountsGuard.getAccount(), address(account));
         assertEq(accountsGuard.getBlockNumber(), blockNumber);
     }
 
-    function testFuzz_Success_lock_NoPauseCheck_AccountSet(
-        bool pauseFlag,
-        bytes4 selector,
-        uint32 oldBlockNumber,
-        uint32 blockNumber
-    ) public {
+    function testFuzz_Success_lock_NoPauseCheck_AccountSet(bool pauseFlag, uint32 oldBlockNumber, uint32 blockNumber)
+        public
+    {
         // Given: pause flag is set.
         vm.prank(users.owner);
         accountsGuard.setPauseFlag(pauseFlag);
@@ -123,40 +109,30 @@ contract Lock_AccountsGuard_Fuzz_Test is AccountsGuard_Fuzz_Test {
         vm.roll(blockNumber);
 
         // When: lock is called.
-        // Then: Correct event is emitted.
         vm.prank(address(account));
-        vm.expectEmit(address(accountsGuard));
-        emit AccountsGuard.Lock(address(account), selector);
-        accountsGuard.lock(false, selector);
+        accountsGuard.lock(false);
 
-        // And: Account is Locked.
+        // Then: Account is Locked.
         assertEq(accountsGuard.getAccount(), address(account));
         assertEq(accountsGuard.getBlockNumber(), blockNumber);
     }
 
-    function testFuzz_Success_lock_PauseCheck_NoAccountSet(bytes4 selector, uint32 oldBlockNumber, uint32 blockNumber)
-        public
-    {
+    function testFuzz_Success_lock_PauseCheck_NoAccountSet(uint32 oldBlockNumber, uint32 blockNumber) public {
         // Given: Guard was locked in past.
         blockNumber = uint32(bound(blockNumber, oldBlockNumber, type(uint32).max));
         accountsGuard.setBlockNumber(oldBlockNumber);
         vm.roll(blockNumber);
 
         // When: lock is called.
-        // Then: Correct event is emitted.
         vm.prank(address(account));
-        vm.expectEmit(address(accountsGuard));
-        emit AccountsGuard.Lock(address(account), selector);
-        accountsGuard.lock(true, selector);
+        accountsGuard.lock(true);
 
-        // And: Account is Locked.
+        // Then: Account is Locked.
         assertEq(accountsGuard.getAccount(), address(account));
         assertEq(accountsGuard.getBlockNumber(), blockNumber);
     }
 
-    function testFuzz_Success_lock_PauseCheck_AccountSet(bytes4 selector, uint32 oldBlockNumber, uint32 blockNumber)
-        public
-    {
+    function testFuzz_Success_lock_PauseCheck_AccountSet(uint32 oldBlockNumber, uint32 blockNumber) public {
         // Given: Guard was locked in past, but not during latest block.
         accountsGuard.setAccount(address(account));
         oldBlockNumber = uint32(bound(oldBlockNumber, 0, type(uint32).max - 1));
@@ -165,13 +141,10 @@ contract Lock_AccountsGuard_Fuzz_Test is AccountsGuard_Fuzz_Test {
         vm.roll(blockNumber);
 
         // When: lock is called.
-        // Then: Correct event is emitted.
         vm.prank(address(account));
-        vm.expectEmit(address(accountsGuard));
-        emit AccountsGuard.Lock(address(account), selector);
-        accountsGuard.lock(true, selector);
+        accountsGuard.lock(true);
 
-        // And: Account is Locked.
+        // Then: Account is Locked.
         assertEq(accountsGuard.getAccount(), address(account));
         assertEq(accountsGuard.getBlockNumber(), blockNumber);
     }

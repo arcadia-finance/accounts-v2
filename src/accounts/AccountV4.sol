@@ -61,6 +61,11 @@ contract AccountV4 is AccountStorageV1, IAccount {
     ////////////////////////////////////////////////////////////// */
 
     event AssetManagerSet(address indexed owner, address indexed assetManager, bool value);
+    event MerklOperatorSet(address indexed merklOperator, bool status);
+    event Skim(address indexed from, address indexed to, address asset, uint256 id, uint256 amount, uint256 type_);
+    event Transfers(
+        address indexed from, address indexed to, address[] assets, uint256[] ids, uint256[] amounts, uint256[] types
+    );
 
     /* //////////////////////////////////////////////////////////////
                                 MODIFIERS
@@ -68,12 +73,11 @@ contract AccountV4 is AccountStorageV1, IAccount {
 
     /**
      * @param pauseCheck Bool indicating if a pause check should be done.
-     * @param selector The selector of the Account function that is being called.
      * @dev Throws if cross accounts guard is reentered or paused.
      * @dev Locks/unlocks the cross accounts guard before/after the function is executed.
      */
-    modifier nonReentrant(bool pauseCheck, bytes4 selector) {
-        ACCOUNTS_GUARD.lock(pauseCheck, selector);
+    modifier nonReentrant(bool pauseCheck) {
+        ACCOUNTS_GUARD.lock(pauseCheck);
         _;
         ACCOUNTS_GUARD.unLock();
     }
@@ -146,7 +150,7 @@ contract AccountV4 is AccountStorageV1, IAccount {
     function initialize(address owner_, address registry_, address)
         external
         onlyFactory
-        nonReentrant(WITH_PAUSE_CHECK, this.initialize.selector)
+        nonReentrant(WITH_PAUSE_CHECK)
     {
         if (registry_ == address(0)) revert AccountErrors.InvalidRegistry();
         owner = owner_;
@@ -163,7 +167,7 @@ contract AccountV4 is AccountStorageV1, IAccount {
     function upgradeAccount(address newImplementation, address newRegistry, uint256, bytes calldata data)
         external
         onlyFactory
-        nonReentrant(WITHOUT_PAUSE_CHECK, this.upgradeAccount.selector)
+        nonReentrant(WITHOUT_PAUSE_CHECK)
         updateActionTimestamp
     {
         // Cache old parameters.
@@ -267,10 +271,7 @@ contract AccountV4 is AccountStorageV1, IAccount {
      * This guarantees that when the ownership of the Account is transferred, the asset managers of the old owner have no
      * impact on the new owner. But the new owner can still remove any existing asset managers before the transfer.
      */
-    function removeAssetManager(address assetManager)
-        external
-        nonReentrant(WITHOUT_PAUSE_CHECK, this.removeAssetManager.selector)
-    {
+    function removeAssetManager(address assetManager) external nonReentrant(WITHOUT_PAUSE_CHECK) {
         emit AssetManagerSet(msg.sender, assetManager, isAssetManager[msg.sender][assetManager] = false);
     }
 
@@ -290,7 +291,7 @@ contract AccountV4 is AccountStorageV1, IAccount {
     function setAssetManagers(address[] calldata assetManagers, bool[] calldata statuses, bytes[] calldata datas)
         external
         onlyOwner
-        nonReentrant(WITH_PAUSE_CHECK, this.setAssetManagers.selector)
+        nonReentrant(WITH_PAUSE_CHECK)
         updateActionTimestamp
     {
         if (assetManagers.length != statuses.length || assetManagers.length != datas.length) {
@@ -328,7 +329,7 @@ contract AccountV4 is AccountStorageV1, IAccount {
         external
         payable
         onlyAssetManager
-        nonReentrant(WITH_PAUSE_CHECK, this.flashAction.selector)
+        nonReentrant(WITH_PAUSE_CHECK)
         updateActionTimestamp
     {
         // Decode flash action data.
@@ -369,13 +370,11 @@ contract AccountV4 is AccountStorageV1, IAccount {
      * @notice Removes a Merkl Operator.
      * @param operator The merkl operator.
      */
-    function removeMerklOperator(address operator)
-        external
-        onlyOwner
-        nonReentrant(WITHOUT_PAUSE_CHECK, this.removeMerklOperator.selector)
-    {
+    function removeMerklOperator(address operator) external onlyOwner nonReentrant(WITHOUT_PAUSE_CHECK) {
         bool enabled = MERKL_DISTRIBUTOR.operators(address(this), operator) > 0;
         if (enabled) MERKL_DISTRIBUTOR.toggleOperator(address(this), operator);
+
+        emit MerklOperatorSet(operator, false);
     }
 
     /**
@@ -398,7 +397,7 @@ contract AccountV4 is AccountStorageV1, IAccount {
         bytes[] calldata operatorDatas,
         address recipient,
         address[] calldata tokens
-    ) external onlyOwner nonReentrant(WITH_PAUSE_CHECK, this.setMerklOperators.selector) updateActionTimestamp {
+    ) external onlyOwner nonReentrant(WITH_PAUSE_CHECK) updateActionTimestamp {
         if (operators.length != operatorStatuses.length || operators.length != operatorDatas.length) {
             revert AccountErrors.LengthMismatch();
         }
@@ -415,6 +414,8 @@ contract AccountV4 is AccountStorageV1, IAccount {
             if (operatorDatas[i].length > 0) {
                 IMerklOperator(operator).onSetMerklOperator(msg.sender, operatorStatuses[i], operatorDatas[i]);
             }
+
+            emit MerklOperatorSet(operator, operatorStatuses[i]);
         }
 
         // If provided, set recipient for tokens.
@@ -439,7 +440,7 @@ contract AccountV4 is AccountStorageV1, IAccount {
         uint256[] memory assetIds,
         uint256[] memory assetAmounts,
         uint256[] memory assetTypes
-    ) external payable onlyOwner nonReentrant(WITH_PAUSE_CHECK, this.deposit.selector) {
+    ) external payable onlyOwner nonReentrant(WITH_PAUSE_CHECK) {
         _deposit(assetAddresses, assetIds, assetAmounts, assetTypes, msg.sender);
     }
 
@@ -472,6 +473,8 @@ contract AccountV4 is AccountStorageV1, IAccount {
                 revert AccountErrors.UnknownAssetType();
             }
         }
+
+        emit Transfers(from, address(this), assetAddresses, assetIds, assetAmounts, assetTypes);
     }
 
     /**
@@ -486,7 +489,7 @@ contract AccountV4 is AccountStorageV1, IAccount {
         uint256[] memory assetIds,
         uint256[] memory assetAmounts,
         uint256[] memory assetTypes
-    ) public onlyOwner nonReentrant(WITHOUT_PAUSE_CHECK, this.withdraw.selector) updateActionTimestamp {
+    ) public onlyOwner nonReentrant(WITHOUT_PAUSE_CHECK) updateActionTimestamp {
         _withdraw(assetAddresses, assetIds, assetAmounts, assetTypes, msg.sender);
     }
 
@@ -522,6 +525,8 @@ contract AccountV4 is AccountStorageV1, IAccount {
                 revert AccountErrors.UnknownAssetType();
             }
         }
+
+        emit Transfers(address(this), to, assetAddresses, assetIds, assetAmounts, assetTypes);
     }
 
     /**
@@ -550,29 +555,49 @@ contract AccountV4 is AccountStorageV1, IAccount {
                 revert AccountErrors.UnknownAssetType();
             }
         }
+
+        emit Transfers(
+            owner_,
+            to,
+            transferFromOwnerData.assets,
+            transferFromOwnerData.assetIds,
+            transferFromOwnerData.assetAmounts,
+            transferFromOwnerData.assetTypes
+        );
     }
 
     /**
      * @notice Transfers assets from the owner to the actionTarget contract via Permit2.
      * @param permit Data specifying the terms of the transfer.
      * @param signature The signature to verify.
-     * @param to_ The address to withdraw to.
+     * @param to The address to withdraw to.
      */
     function _transferFromOwnerWithPermit(
         IPermit2.PermitBatchTransferFrom memory permit,
         bytes memory signature,
-        address to_
+        address to
     ) internal {
         uint256 tokenPermissionsLength = permit.permitted.length;
         IPermit2.SignatureTransferDetails[] memory transferDetails =
             new IPermit2.SignatureTransferDetails[](tokenPermissionsLength);
 
+        address[] memory addresses = new address[](tokenPermissionsLength);
+        uint256[] memory amounts = new uint256[](tokenPermissionsLength);
+        uint256[] memory types = new uint256[](tokenPermissionsLength);
+
         for (uint256 i; i < tokenPermissionsLength; ++i) {
-            transferDetails[i].to = to_;
+            transferDetails[i].to = to;
             transferDetails[i].requestedAmount = permit.permitted[i].amount;
+
+            addresses[i] = permit.permitted[i].token;
+            amounts[i] = permit.permitted[i].amount;
+            types[i] = 1;
         }
 
-        PERMIT2.permitTransferFrom(permit, transferDetails, owner, signature);
+        address owner_ = owner;
+        PERMIT2.permitTransferFrom(permit, transferDetails, owner_, signature);
+
+        emit Transfers(owner_, to, addresses, new uint256[](tokenPermissionsLength), amounts, types);
     }
 
     /* ///////////////////////////////////////////////////////////////

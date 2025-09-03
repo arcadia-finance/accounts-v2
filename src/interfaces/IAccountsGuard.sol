@@ -5,7 +5,6 @@
 pragma solidity ^0.8.22;
 
 interface IAccountsGuard {
-    function lock(bool pauseCheck, bytes4 selector) external;
-
+    function lock(bool pauseCheck) external;
     function unLock() external;
 }
