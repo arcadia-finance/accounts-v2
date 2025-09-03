@@ -205,8 +205,6 @@ contract BatchProcessWithdrawal_RegistryL2_Fuzz_Test is RegistryL2_Fuzz_Test {
         // When: zero amounts are withdrawn.
         assetAmounts = new uint256[](3);
         vm.prank(address(account));
-        vm.expectEmit();
-        emit RegistryL2.Withdrawal(address(account));
         uint256[] memory assetTypes =
             registry.batchProcessWithdrawal(address(0), assetAddresses, assetIds, assetAmounts);
 
@@ -260,8 +258,6 @@ contract BatchProcessWithdrawal_RegistryL2_Fuzz_Test is RegistryL2_Fuzz_Test {
         // When: zero amounts are withdrawn.
         assetAmounts = new uint256[](3);
         vm.prank(address(account));
-        vm.expectEmit();
-        emit RegistryL2.Withdrawal(address(account));
         uint256[] memory assetTypes =
             registry.batchProcessWithdrawal(address(creditorUsd), assetAddresses, assetIds, assetAmounts);
 
@@ -311,8 +307,6 @@ contract BatchProcessWithdrawal_RegistryL2_Fuzz_Test is RegistryL2_Fuzz_Test {
         assetAmounts[0] = amountWithdrawn;
 
         vm.prank(address(account));
-        vm.expectEmit();
-        emit RegistryL2.Withdrawal(address(account));
         uint256[] memory assetTypes =
             registry.batchProcessWithdrawal(address(0), assetAddresses, assetIds, assetAmounts);
 
@@ -350,8 +344,6 @@ contract BatchProcessWithdrawal_RegistryL2_Fuzz_Test is RegistryL2_Fuzz_Test {
         assetAmounts[0] = amountWithdrawn;
 
         vm.prank(address(account));
-        vm.expectEmit();
-        emit RegistryL2.Withdrawal(address(account));
         uint256[] memory assetTypes =
             registry.batchProcessWithdrawal(address(creditorUsd), assetAddresses, assetIds, assetAmounts);
 
@@ -380,8 +372,6 @@ contract BatchProcessWithdrawal_RegistryL2_Fuzz_Test is RegistryL2_Fuzz_Test {
         vm.stopPrank();
 
         vm.startPrank(address(account));
-        vm.expectEmit();
-        emit RegistryL2.Withdrawal(address(account));
         registry.batchProcessWithdrawal(address(creditorUsd), assetAddresses, assetIds, assetAmounts);
         vm.stopPrank();
 

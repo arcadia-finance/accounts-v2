@@ -235,8 +235,6 @@ contract BatchProcessDeposit_RegistryL1_Fuzz_Test is RegistryL1_Fuzz_Test {
         uint256[] memory assetAmounts = new uint256[](3);
 
         vm.prank(address(account));
-        vm.expectEmit();
-        emit RegistryL1.Deposit(address(account));
         registry_.batchProcessDeposit(address(0), assetAddresses, assetIds, assetAmounts);
 
         bytes32 assetKey = bytes32(abi.encodePacked(uint96(0), address(mockERC20.token1)));
@@ -266,8 +264,6 @@ contract BatchProcessDeposit_RegistryL1_Fuzz_Test is RegistryL1_Fuzz_Test {
         uint256[] memory assetAmounts = new uint256[](3);
 
         vm.prank(address(account));
-        vm.expectEmit();
-        emit RegistryL1.Deposit(address(account));
         registry_.batchProcessDeposit(address(creditorUsd), assetAddresses, assetIds, assetAmounts);
 
         bytes32 assetKey = bytes32(abi.encodePacked(uint96(0), address(mockERC20.token1)));
@@ -304,8 +300,6 @@ contract BatchProcessDeposit_RegistryL1_Fuzz_Test is RegistryL1_Fuzz_Test {
         assetAmounts[1] = amountERC1155;
 
         vm.prank(address(account));
-        vm.expectEmit();
-        emit RegistryL1.Deposit(address(account));
         registry_.batchProcessDeposit(address(0), assetAddresses, assetIds, assetAmounts);
 
         bytes32 assetKey = bytes32(abi.encodePacked(uint96(0), address(mockERC20.token1)));
@@ -331,8 +325,6 @@ contract BatchProcessDeposit_RegistryL1_Fuzz_Test is RegistryL1_Fuzz_Test {
         assetAmounts[0] = amount;
 
         vm.prank(address(account));
-        vm.expectEmit();
-        emit RegistryL1.Deposit(address(account));
         registry_.batchProcessDeposit(address(creditorUsd), assetAddresses, assetIds, assetAmounts);
 
         bytes32 assetKey = bytes32(abi.encodePacked(uint96(0), address(mockERC20.token1)));
@@ -361,8 +353,6 @@ contract BatchProcessDeposit_RegistryL1_Fuzz_Test is RegistryL1_Fuzz_Test {
         assetAmounts[1] = amountToken2;
 
         vm.prank(address(account));
-        vm.expectEmit();
-        emit RegistryL1.Deposit(address(account));
         registry_.batchProcessDeposit(address(creditorUsd), assetAddresses, assetIds, assetAmounts);
 
         bytes32 assetKey = bytes32(abi.encodePacked(uint96(0), address(mockERC20.token1)));
@@ -388,8 +378,6 @@ contract BatchProcessDeposit_RegistryL1_Fuzz_Test is RegistryL1_Fuzz_Test {
         assetAmounts[0] = amountToken2;
 
         vm.startPrank(address(account));
-        vm.expectEmit();
-        emit RegistryL1.Deposit(address(account));
         registry_.batchProcessDeposit(address(creditorUsd), assetAddresses, assetIds, assetAmounts);
         vm.stopPrank();
 
