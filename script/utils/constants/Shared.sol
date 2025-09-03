@@ -7,9 +7,12 @@ pragma solidity ^0.8.22;
 library AccountLogic {
     address internal constant V1 = 0xbea2B6d45ACaF62385877D835970a0788719cAe1;
     address internal constant V2 = 0xd8AF1F1dEe6EA38f9c08b5cfa31e01ad2Bfbef28; // Spot account.
+    address internal constant V3 = 0x78Db6a136EdD0F70bEd7a6eb5ca2fDF6eE16E8D6;
+    address internal constant V4 = 0xe976BFb44f9322164ca6fdA6C5B84fBb6163D442;
 }
 
 library ArcadiaAccounts {
+    address internal constant ACCOUNTS_GUARD = 0x2529AE4a3c9d3285DD06CaDfc8516D3faBD6240b;
     address internal constant FACTORY = 0xDa14Fdd72345c4d2511357214c5B89A919768e59;
     address internal constant REGISTRY = 0xd0690557600eb8Be8391D1d97346e2aab5300d5f;
     address internal constant UNISWAPV4_HOOKS_REGISTRY = 0x8B0fd5352caE4E7c86632CA791229d132Fef5D3C;
