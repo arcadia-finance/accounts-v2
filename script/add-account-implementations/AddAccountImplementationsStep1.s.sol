@@ -21,10 +21,5 @@ contract AddAccountImplementationsStep1 is Base_Script {
         new AccountV3(ArcadiaAccounts.FACTORY, address(accountsGuard), Merkl.DISTRIBUTOR);
         new AccountV4(ArcadiaAccounts.FACTORY, address(accountsGuard), Merkl.DISTRIBUTOR);
         vm.stopBroadcast();
-
-        bytes32 leaf0 = keccak256(abi.encodePacked(uint256(1), uint256(3)));
-        bytes32 leaf1 = keccak256(abi.encodePacked(uint256(2), uint256(4)));
-        bytes32 root = Utils.commutativeKeccak256(leaf0, leaf1);
-        emit log_bytes32(root);
     }
 }

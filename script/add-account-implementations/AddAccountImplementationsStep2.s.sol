@@ -18,8 +18,6 @@ contract AddAccountImplementationsStep2 is Base_Script {
         bytes32 root = Utils.commutativeKeccak256(leaf0, leaf1);
         emit log_bytes32(root);
 
-        if (MerkleRoots.V4 != root) revert();
-
         // Add New Account Implementations.
         addToBatch(
             SAFE,
