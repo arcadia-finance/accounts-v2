@@ -1,11 +1,11 @@
 // SPDX-License-Identifier: BUSL-1.1
-pragma solidity ^0.8.22;
+pragma solidity =0.8.26;
 
 import { IAllowanceTransfer } from "../../../../../lib/v4-periphery/lib/permit2/src/interfaces/IAllowanceTransfer.sol";
+import { IPoolManager } from "../../../../../lib/v4-periphery/lib/v4-core/src/interfaces/IPoolManager.sol";
 import { IPositionDescriptor } from "../../../../../lib/v4-periphery/src/interfaces/IPositionDescriptor.sol";
 import { IWETH9 } from "../../../../../lib/v4-periphery/src/interfaces/external/IWETH9.sol";
 import { PoolKey } from "../../../../../lib/v4-periphery/lib/v4-core/src/types/PoolKey.sol";
-import { PoolManagerExtension } from "./PoolManagerExtension.sol";
 import {
     PositionInfo, PositionInfoLibrary
 } from "../../../../../lib/v4-periphery/src/libraries/PositionInfoLibrary.sol";
@@ -15,7 +15,7 @@ contract PositionManagerExtension is PositionManager {
     using PositionInfoLibrary for PositionInfo;
 
     constructor(
-        PoolManagerExtension poolManager_,
+        IPoolManager poolManager_,
         IAllowanceTransfer permit2_,
         uint256 unsubscribeGasLimit_,
         IPositionDescriptor tokenDescriptor_,

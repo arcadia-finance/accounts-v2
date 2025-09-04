@@ -2,7 +2,7 @@
  * Created by Pragma Labs
  * SPDX-License-Identifier: BUSL-1.1
  */
-pragma solidity 0.8.22;
+pragma solidity ^0.8.22;
 
 import { AccountV4 } from "../../../../src/accounts/AccountV4.sol";
 import { AccountV4_Fuzz_Test } from "./_AccountV4.fuzz.t.sol";

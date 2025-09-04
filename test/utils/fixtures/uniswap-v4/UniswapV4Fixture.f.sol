@@ -13,14 +13,13 @@ import { HookMockValid } from "../..//mocks/UniswapV4/BaseAM/HookMockValid.sol";
 import { HookMockUnvalid } from "../../mocks/UniswapV4/BaseAM/HookMockUnvalid.sol";
 import { Hooks } from "../../../../lib/v4-periphery/lib/v4-core/src/libraries/Hooks.sol";
 import { IAllowanceTransfer } from "../../../../lib/v4-periphery/lib/permit2/src/interfaces/IAllowanceTransfer.sol";
-import { IPoolManager } from "../../../../lib/v4-periphery/lib/v4-core/src/interfaces/IPoolManager.sol";
+import { IPoolManagerExtension } from "./interfaces/IPoolManagerExtension.sol";
+import { IPositionManagerExtension } from "./interfaces/IPositionManagerExtension.sol";
 import { IPositionDescriptor } from "../../../../lib/v4-periphery/src/interfaces/IPositionDescriptor.sol";
 import { IWETH9 } from "../../../../lib/v4-periphery/src/interfaces/external/IWETH9.sol";
 import { LiquidityAmounts } from "../../../../src/asset-modules/UniswapV3/libraries/LiquidityAmounts.sol";
 import { Permit2Fixture } from "../../../utils/fixtures/permit2/Permit2Fixture.f.sol";
 import { PoolKey } from "../../../../lib/v4-periphery/lib/v4-core/src/types/PoolKey.sol";
-import { PoolManagerExtension } from "./extensions/PoolManagerExtension.sol";
-import { PositionManagerExtension } from "./extensions/PositionManagerExtension.sol";
 import { StateView } from "../../../../lib/v4-periphery/src/lens/StateView.sol";
 import { Test } from "../../../../lib/forge-std/src/Test.sol";
 import { TickMath } from "../../../../lib/v4-periphery/lib/v4-core/src/libraries/TickMath.sol";
@@ -33,8 +32,9 @@ contract UniswapV4Fixture is Test, Permit2Fixture, WETH9Fixture {
 
     BaseHookExtension internal validHook;
     BaseHookExtension internal unvalidHook;
-    PoolManagerExtension internal poolManager;
-    PositionManagerExtension internal positionManagerV4;
+    IPoolManagerExtension internal poolManager = IPoolManagerExtension(0x498581fF718922c3f8e6A244956aF099B2652b2b);
+    IPositionManagerExtension internal positionManagerV4 =
+        IPositionManagerExtension(0x7C5f5A4bBd8fD63184577525326123B519429bDc);
     StateView internal stateView;
 
     /*//////////////////////////////////////////////////////////////////////////
@@ -63,7 +63,8 @@ contract UniswapV4Fixture is Test, Permit2Fixture, WETH9Fixture {
 
     function setUp() public virtual override(Permit2Fixture, WETH9Fixture) {
         // Deploy Pool Manager
-        poolManager = new PoolManagerExtension();
+        bytes memory args = abi.encode();
+        deployCodeTo("PoolManagerExtension.sol", args, address(poolManager));
 
         // Deploy StateView
         stateView = new StateView(poolManager);
@@ -75,13 +76,14 @@ contract UniswapV4Fixture is Test, Permit2Fixture, WETH9Fixture {
         WETH9Fixture.setUp();
 
         // Deploy Position Manager
-        positionManagerV4 = new PositionManagerExtension(
+        args = abi.encode(
             poolManager,
             IAllowanceTransfer(address(permit2)),
             0,
             IPositionDescriptor(address(0)),
             IWETH9(address(weth9))
         );
+        deployCodeTo("PositionManagerExtension.sol", args, address(positionManagerV4));
 
         // Deploy mocked hooks (to get contrac instance used below)
         validHook = new HookMockValid(poolManager);

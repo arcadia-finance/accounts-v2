@@ -9,14 +9,13 @@ import { BaseHookExtension } from "../../../fixtures/uniswap-v4/extensions/BaseH
 import { Hooks } from "../../../../../lib/v4-periphery/lib/v4-core/src/libraries/Hooks.sol";
 import { IPoolManager } from "../../../../../lib/v4-periphery/lib/v4-core/src/interfaces/IPoolManager.sol";
 import { PoolKey } from "../../../../../lib/v4-periphery/lib/v4-core/src/types/PoolKey.sol";
-import { PoolManagerExtension } from "../../../fixtures/uniswap-v4/extensions/PoolManagerExtension.sol";
 
 contract HookMockUnvalid is BaseHookExtension {
     /*//////////////////////////////////////////////////////////////
                             CONSTRUCTOR
     //////////////////////////////////////////////////////////////*/
 
-    constructor(PoolManagerExtension manager) BaseHookExtension(manager) { }
+    constructor(IPoolManager manager) BaseHookExtension(manager) { }
 
     /*//////////////////////////////////////////////////////////////
                         HOOK PERMISSIONS
