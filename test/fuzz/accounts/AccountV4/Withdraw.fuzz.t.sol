@@ -6,6 +6,7 @@ pragma solidity 0.8.22;
 
 import { AccountErrors } from "../../../../src/libraries/Errors.sol";
 import { AccountsGuard } from "../../../../src/accounts/helpers/AccountsGuard.sol";
+import { AccountV4 } from "../../../../src/accounts/AccountV4.sol";
 import { AccountV4_Fuzz_Test } from "./_AccountV4.fuzz.t.sol";
 import { AccountV4Extension } from "../../../utils/extensions/AccountV4Extension.sol";
 
@@ -104,6 +105,11 @@ contract Withdraw_AccountV4_Fuzz_Test is AccountV4_Fuzz_Test {
         vm.warp(time);
 
         // When: A user Fully withdraws assets.
+        // Then: Correct events are emitted.
+        vm.expectEmit(address(accountSpot));
+        emit AccountV4.Transfers(
+            address(accountSpot), users.accountOwner, assetAddresses, assetIds, assetAmounts, assetTypes
+        );
         vm.prank(users.accountOwner);
         accountSpot.withdraw(assetAddresses, assetIds, assetAmounts, assetTypes);
 

@@ -50,7 +50,6 @@ contract AccountsGuard is Owned {
     ////////////////////////////////////////////////////////////// */
 
     event GuardianChanged(address indexed user, address indexed newGuardian);
-    event Lock(address indexed account, bytes4 indexed selector);
     event PauseFlagsUpdated(bool pauseUpdate);
 
     /* //////////////////////////////////////////////////////////////
@@ -92,7 +91,6 @@ contract AccountsGuard is Owned {
     /**
      * @notice Locks the cross accounts guard.
      * @param pauseCheck Bool indicating if a pause check should be done.
-     * @param selector The selector of the Account function that is being called.
      * @dev Serves as a cross account reentrancy and pause guard.
      * @dev lock() and unlock() should always be called atomically at the beginning and end of any Account-function
      * that should be protected by the cross accounts guard.
@@ -101,15 +99,13 @@ contract AccountsGuard is Owned {
      * where the Guard was locked but not unlocked (should never happen in practice),
      * then only transactions within the same block as the faulty transaction will revert.
      */
-    function lock(bool pauseCheck, bytes4 selector) external {
+    function lock(bool pauseCheck) external {
         if (pauseCheck && paused) revert Paused();
         if (account != address(0) && blockNumber == block.number) revert Reentered();
         if (!ARCADIA_FACTORY.isAccount(msg.sender)) revert OnlyAccount();
 
         account = msg.sender;
         blockNumber = uint32(block.number);
-
-        emit Lock(msg.sender, selector);
     }
 
     /**

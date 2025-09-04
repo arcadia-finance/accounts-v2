@@ -6,6 +6,7 @@ pragma solidity ^0.8.22;
 
 import { AccountErrors } from "../../../../src/libraries/Errors.sol";
 import { AccountsGuard } from "../../../../src/accounts/helpers/AccountsGuard.sol";
+import { AccountV3 } from "../../../../src/accounts/AccountV3.sol";
 import { AccountV3_Fuzz_Test } from "./_AccountV3.fuzz.t.sol";
 import { AccountV3Extension } from "../../../utils/extensions/AccountV3Extension.sol";
 import { AssetModuleMock } from "../../../utils/mocks/asset-modules/AssetModuleMock.sol";
@@ -455,10 +456,19 @@ contract Withdraw_AccountV3_Fuzz_Test is AccountV3_Fuzz_Test {
         accountExtension.deposit(assetAddresses, assetIds, assetAmounts);
 
         // When: A user Fully withdraws assets.
+        // Then: Correct events are emitted.
+        uint256[] memory types = new uint256[](3);
+        types[0] = 1;
+        types[1] = 2;
+        types[2] = 3;
+        vm.expectEmit(address(accountExtension));
+        emit AccountV3.Transfers(
+            address(accountExtension), users.accountOwner, assetAddresses, assetIds, assetAmounts, types
+        );
         vm.prank(users.accountOwner);
         accountExtension.withdraw(assetAddresses, assetIds, assetAmounts);
 
-        // Then: Asset arrays are properly updated.
+        // And: Asset arrays are properly updated.
         (uint256 erc20Length, uint256 erc721Length,, uint256 erc1155Length) = accountExtension.getLengths();
 
         assertEq(erc20Length, 0);
@@ -533,10 +543,18 @@ contract Withdraw_AccountV3_Fuzz_Test is AccountV3_Fuzz_Test {
         assetAmounts[0] = erc20WithdrawAmount;
         assetAmounts[1] = erc1155WithdrawAmount;
 
+        // Then: Correct events are emitted.
+        uint256[] memory types = new uint256[](2);
+        types[0] = 1;
+        types[1] = 3;
+        vm.expectEmit(address(accountExtension));
+        emit AccountV3.Transfers(
+            address(accountExtension), users.accountOwner, assetAddresses, assetIds, assetAmounts, types
+        );
         vm.prank(users.accountOwner);
         accountExtension.withdraw(assetAddresses, assetIds, assetAmounts);
 
-        // Then: Asset arrays are properly updated.
+        // And: Asset arrays are properly updated.
         (uint256 erc20Length, uint256 erc721Length,, uint256 erc1155Length) = accountExtension.getLengths();
 
         assertEq(erc20Length, 1);

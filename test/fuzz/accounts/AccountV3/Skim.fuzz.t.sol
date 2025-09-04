@@ -6,6 +6,7 @@ pragma solidity ^0.8.22;
 
 import { AccountErrors } from "../../../../src/libraries/Errors.sol";
 import { AccountsGuard } from "../../../../src/accounts/helpers/AccountsGuard.sol";
+import { AccountV3 } from "../../../../src/accounts/AccountV3.sol";
 import { AccountV3_Fuzz_Test } from "./_AccountV3.fuzz.t.sol";
 import { ERC20 } from "../../../../lib/solmate/src/tokens/ERC20.sol";
 import { ERC721 } from "../../../../lib/solmate/src/tokens/ERC721.sol";
@@ -67,6 +68,15 @@ contract Skim_AccountV3_Fuzz_Test is AccountV3_Fuzz_Test {
         accountExtension.skim(address(0), 0, 0);
     }
 
+    function testFuzz_Revert_skim_UnknownAssetType(address asset, uint256 id, uint256 type_) public {
+        vm.assume(asset != address(0));
+        type_ = bound(type_, 4, type(uint256).max);
+
+        vm.prank(users.accountOwner);
+        vm.expectRevert(AccountErrors.UnknownAssetType.selector);
+        accountExtension.skim(asset, id, type_);
+    }
+
     function testFuzz_Success_skim_Type1_NonZeroSkim(uint256 depositAmount, uint256 transferAmount, uint32 time)
         public
     {
@@ -82,8 +92,12 @@ contract Skim_AccountV3_Fuzz_Test is AccountV3_Fuzz_Test {
         vm.warp(time);
 
         vm.startPrank(users.accountOwner);
-        vm.expectEmit(true, true, true, true);
+        vm.expectEmit(address(mockERC20.token1));
         emit ERC20.Transfer(address(accountExtension), users.accountOwner, transferAmount);
+        vm.expectEmit(address(accountExtension));
+        emit AccountV3.Skim(
+            address(accountExtension), users.accountOwner, address(mockERC20.token1), 0, transferAmount, 1
+        );
         accountExtension.skim(address(mockERC20.token1), 0, 1);
         vm.stopPrank();
 
@@ -138,8 +152,10 @@ contract Skim_AccountV3_Fuzz_Test is AccountV3_Fuzz_Test {
         vm.warp(time);
 
         vm.startPrank(users.accountOwner);
-        vm.expectEmit(true, true, true, true);
+        vm.expectEmit(address(mockERC721.nft1));
         emit ERC721.Transfer(address(accountExtension), users.accountOwner, 100);
+        vm.expectEmit(address(accountExtension));
+        emit AccountV3.Skim(address(accountExtension), users.accountOwner, address(mockERC721.nft1), 100, 1, 2);
         accountExtension.skim(address(mockERC721.nft1), 100, 2);
         vm.stopPrank();
 
@@ -203,9 +219,13 @@ contract Skim_AccountV3_Fuzz_Test is AccountV3_Fuzz_Test {
         vm.warp(time);
 
         vm.startPrank(users.accountOwner);
-        vm.expectEmit(true, true, true, true);
+        vm.expectEmit(address(mockERC1155.sft1));
         emit ERC1155.TransferSingle(
             address(accountExtension), address(accountExtension), users.accountOwner, 1, transferAmount
+        );
+        vm.expectEmit(address(accountExtension));
+        emit AccountV3.Skim(
+            address(accountExtension), users.accountOwner, address(mockERC1155.sft1), 1, transferAmount, 3
         );
         accountExtension.skim(address(mockERC1155.sft1), 1, 3);
         vm.stopPrank();
@@ -258,22 +278,38 @@ contract Skim_AccountV3_Fuzz_Test is AccountV3_Fuzz_Test {
         assertEq(accountExtension.lastActionTimestamp(), time);
     }
 
-    function testFuzz_Success_skim_Ether(uint256 transferAmount, uint32 time) public {
+    function testFuzz_Success_skim_Ether_NonZeroSkim(uint256 transferAmount, uint32 time, uint256 type_) public {
         uint256 balancePre = users.accountOwner.balance;
 
         // No overflow.
-        transferAmount = bound(transferAmount, 0, type(uint256).max - balancePre);
+        transferAmount = bound(transferAmount, 1, type(uint256).max - balancePre);
 
         vm.deal(address(accountExtension), transferAmount);
 
         vm.warp(time);
 
+        vm.expectEmit(address(accountExtension));
+        emit AccountV3.Skim(address(accountExtension), users.accountOwner, address(0), 0, transferAmount, type_);
         vm.prank(users.accountOwner);
-        accountExtension.skim(address(0), 0, 0);
+        accountExtension.skim(address(0), 0, type_);
 
         uint256 balancePost = users.accountOwner.balance;
 
         assertEq(balancePost, balancePre + transferAmount);
+
+        assertEq(accountExtension.lastActionTimestamp(), time);
+    }
+
+    function testFuzz_Success_skim_Ether_NothingToSkim(uint32 time, uint256 type_) public {
+        uint256 balancePre = users.accountOwner.balance;
+
+        vm.warp(time);
+
+        vm.prank(users.accountOwner);
+        accountExtension.skim(address(0), 0, type_);
+
+        uint256 balancePost = users.accountOwner.balance;
+        assertEq(balancePost, balancePre);
 
         assertEq(accountExtension.lastActionTimestamp(), time);
     }

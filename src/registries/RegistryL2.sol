@@ -89,10 +89,8 @@ contract RegistryL2 is IRegistry, RegistryGuardian {
 
     event AssetAdded(address indexed assetAddress, address indexed assetModule);
     event AssetModuleAdded(address assetModule);
-    event Deposit(address account);
     event OracleAdded(uint256 indexed oracleId, address indexed oracleModule);
     event OracleModuleAdded(address oracleModule);
-    event Withdrawal(address account);
 
     /* //////////////////////////////////////////////////////////////
                                 MODIFIERS
@@ -486,9 +484,6 @@ contract RegistryL2 is IRegistry, RegistryGuardian {
                 if (recursiveCalls > maxRecursiveCalls) revert RegistryErrors.MaxRecursiveCallsReached();
             }
         }
-
-        // Emit Deposit event for account for indexing purposes.
-        emit Deposit(msg.sender);
     }
 
     /**
@@ -532,9 +527,6 @@ contract RegistryL2 is IRegistry, RegistryGuardian {
                 );
             }
         }
-
-        // Emit Withdrawal event for account for indexing purposes.
-        emit Withdrawal(msg.sender);
     }
 
     /**

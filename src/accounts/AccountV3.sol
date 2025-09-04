@@ -76,9 +76,14 @@ contract AccountV3 is AccountStorageV1, IAccount {
                                 EVENTS
     ////////////////////////////////////////////////////////////// */
 
-    event AssetManagerSet(address indexed owner, address indexed assetManager, bool value);
+    event AssetManagerSet(address indexed owner, address indexed assetManager, bool status);
     event MarginAccountChanged(address indexed creditor, address indexed liquidator);
+    event MerklOperatorSet(address indexed merklOperator, bool status);
     event NumeraireSet(address indexed numeraire);
+    event Skim(address indexed from, address indexed to, address asset, uint256 id, uint256 amount, uint256 type_);
+    event Transfers(
+        address indexed from, address indexed to, address[] assets, uint256[] ids, uint256[] amounts, uint256[] types
+    );
 
     /* //////////////////////////////////////////////////////////////
                                 MODIFIERS
@@ -86,12 +91,11 @@ contract AccountV3 is AccountStorageV1, IAccount {
 
     /**
      * @param pauseCheck Bool indicating if a pause check should be done.
-     * @param selector The selector of the Account function that is being called.
      * @dev Throws if cross accounts guard is reentered or paused.
      * @dev Locks/unlocks the cross accounts guard before/after the function is executed.
      */
-    modifier nonReentrant(bool pauseCheck, bytes4 selector) {
-        ACCOUNTS_GUARD.lock(pauseCheck, selector);
+    modifier nonReentrant(bool pauseCheck) {
+        ACCOUNTS_GUARD.lock(pauseCheck);
         _;
         ACCOUNTS_GUARD.unLock();
     }
@@ -189,7 +193,7 @@ contract AccountV3 is AccountStorageV1, IAccount {
     function initialize(address owner_, address registry_, address creditor_)
         external
         onlyFactory
-        nonReentrant(WITH_PAUSE_CHECK, this.initialize.selector)
+        nonReentrant(WITH_PAUSE_CHECK)
     {
         if (registry_ == address(0)) revert AccountErrors.InvalidRegistry();
         owner = owner_;
@@ -209,7 +213,7 @@ contract AccountV3 is AccountStorageV1, IAccount {
     function upgradeAccount(address newImplementation, address newRegistry, uint256 newVersion, bytes calldata data)
         external
         onlyFactory
-        nonReentrant(WITHOUT_PAUSE_CHECK, this.upgradeAccount.selector)
+        nonReentrant(WITHOUT_PAUSE_CHECK)
         notDuringAuction
         updateActionTimestamp
     {
@@ -300,11 +304,7 @@ contract AccountV3 is AccountStorageV1, IAccount {
      * @notice Sets the Numeraire of the Account.
      * @param numeraire_ The new Numeraire for the Account.
      */
-    function setNumeraire(address numeraire_)
-        external
-        onlyOwner
-        nonReentrant(WITH_PAUSE_CHECK, this.setNumeraire.selector)
-    {
+    function setNumeraire(address numeraire_) external onlyOwner nonReentrant(WITH_PAUSE_CHECK) {
         if (creditor != address(0)) revert AccountErrors.CreditorAlreadySet();
         _setNumeraire(numeraire_);
     }
@@ -334,7 +334,7 @@ contract AccountV3 is AccountStorageV1, IAccount {
     function openMarginAccount(address newCreditor)
         external
         onlyOwner
-        nonReentrant(WITH_PAUSE_CHECK, this.openMarginAccount.selector)
+        nonReentrant(WITH_PAUSE_CHECK)
         notDuringAuction
         updateActionTimestamp
     {
@@ -385,12 +385,7 @@ contract AccountV3 is AccountStorageV1, IAccount {
      * @notice Closes the margin account of the Creditor.
      * @dev Currently only one Creditor can be set.
      */
-    function closeMarginAccount()
-        external
-        onlyOwner
-        nonReentrant(WITHOUT_PAUSE_CHECK, this.closeMarginAccount.selector)
-        notDuringAuction
-    {
+    function closeMarginAccount() external onlyOwner nonReentrant(WITHOUT_PAUSE_CHECK) notDuringAuction {
         // Cache creditor.
         address creditor_ = creditor;
         if (creditor_ == address(0)) revert AccountErrors.CreditorNotSet();
@@ -423,10 +418,7 @@ contract AccountV3 is AccountStorageV1, IAccount {
      * This guarantees that when the ownership of the Account is transferred, the approved Creditor of the old owner has no
      * impact on the new owner. But the new owner can still remove any existing approved Creditors before the transfer.
      */
-    function setApprovedCreditor(address creditor_)
-        external
-        nonReentrant(WITH_PAUSE_CHECK, this.setApprovedCreditor.selector)
-    {
+    function setApprovedCreditor(address creditor_) external nonReentrant(WITH_PAUSE_CHECK) {
         approvedCreditor[msg.sender] = creditor_;
     }
 
@@ -545,7 +537,7 @@ contract AccountV3 is AccountStorageV1, IAccount {
     function startLiquidation(address initiator)
         external
         onlyLiquidator
-        nonReentrant(WITHOUT_PAUSE_CHECK, this.startLiquidation.selector)
+        nonReentrant(WITHOUT_PAUSE_CHECK)
         updateActionTimestamp
         returns (
             address[] memory assetAddresses,
@@ -587,12 +579,7 @@ contract AccountV3 is AccountStorageV1, IAccount {
         uint256[] memory assetIds,
         uint256[] memory assetAmounts,
         address bidder
-    )
-        external
-        onlyLiquidator
-        nonReentrant(WITHOUT_PAUSE_CHECK, this.auctionBid.selector)
-        returns (uint256[] memory assetAmounts_)
-    {
+    ) external onlyLiquidator nonReentrant(WITHOUT_PAUSE_CHECK) returns (uint256[] memory assetAmounts_) {
         uint256[] memory assetTypes = IRegistry(registry).batchGetAssetTypes(assetAddresses);
         uint256 balance;
         for (uint256 i; i < assetAddresses.length; ++i) {
@@ -623,18 +610,14 @@ contract AccountV3 is AccountStorageV1, IAccount {
      * @dev When an auction is not successful, the Account is considered "Bought In":
      * The whole Account including any remaining assets are transferred to a certain recipient address, set by the Creditor.
      */
-    function auctionBoughtIn(address recipient)
-        external
-        onlyLiquidator
-        nonReentrant(WITHOUT_PAUSE_CHECK, this.auctionBoughtIn.selector)
-    {
+    function auctionBoughtIn(address recipient) external onlyLiquidator nonReentrant(WITHOUT_PAUSE_CHECK) {
         _transferOwnership(recipient);
     }
 
     /**
      * @notice Sets the "inAuction" flag to false when an auction ends.
      */
-    function endAuction() external onlyLiquidator nonReentrant(WITHOUT_PAUSE_CHECK, this.endAuction.selector) {
+    function endAuction() external onlyLiquidator nonReentrant(WITHOUT_PAUSE_CHECK) {
         inAuction = false;
     }
 
@@ -650,10 +633,7 @@ contract AccountV3 is AccountStorageV1, IAccount {
      * This guarantees that when the ownership of the Account is transferred, the asset managers of the old owner have no
      * impact on the new owner. But the new owner can still remove any existing asset managers before the transfer.
      */
-    function removeAssetManager(address assetManager)
-        external
-        nonReentrant(WITHOUT_PAUSE_CHECK, this.removeAssetManager.selector)
-    {
+    function removeAssetManager(address assetManager) external nonReentrant(WITHOUT_PAUSE_CHECK) {
         emit AssetManagerSet(msg.sender, assetManager, isAssetManager[msg.sender][assetManager] = false);
     }
 
@@ -673,7 +653,7 @@ contract AccountV3 is AccountStorageV1, IAccount {
     function setAssetManagers(address[] calldata assetManagers, bool[] calldata statuses, bytes[] calldata datas)
         external
         onlyOwner
-        nonReentrant(WITH_PAUSE_CHECK, this.setAssetManagers.selector)
+        nonReentrant(WITH_PAUSE_CHECK)
         updateActionTimestamp
     {
         if (assetManagers.length != statuses.length || assetManagers.length != datas.length) {
@@ -713,7 +693,7 @@ contract AccountV3 is AccountStorageV1, IAccount {
     function flashAction(address actionTarget, bytes calldata actionData)
         external
         onlyAssetManager
-        nonReentrant(WITH_PAUSE_CHECK, this.flashAction.selector)
+        nonReentrant(WITH_PAUSE_CHECK)
         notDuringAuction
         updateActionTimestamp
     {
@@ -754,13 +734,11 @@ contract AccountV3 is AccountStorageV1, IAccount {
      * @notice Removes a Merkl Operator.
      * @param operator The merkl operator.
      */
-    function removeMerklOperator(address operator)
-        external
-        onlyOwner
-        nonReentrant(WITHOUT_PAUSE_CHECK, this.removeMerklOperator.selector)
-    {
+    function removeMerklOperator(address operator) external onlyOwner nonReentrant(WITHOUT_PAUSE_CHECK) {
         bool enabled = MERKL_DISTRIBUTOR.operators(address(this), operator) > 0;
         if (enabled) MERKL_DISTRIBUTOR.toggleOperator(address(this), operator);
+
+        emit MerklOperatorSet(operator, false);
     }
 
     /**
@@ -783,7 +761,7 @@ contract AccountV3 is AccountStorageV1, IAccount {
         bytes[] calldata operatorDatas,
         address recipient,
         address[] calldata tokens
-    ) external onlyOwner nonReentrant(WITH_PAUSE_CHECK, this.setMerklOperators.selector) updateActionTimestamp {
+    ) external onlyOwner nonReentrant(WITH_PAUSE_CHECK) updateActionTimestamp {
         if (operators.length != operatorStatuses.length || operators.length != operatorDatas.length) {
             revert AccountErrors.LengthMismatch();
         }
@@ -800,6 +778,8 @@ contract AccountV3 is AccountStorageV1, IAccount {
             if (operatorDatas[i].length > 0) {
                 IMerklOperator(operator).onSetMerklOperator(msg.sender, operatorStatuses[i], operatorDatas[i]);
             }
+
+            emit MerklOperatorSet(operator, operatorStatuses[i]);
         }
 
         // If provided, set recipient for tokens.
@@ -823,7 +803,7 @@ contract AccountV3 is AccountStorageV1, IAccount {
     function increaseOpenPosition(uint256 openPosition)
         external
         onlyCreditor
-        nonReentrant(WITH_PAUSE_CHECK, this.increaseOpenPosition.selector)
+        nonReentrant(WITH_PAUSE_CHECK)
         notDuringAuction
         updateActionTimestamp
         returns (uint256 accountVersion)
@@ -865,7 +845,7 @@ contract AccountV3 is AccountStorageV1, IAccount {
      */
     function flashActionByCreditor(bytes calldata callbackData, address actionTarget, bytes calldata actionData)
         external
-        nonReentrant(WITH_PAUSE_CHECK, this.flashActionByCreditor.selector)
+        nonReentrant(WITH_PAUSE_CHECK)
         notDuringAuction
         updateActionTimestamp
         returns (uint256 accountVersion)
@@ -966,7 +946,7 @@ contract AccountV3 is AccountStorageV1, IAccount {
     function deposit(address[] calldata assetAddresses, uint256[] calldata assetIds, uint256[] calldata assetAmounts)
         external
         onlyOwner
-        nonReentrant(WITH_PAUSE_CHECK, this.deposit.selector)
+        nonReentrant(WITH_PAUSE_CHECK)
         notDuringAuction
     {
         // No need to check that all arrays have equal length, this check will be done in the Registry.
@@ -1012,6 +992,8 @@ contract AccountV3 is AccountStorageV1, IAccount {
         // If no Creditor is set, batchProcessDeposit only checks if the assets can be priced.
         // If a Creditor is set, batchProcessDeposit will also update the exposures of assets and underlying assets for the Creditor.
         IRegistry(registry).batchProcessDeposit(creditor, assetAddresses, assetIds, assetAmounts);
+
+        emit Transfers(from, address(this), assetAddresses, assetIds, assetAmounts, assetTypes);
     }
 
     /**
@@ -1034,7 +1016,7 @@ contract AccountV3 is AccountStorageV1, IAccount {
     function withdraw(address[] calldata assetAddresses, uint256[] calldata assetIds, uint256[] calldata assetAmounts)
         external
         onlyOwner
-        nonReentrant(WITHOUT_PAUSE_CHECK, this.withdraw.selector)
+        nonReentrant(WITHOUT_PAUSE_CHECK)
         notDuringAuction
         updateActionTimestamp
     {
@@ -1080,6 +1062,8 @@ contract AccountV3 is AccountStorageV1, IAccount {
                 revert AccountErrors.UnknownAssetType();
             }
         }
+
+        emit Transfers(address(this), to, assetAddresses, assetIds, assetAmounts, assetTypes);
     }
 
     /**
@@ -1290,56 +1274,78 @@ contract AccountV3 is AccountStorageV1, IAccount {
                 revert AccountErrors.UnknownAssetType();
             }
         }
+
+        emit Transfers(
+            owner_,
+            to,
+            transferFromOwnerData.assets,
+            transferFromOwnerData.assetIds,
+            transferFromOwnerData.assetAmounts,
+            transferFromOwnerData.assetTypes
+        );
     }
 
     /**
      * @notice Transfers assets from the owner to the actionTarget contract via Permit2.
      * @param permit Data specifying the terms of the transfer.
      * @param signature The signature to verify.
-     * @param to_ The address to withdraw to.
+     * @param to The address to withdraw to.
      */
     function _transferFromOwnerWithPermit(
         IPermit2.PermitBatchTransferFrom memory permit,
         bytes memory signature,
-        address to_
+        address to
     ) internal {
         uint256 tokenPermissionsLength = permit.permitted.length;
         IPermit2.SignatureTransferDetails[] memory transferDetails =
             new IPermit2.SignatureTransferDetails[](tokenPermissionsLength);
 
+        address[] memory addresses = new address[](tokenPermissionsLength);
+        uint256[] memory amounts = new uint256[](tokenPermissionsLength);
+        uint256[] memory types = new uint256[](tokenPermissionsLength);
+
         for (uint256 i; i < tokenPermissionsLength; ++i) {
-            transferDetails[i].to = to_;
+            transferDetails[i].to = to;
             transferDetails[i].requestedAmount = permit.permitted[i].amount;
+
+            addresses[i] = permit.permitted[i].token;
+            amounts[i] = permit.permitted[i].amount;
+            types[i] = 1;
         }
 
-        PERMIT2.permitTransferFrom(permit, transferDetails, owner, signature);
+        address owner_ = owner;
+        PERMIT2.permitTransferFrom(permit, transferDetails, owner_, signature);
+
+        emit Transfers(owner_, to, addresses, new uint256[](tokenPermissionsLength), amounts, types);
     }
 
     /**
      * @notice Skims non-deposited assets from the Account.
-     * @param token The contract address of the asset.
+     * @param token The contract address of the asset, address(0) for native token.
      * @param id The ID of the asset.
      * @param type_ The asset type of the asset.
      * @dev Function can retrieve assets that were transferred to the Account but not deposited
      * or can be used to claim yield for strictly upwards rebasing tokens.
+     * @dev Unused input parameters (e.g. id's for ERC20, or type for native token) are not validated,
+     * hence arbitrary value can be emitted in events.
      */
     function skim(address token, uint256 id, uint256 type_)
         public
         onlyOwner
-        nonReentrant(WITHOUT_PAUSE_CHECK, this.skim.selector)
+        nonReentrant(WITHOUT_PAUSE_CHECK)
         updateActionTimestamp
     {
+        uint256 amount;
         if (token == address(0)) {
-            (bool success, bytes memory result) = payable(msg.sender).call{ value: address(this).balance }("");
+            amount = address(this).balance;
+            (bool success, bytes memory result) = payable(msg.sender).call{ value: amount }("");
             require(success, string(result));
-            return;
-        }
-
-        if (type_ == 1) {
+        } else if (type_ == 1) {
             uint256 balance = ERC20(token).balanceOf(address(this));
             uint256 balanceStored = erc20Balances[token];
             if (balance > balanceStored) {
-                ERC20(token).safeTransfer(msg.sender, balance - balanceStored);
+                amount = balance - balanceStored;
+                ERC20(token).safeTransfer(msg.sender, amount);
             }
         } else if (type_ == 2) {
             bool isStored;
@@ -1352,16 +1358,21 @@ contract AccountV3 is AccountStorageV1, IAccount {
             }
 
             if (!isStored) {
+                amount = 1;
                 IERC721(token).safeTransferFrom(address(this), msg.sender, id);
             }
         } else if (type_ == 3) {
             uint256 balance = IERC1155(token).balanceOf(address(this), id);
             uint256 balanceStored = erc1155Balances[token][id];
-
             if (balance > balanceStored) {
-                IERC1155(token).safeTransferFrom(address(this), msg.sender, id, balance - balanceStored, "");
+                amount = balance - balanceStored;
+                IERC1155(token).safeTransferFrom(address(this), msg.sender, id, amount, "");
             }
+        } else {
+            revert AccountErrors.UnknownAssetType();
         }
+
+        if (amount > 0) emit Skim(address(this), msg.sender, token, id, amount, type_);
     }
 
     /* ///////////////////////////////////////////////////////////////

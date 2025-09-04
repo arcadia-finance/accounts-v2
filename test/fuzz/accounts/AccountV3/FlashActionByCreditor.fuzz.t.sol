@@ -6,6 +6,7 @@ pragma solidity ^0.8.22;
 
 import { AccountErrors } from "../../../../src/libraries/Errors.sol";
 import { AccountsGuard } from "../../../../src/accounts/helpers/AccountsGuard.sol";
+import { AccountV3 } from "../../../../src/accounts/AccountV3.sol";
 import { AccountV3_Fuzz_Test } from "./_AccountV3.fuzz.t.sol";
 import { AccountV3Extension } from "../../../utils/extensions/AccountV3Extension.sol";
 import { ActionMultiCall } from "../../../../src/actions/MultiCall.sol";
@@ -463,6 +464,7 @@ contract FlashActionByCreditor_AccountV3_Fuzz_Test is AccountV3_Fuzz_Test, Permi
         accountExtension.setMinimumMargin(minimumMargin);
         creditorToken1.setOpenPosition(address(accountExtension), debtAmount);
 
+        ActionData[] memory actionDatas = new ActionData[](3);
         bytes memory callData;
         {
             uint256 token1AmountForAction = 1000 * 10 ** Constants.tokenDecimals;
@@ -510,28 +512,29 @@ contract FlashActionByCreditor_AccountV3_Fuzz_Test is AccountV3_Fuzz_Test, Permi
             to[1] = address(multiActionMock);
             to[2] = address(mockERC20.token2);
 
-            ActionData memory assetDataOut = ActionData({
+            actionDatas[0] = ActionData({
                 assets: new address[](1),
                 assetIds: new uint256[](1),
                 assetAmounts: new uint256[](1),
                 assetTypes: new uint256[](1)
             });
 
-            assetDataOut.assets[0] = address(mockERC20.token1);
-            assetDataOut.assetTypes[0] = 1;
-            assetDataOut.assetIds[0] = 0;
-            assetDataOut.assetAmounts[0] = token1AmountForAction;
+            actionDatas[0].assets[0] = address(mockERC20.token1);
+            actionDatas[0].assetTypes[0] = 1;
+            actionDatas[0].assetIds[0] = 0;
+            actionDatas[0].assetAmounts[0] = token1AmountForAction;
 
-            ActionData memory assetDataIn = ActionData({
+            actionDatas[1] = ActionData({
                 assets: new address[](1),
                 assetIds: new uint256[](1),
                 assetAmounts: new uint256[](1),
                 assetTypes: new uint256[](1)
             });
 
-            assetDataIn.assets[0] = address(mockERC20.token2);
-            assetDataIn.assetTypes[0] = 1;
-            assetDataIn.assetIds[0] = 0;
+            actionDatas[1].assets[0] = address(mockERC20.token2);
+            actionDatas[1].assetTypes[0] = 1;
+            actionDatas[1].assetIds[0] = 0;
+            actionDatas[1].assetAmounts[0] = token1AmountForAction + uint256(debtAmount) * token1ToToken2Ratio;
 
             ActionData memory transferFromOwner;
             IPermit2.TokenPermissions[] memory tokenPermissions;
@@ -539,8 +542,8 @@ contract FlashActionByCreditor_AccountV3_Fuzz_Test is AccountV3_Fuzz_Test, Permi
             // Avoid stack too deep
             bytes memory signatureStack = signature;
 
-            bytes memory actionTargetData = abi.encode(assetDataIn, to, data);
-            callData = abi.encode(assetDataOut, transferFromOwner, tokenPermissions, signatureStack, actionTargetData);
+            bytes memory actionTargetData = abi.encode(actionDatas[1], to, data);
+            callData = abi.encode(actionDatas[0], transferFromOwner, tokenPermissions, signatureStack, actionTargetData);
 
             // Deposit token1 in accountExtension first
             depositERC20InAccount(
@@ -564,6 +567,24 @@ contract FlashActionByCreditor_AccountV3_Fuzz_Test is AccountV3_Fuzz_Test, Permi
         creditorToken1.setCallbackAccount(address(accountExtension));
 
         // Call flashActionByCreditor() on Account
+        vm.expectEmit(address(accountExtension));
+        emit AccountV3.Transfers(
+            address(accountExtension),
+            address(action),
+            actionDatas[0].assets,
+            actionDatas[0].assetIds,
+            actionDatas[0].assetAmounts,
+            actionDatas[0].assetTypes
+        );
+        vm.expectEmit(address(accountExtension));
+        emit AccountV3.Transfers(
+            address(action),
+            address(accountExtension),
+            actionDatas[1].assets,
+            actionDatas[1].assetIds,
+            actionDatas[1].assetAmounts,
+            actionDatas[1].assetTypes
+        );
         vm.prank(address(creditorToken1));
         uint256 version = accountExtension.flashActionByCreditor(callbackData, address(action), callData);
 

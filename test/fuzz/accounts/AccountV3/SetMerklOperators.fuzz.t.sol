@@ -6,6 +6,7 @@ pragma solidity ^0.8.22;
 
 import { AccountErrors } from "../../../../src/libraries/Errors.sol";
 import { AccountsGuard } from "../../../../src/accounts/helpers/AccountsGuard.sol";
+import { AccountV3 } from "../../../../src/accounts/AccountV3.sol";
 import { AccountV3_Fuzz_Test } from "./_AccountV3.fuzz.t.sol";
 import { AccountV3Extension } from "../../../utils/extensions/AccountV3Extension.sol";
 import { MerklFixture } from "../../../utils/fixtures/merkl/MerklFixture.f.sol";
@@ -220,6 +221,11 @@ contract SetMerklOperators_AccountV3_Fuzz_Test is AccountV3_Fuzz_Test, MerklFixt
                 )
             );
         }
+        // And: Correct events are emitted.
+        vm.expectEmit(address(accountExtension));
+        emit AccountV3.MerklOperatorSet(address(operator1), params.operatorStatuses[0]);
+        vm.expectEmit(address(accountExtension));
+        emit AccountV3.MerklOperatorSet(address(operator2), params.operatorStatuses[1]);
         vm.prank(users.accountOwner);
         setMerklOperators(params);
 

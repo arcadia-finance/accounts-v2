@@ -163,6 +163,7 @@ contract FlashAction_AccountV4_Fuzz_Test is AccountV4_Fuzz_Test, Permit2Fixture 
         uint256 stable1AmountForAction = 500 * 10 ** Constants.stableDecimals;
         uint256 token1ToToken2Ratio = rates.token1ToUsd / rates.token2ToUsd;
 
+        ActionData[] memory actionDatas = new ActionData[](3);
         bytes memory callData;
         {
             bytes[] memory data = new bytes[](5);
@@ -192,58 +193,60 @@ contract FlashAction_AccountV4_Fuzz_Test is AccountV4_Fuzz_Test, Permit2Fixture 
             to[3] = address(mockERC20.stable1);
             to[4] = address(mockERC721.nft1);
 
-            ActionData memory assetDataOut = ActionData({
+            actionDatas[0] = ActionData({
                 assets: new address[](1),
                 assetIds: new uint256[](1),
                 assetAmounts: new uint256[](1),
                 assetTypes: new uint256[](1)
             });
 
-            assetDataOut.assets[0] = address(mockERC20.token1);
-            assetDataOut.assetTypes[0] = 1;
-            assetDataOut.assetIds[0] = 0;
-            assetDataOut.assetAmounts[0] = token1AmountForAction;
+            actionDatas[0].assets[0] = address(mockERC20.token1);
+            actionDatas[0].assetTypes[0] = 1;
+            actionDatas[0].assetIds[0] = 0;
+            actionDatas[0].assetAmounts[0] = token1AmountForAction;
 
-            ActionData memory assetDataIn = ActionData({
+            actionDatas[1] = ActionData({
                 assets: new address[](3),
                 assetIds: new uint256[](3),
                 assetAmounts: new uint256[](3),
                 assetTypes: new uint256[](3)
             });
 
-            assetDataIn.assets[0] = address(mockERC20.token2);
+            actionDatas[1].assets[0] = address(mockERC20.token2);
             // Add stable 1 that will be sent from owner wallet to action contract
-            assetDataIn.assets[1] = address(mockERC20.stable1);
+            actionDatas[1].assets[1] = address(mockERC20.stable1);
             // Add nft1 that will be sent from owner wallet to action contract
-            assetDataIn.assets[2] = address(mockERC721.nft1);
-            assetDataIn.assetTypes[0] = 1;
-            assetDataIn.assetTypes[1] = 1;
-            assetDataIn.assetTypes[2] = 2;
-            assetDataIn.assetIds[0] = 0;
-            assetDataIn.assetIds[1] = 0;
-            assetDataIn.assetIds[2] = 1;
-            assetDataIn.assetAmounts[2] = 1;
+            actionDatas[1].assets[2] = address(mockERC721.nft1);
+            actionDatas[1].assetTypes[0] = 1;
+            actionDatas[1].assetTypes[1] = 1;
+            actionDatas[1].assetTypes[2] = 2;
+            actionDatas[1].assetIds[0] = 0;
+            actionDatas[1].assetIds[1] = 0;
+            actionDatas[1].assetIds[2] = 1;
+            actionDatas[1].assetAmounts[0] = token2AmountForAction * token1ToToken2Ratio;
+            actionDatas[1].assetAmounts[1] = stable1AmountForAction;
+            actionDatas[1].assetAmounts[2] = 1;
 
-            ActionData memory transferFromOwner = ActionData({
+            actionDatas[2] = ActionData({
                 assets: new address[](2),
                 assetIds: new uint256[](2),
                 assetAmounts: new uint256[](2),
                 assetTypes: new uint256[](2)
             });
 
-            transferFromOwner.assets[0] = address(mockERC20.stable1);
-            transferFromOwner.assets[1] = address(mockERC721.nft1);
-            transferFromOwner.assetAmounts[0] = stable1AmountForAction;
-            transferFromOwner.assetAmounts[1] = 1;
-            transferFromOwner.assetTypes[0] = 1;
-            transferFromOwner.assetTypes[1] = 2;
-            transferFromOwner.assetIds[0] = 0;
-            transferFromOwner.assetIds[1] = 1;
+            actionDatas[2].assets[0] = address(mockERC20.stable1);
+            actionDatas[2].assets[1] = address(mockERC721.nft1);
+            actionDatas[2].assetAmounts[0] = stable1AmountForAction;
+            actionDatas[2].assetAmounts[1] = 1;
+            actionDatas[2].assetTypes[0] = 1;
+            actionDatas[2].assetTypes[1] = 2;
+            actionDatas[2].assetIds[0] = 0;
+            actionDatas[2].assetIds[1] = 1;
 
             IPermit2.TokenPermissions[] memory tokenPermissions;
 
             callData = abi.encode(
-                assetDataOut, transferFromOwner, tokenPermissions, signature, abi.encode(assetDataIn, to, data)
+                actionDatas[0], actionDatas[2], tokenPermissions, signature, abi.encode(actionDatas[1], to, data)
             );
         }
 
@@ -268,6 +271,33 @@ contract FlashAction_AccountV4_Fuzz_Test is AccountV4_Fuzz_Test, Permit2Fixture 
 
         // Call flashAction() on Account
         vm.prank(users.accountOwner);
+        vm.expectEmit(address(accountSpot));
+        emit AccountV4.Transfers(
+            address(accountSpot),
+            address(action),
+            actionDatas[0].assets,
+            actionDatas[0].assetIds,
+            actionDatas[0].assetAmounts,
+            actionDatas[0].assetTypes
+        );
+        vm.expectEmit(address(accountSpot));
+        emit AccountV4.Transfers(
+            users.accountOwner,
+            address(action),
+            actionDatas[2].assets,
+            actionDatas[2].assetIds,
+            actionDatas[2].assetAmounts,
+            actionDatas[2].assetTypes
+        );
+        vm.expectEmit(address(accountSpot));
+        emit AccountV4.Transfers(
+            address(action),
+            address(accountSpot),
+            actionDatas[1].assets,
+            actionDatas[1].assetIds,
+            actionDatas[1].assetAmounts,
+            actionDatas[1].assetTypes
+        );
         accountSpot.flashAction(address(action), callData);
 
         // Assert that the Account now has a balance of TOKEN2 and STABLE1
@@ -440,6 +470,14 @@ contract FlashAction_AccountV4_Fuzz_Test is AccountV4_Fuzz_Test, Permit2Fixture 
         assertEq(mockERC20.stable1.balanceOf(address(action)), 0);
 
         // Call flashAction() on Account
+        address[] memory assets = new address[](2);
+        assets[0] = address(mockERC20.token1);
+        assets[1] = address(mockERC20.stable1);
+        uint256[] memory types = new uint256[](2);
+        types[0] = 1;
+        types[1] = 1;
+        vm.expectEmit(address(accountSpot));
+        emit AccountV4.Transfers(address(from), address(action), assets, new uint256[](2), amounts, types);
         vm.prank(from);
         accountSpot.flashAction(address(action), callData);
 

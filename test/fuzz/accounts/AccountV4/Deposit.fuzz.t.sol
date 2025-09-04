@@ -6,6 +6,7 @@ pragma solidity 0.8.22;
 
 import { AccountErrors } from "../../../../src/libraries/Errors.sol";
 import { AccountsGuard } from "../../../../src/accounts/helpers/AccountsGuard.sol";
+import { AccountV4 } from "../../../../src/accounts/AccountV4.sol";
 import { AccountV4_Fuzz_Test } from "./_AccountV4.fuzz.t.sol";
 
 /**
@@ -113,10 +114,15 @@ contract Deposit_AccountV4_Fuzz_Test is AccountV4_Fuzz_Test {
         vm.stopPrank();
 
         // When: Assets are deposited into spot Account
+        // Then: Correct events are emitted.
+        vm.expectEmit(address(accountSpot));
+        emit AccountV4.Transfers(
+            users.accountOwner, address(accountSpot), assetAddresses, assetIds, assetAmounts, assetTypes
+        );
         vm.prank(users.accountOwner);
         accountSpot.deposit(assetAddresses, assetIds, assetAmounts, assetTypes);
 
-        // Then : It should return the correct balances
+        // And : It should return the correct balances
         assertEq(mockERC20.token1.balanceOf(address(accountSpot)), erc20Amount);
         assertEq(mockERC721.nft1.ownerOf(erc721Id), address(accountSpot));
         assertEq(mockERC1155.sft1.balanceOf(address(accountSpot), 1), erc1155Amount);
