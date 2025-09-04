@@ -710,15 +710,11 @@ contract AccountV3 is AccountStorageV1, IAccount {
         _withdraw(withdrawData.assets, withdrawData.assetIds, withdrawData.assetAmounts, actionTarget);
 
         // Transfer assets from owner (that are not assets in this account) to the actionTarget.
-        if (transferFromOwnerData.assets.length > 0) {
-            _transferFromOwner(transferFromOwnerData, actionTarget);
-        }
+        _transferFromOwner(transferFromOwnerData, actionTarget);
 
-        // If the function input includes a signature and non-empty token permissions,
+        // If the function input includes non-empty token permissions,
         // initiate a transfer from the owner to the actionTarget via Permit2.
-        if (signature.length > 0 && permit.permitted.length > 0) {
-            _transferFromOwnerWithPermit(permit, signature, actionTarget);
-        }
+        _transferFromOwnerWithPermit(permit, signature, actionTarget);
 
         // Execute external logic on the actionTarget.
         ActionData memory depositData = IActionBase(actionTarget).executeAction(actionTargetData);
@@ -895,15 +891,11 @@ contract AccountV3 is AccountStorageV1, IAccount {
         }
 
         // Transfer assets from owner (that are not assets in this account) to the actionTarget.
-        if (transferFromOwnerData.assets.length > 0) {
-            _transferFromOwner(transferFromOwnerData, actionTarget);
-        }
+        _transferFromOwner(transferFromOwnerData, actionTarget);
 
         // If the function input includes a signature and non-empty token permissions,
         // initiate a transfer from the owner to the actionTarget via Permit2.
-        if (signature.length > 0 && permit.permitted.length > 0) {
-            _transferFromOwnerWithPermit(permit, signature, actionTarget);
-        }
+        _transferFromOwnerWithPermit(permit, signature, actionTarget);
 
         // Execute external logic on the actionTarget.
         ActionData memory depositData = IActionBase(actionTarget).executeAction(actionTargetData);
@@ -993,7 +985,9 @@ contract AccountV3 is AccountStorageV1, IAccount {
         // If a Creditor is set, batchProcessDeposit will also update the exposures of assets and underlying assets for the Creditor.
         IRegistry(registry).batchProcessDeposit(creditor, assetAddresses, assetIds, assetAmounts);
 
-        emit Transfers(from, address(this), assetAddresses, assetIds, assetAmounts, assetTypes);
+        if (assetAddresses.length > 0) {
+            emit Transfers(from, address(this), assetAddresses, assetIds, assetAmounts, assetTypes);
+        }
     }
 
     /**
@@ -1045,6 +1039,9 @@ contract AccountV3 is AccountStorageV1, IAccount {
         // If a Creditor is set, batchProcessWithdrawal will also update the exposures of assets and underlying assets for the Creditor.
         uint256[] memory assetTypes =
             IRegistry(registry).batchProcessWithdrawal(creditor, assetAddresses, assetIds, assetAmounts);
+
+        // If no assets are being withdrawn, return early.
+        if (assetAddresses.length == 0) return;
 
         for (uint256 i; i < assetAddresses.length; ++i) {
             // Skip if amount is 0 to prevent transferring 0 balances.
@@ -1253,6 +1250,9 @@ contract AccountV3 is AccountStorageV1, IAccount {
      */
     function _transferFromOwner(ActionData memory transferFromOwnerData, address to) internal {
         uint256 assetAddressesLength = transferFromOwnerData.assets.length;
+        // If no assets are being transferred, return early.
+        if (assetAddressesLength == 0) return;
+
         address owner_ = owner;
         for (uint256 i; i < assetAddressesLength; ++i) {
             if (transferFromOwnerData.assetAmounts[i] == 0) {
@@ -1297,6 +1297,9 @@ contract AccountV3 is AccountStorageV1, IAccount {
         address to
     ) internal {
         uint256 tokenPermissionsLength = permit.permitted.length;
+        // If no assets are being transferred, return early.
+        if (tokenPermissionsLength == 0) return;
+
         IPermit2.SignatureTransferDetails[] memory transferDetails =
             new IPermit2.SignatureTransferDetails[](tokenPermissionsLength);
 
