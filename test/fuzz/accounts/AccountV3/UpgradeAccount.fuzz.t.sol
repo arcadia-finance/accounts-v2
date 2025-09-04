@@ -142,7 +142,7 @@ contract UpgradeAccount_AccountV3_Fuzz_Test is AccountV3_Fuzz_Test {
         public
         canReceiveERC721(newImplementation)
     {
-        vm.assume(newImplementation > address(10));
+        vm.assume(!isPrecompile(newImplementation));
         vm.assume(newImplementation != address(account));
 
         // Given: Creditor is set.

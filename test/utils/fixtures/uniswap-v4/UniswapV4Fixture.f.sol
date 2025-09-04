@@ -85,7 +85,7 @@ contract UniswapV4Fixture is Test, Permit2Fixture, WETH9Fixture {
         );
         deployCodeTo("PositionManagerExtension.sol", args, address(positionManagerV4));
 
-        // Deploy mocked hooks (to get contrac instance used below)
+        // Deploy mocked hooks (to get contract instance used below)
         validHook = new HookMockValid(poolManager);
         unvalidHook = new HookMockUnvalid(poolManager);
 
