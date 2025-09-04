@@ -6,6 +6,7 @@ pragma solidity ^0.8.22;
 
 import { AccountErrors } from "../../../../src/libraries/Errors.sol";
 import { AccountsGuard } from "../../../../src/accounts/helpers/AccountsGuard.sol";
+import { AccountV3 } from "../../../../src/accounts/AccountV3.sol";
 import { AccountV3_Fuzz_Test } from "./_AccountV3.fuzz.t.sol";
 import { AccountV3Extension } from "../../../utils/extensions/AccountV3Extension.sol";
 import { MerklFixture } from "../../../utils/fixtures/merkl/MerklFixture.f.sol";
@@ -78,10 +79,13 @@ contract RemoveMerklOperator_AccountV3_Fuzz_Test is AccountV3_Fuzz_Test, MerklFi
         // Given : Operator is set to status "off".
 
         // When: accountOwner calls "removeMerklOperator" on the Account.
+        // Then: Correct event is emitted.
+        vm.expectEmit(address(accountExtension));
+        emit AccountV3.MerklOperatorSet(address(operator), false);
         vm.prank(users.accountOwner);
         accountExtension.removeMerklOperator(address(operator));
 
-        // Then: Operator should be set to status "off".
+        // And: Operator should be set to status "off".
         assertEq(distributor.operators(address(accountExtension), address(operator)), 0);
     }
 
@@ -96,6 +100,9 @@ contract RemoveMerklOperator_AccountV3_Fuzz_Test is AccountV3_Fuzz_Test, MerklFi
             address(distributor),
             abi.encodeWithSelector(distributor.toggleOperator.selector, address(accountExtension), address(operator))
         );
+        // And: Correct event is emitted.
+        vm.expectEmit(address(accountExtension));
+        emit AccountV3.MerklOperatorSet(address(operator), false);
         vm.prank(users.accountOwner);
         accountExtension.removeMerklOperator(address(operator));
 

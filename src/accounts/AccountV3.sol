@@ -1321,11 +1321,13 @@ contract AccountV3 is AccountStorageV1, IAccount {
 
     /**
      * @notice Skims non-deposited assets from the Account.
-     * @param token The contract address of the asset.
+     * @param token The contract address of the asset, address(0) for native token.
      * @param id The ID of the asset.
      * @param type_ The asset type of the asset.
      * @dev Function can retrieve assets that were transferred to the Account but not deposited
      * or can be used to claim yield for strictly upwards rebasing tokens.
+     * @dev Unused input parameters (e.g. id's for ERC20, or type for native token) are not validated,
+     * hence arbitrary value can be emitted in events.
      */
     function skim(address token, uint256 id, uint256 type_)
         public
@@ -1338,10 +1340,7 @@ contract AccountV3 is AccountStorageV1, IAccount {
             amount = address(this).balance;
             (bool success, bytes memory result) = payable(msg.sender).call{ value: amount }("");
             require(success, string(result));
-            return;
-        }
-
-        if (type_ == 1) {
+        } else if (type_ == 1) {
             uint256 balance = ERC20(token).balanceOf(address(this));
             uint256 balanceStored = erc20Balances[token];
             if (balance > balanceStored) {
@@ -1369,9 +1368,11 @@ contract AccountV3 is AccountStorageV1, IAccount {
                 amount = balance - balanceStored;
                 IERC1155(token).safeTransferFrom(address(this), msg.sender, id, amount, "");
             }
+        } else {
+            revert AccountErrors.UnknownAssetType();
         }
 
-        emit Skim(address(this), msg.sender, token, id, amount, type_);
+        if (amount > 0) emit Skim(address(this), msg.sender, token, id, amount, type_);
     }
 
     /* ///////////////////////////////////////////////////////////////
