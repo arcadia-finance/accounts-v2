@@ -2,7 +2,7 @@
  * Created by Pragma Labs
  * SPDX-License-Identifier: BUSL-1.1
  */
-pragma solidity ^0.8.22;
+pragma solidity ^0.8.0;
 
 import { AerodromeGauges, AerodromePools, Assets, Oracles, Safes } from "../utils/constants/Base.sol";
 import { Asset, Oracle } from "../utils/constants/Base.sol";

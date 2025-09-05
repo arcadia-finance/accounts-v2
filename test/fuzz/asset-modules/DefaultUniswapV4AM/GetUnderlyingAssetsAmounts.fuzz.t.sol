@@ -2,7 +2,7 @@
  * Created by Pragma Labs
  * SPDX-License-Identifier: BUSL-1.1
  */
-pragma solidity ^0.8.22;
+pragma solidity ^0.8.0;
 
 import { AssetValueAndRiskFactors } from "../../../../src/libraries/AssetValuationLib.sol";
 import { ERC20Mock } from "../../../utils/mocks/tokens/ERC20Mock.sol";
@@ -406,6 +406,7 @@ contract GetUnderlyingAssetsAmounts_DefaultUniswapV4AM_Fuzz_Test is DefaultUnisw
             }
 
             {
+                vm.assume(feeData.desiredFee1 <= type(uint256).max / FixedPoint128.Q128);
                 uint256 feeGrowthDiff1X128 = feeData.desiredFee1.mulDivDown(FixedPoint128.Q128, liquidity);
                 feeData.upperFeeGrowthOutside1X128 =
                     bound(feeData.upperFeeGrowthOutside1X128, 0, type(uint256).max - feeGrowthDiff1X128);

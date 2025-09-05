@@ -2,7 +2,7 @@
  * Created by Pragma Labs
  * SPDX-License-Identifier: BUSL-1.1
  */
-pragma solidity ^0.8.22;
+pragma solidity ^0.8.0;
 
 import { Base_Test } from "../../../Base.t.sol";
 import { BaseHook } from "../../../../lib/v4-periphery/src/utils/BaseHook.sol";
@@ -15,7 +15,6 @@ import { LiquidityAmounts } from "../../../../src/asset-modules/UniswapV3/librar
 import { LiquidityAmountsExtension } from
     "../../../utils/fixtures/uniswap-v3/extensions/libraries/LiquidityAmountsExtension.sol";
 import { PoolKey } from "../../../../lib/v4-periphery/lib/v4-core/src/types/PoolKey.sol";
-import { PositionManager } from "../../../../lib/v4-periphery/src/PositionManager.sol";
 import { TickMath } from "../../../../lib/v4-periphery/lib/v4-core/src/libraries/TickMath.sol";
 import { UniswapV4Fixture } from "../../../utils/fixtures/uniswap-v4/UniswapV4Fixture.f.sol";
 import { UniswapV4HooksRegistryExtension } from "../../../../test/utils/extensions/UniswapV4HooksRegistryExtension.sol";

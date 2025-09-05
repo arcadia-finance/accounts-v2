@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: MIT
-pragma solidity ^0.8.22;
+pragma solidity ^0.8.0;
 
 library CompareArrays {
     function compareArrays(address[] memory arr1, address[] memory arr2) public pure returns (bool) {

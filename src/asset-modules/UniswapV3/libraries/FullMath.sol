@@ -1,6 +1,6 @@
 // https://github.com/Uniswap/v3-core/blob/main/contracts/libraries/FullMath.sol
 // SPDX-License-Identifier: GPL-2.0-or-later
-pragma solidity ^0.8.22;
+pragma solidity ^0.8.0;
 
 /// @title Contains 512-bit math functions
 /// @notice Facilitates multiplication and division that can have overflow of an intermediate value without any loss of precision
@@ -95,7 +95,7 @@ library FullMath {
 
             // Because the division is now exact we can divide by multiplying
             // with the modular inverse of denominator. This will give us the
-            // correct result modulo 2**256. Since the precoditions guarantee
+            // correct result modulo 2**256. Since the preconditions guarantee
             // that the outcome is less than 2**256, this is the final result.
             // We don't need to compute the high bits of the result and prod1
             // is no longer required.

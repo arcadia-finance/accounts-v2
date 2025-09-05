@@ -23,7 +23,6 @@ remappings = [
     "lib/v4-periphery/lib/v4-core:@openzeppelin/=lib/v4-periphery/lib/v4-core/lib/openzeppelin-contracts/",
 ]
 fs_permissions = [{ access = "read", path = "./out"}, { access = "write", path = "./script/out"}]
-evm_version = 'cancun'
 unchecked_cheatcode_artifacts = true
 
 [fmt]

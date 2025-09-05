@@ -2,7 +2,7 @@
  * Created by Pragma Labs
  * SPDX-License-Identifier: BUSL-1.1
  */
-pragma solidity ^0.8.30;
+pragma solidity ^0.8.0;
 
 import { AccountsGuard } from "../../src/accounts/helpers/AccountsGuard.sol";
 import { AccountV3 } from "../../src/accounts/AccountV3.sol";

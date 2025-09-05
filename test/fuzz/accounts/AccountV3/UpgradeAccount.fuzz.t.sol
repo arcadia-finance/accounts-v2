@@ -2,7 +2,7 @@
  * Created by Pragma Labs
  * SPDX-License-Identifier: BUSL-1.1
  */
-pragma solidity ^0.8.22;
+pragma solidity ^0.8.0;
 
 import { AccountErrors } from "../../../../src/libraries/Errors.sol";
 import { AccountLogicMock } from "../../../utils/mocks/accounts/AccountLogicMock.sol";
@@ -142,7 +142,7 @@ contract UpgradeAccount_AccountV3_Fuzz_Test is AccountV3_Fuzz_Test {
         public
         canReceiveERC721(newImplementation)
     {
-        vm.assume(newImplementation > address(10));
+        vm.assume(!isPrecompile(newImplementation));
         vm.assume(newImplementation != address(account));
 
         // Given: Creditor is set.

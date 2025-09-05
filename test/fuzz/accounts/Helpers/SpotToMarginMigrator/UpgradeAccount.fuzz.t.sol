@@ -2,7 +2,7 @@
  * Created by Pragma Labs
  * SPDX-License-Identifier: BUSL-1.1
  */
-pragma solidity 0.8.22;
+pragma solidity ^0.8.0;
 
 import { AccountV3Extension } from "../../../../utils/extensions/AccountV3Extension.sol";
 import { AccountV4Extension } from "../../../../utils/extensions/AccountV4Extension.sol";

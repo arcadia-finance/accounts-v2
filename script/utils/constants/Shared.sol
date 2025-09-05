@@ -2,7 +2,7 @@
  * Created by Pragma Labs
  * SPDX-License-Identifier: BUSL-1.1
  */
-pragma solidity ^0.8.22;
+pragma solidity ^0.8.0;
 
 library AccountLogic {
     address internal constant V1 = 0xbea2B6d45ACaF62385877D835970a0788719cAe1;

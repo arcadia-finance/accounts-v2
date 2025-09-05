@@ -2,7 +2,7 @@
  * Created by Pragma Labs
  * SPDX-License-Identifier: BUSL-1.1
  */
-pragma solidity ^0.8.22;
+pragma solidity ^0.8.0;
 
 import { AccountsGuardExtension } from "./utils/extensions/AccountsGuardExtension.sol";
 import { AccountV3 } from "../src/accounts/AccountV3.sol";
@@ -104,7 +104,7 @@ abstract contract Base_Test is Test {
         // address), but the same rationale for excluding them applies so we include those too.
 
         // These should be present on all EVM-compatible chains.
-        if (addr >= address(0x1) && addr <= address(0x9)) return true;
+        if (addr >= address(0x1) && addr <= address(0x11)) return true;
 
         // forgefmt: disable-start
         if (chainId == 10 || chainId == 420) {

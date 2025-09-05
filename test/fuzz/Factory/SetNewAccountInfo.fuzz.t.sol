@@ -2,7 +2,7 @@
  * Created by Pragma Labs
  * SPDX-License-Identifier: BUSL-1.1
  */
-pragma solidity ^0.8.22;
+pragma solidity ^0.8.0;
 
 import { Factory_Fuzz_Test, FactoryErrors } from "./_Factory.fuzz.t.sol";
 
@@ -123,7 +123,7 @@ contract SetNewAccountInfo_Factory_Fuzz_Test is Factory_Fuzz_Test {
     }
 
     function testFuzz_Success_setNewAccountInfo(address logic, bytes calldata data) public {
-        vm.assume(logic > address(10));
+        vm.assume(!isPrecompile(logic));
         vm.assume(logic != address(factory));
         vm.assume(logic != address(registry));
         vm.assume(logic != address(vm));

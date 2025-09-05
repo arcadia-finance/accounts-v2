@@ -2,7 +2,7 @@
  * Created by Pragma Labs
  * SPDX-License-Identifier: MIT
  */
-pragma solidity ^0.8.22;
+pragma solidity ^0.8.0;
 
 interface IDistributor {
     function operators(address user, address operator) external view returns (uint256);

@@ -2,7 +2,7 @@
  * Created by Pragma Labs
  * SPDX-License-Identifier: MIT
  */
-pragma solidity ^0.8.22;
+pragma solidity ^0.8.30;
 
 import { IERC20 } from "../interfaces/IERC20.sol";
 import { IERC1155 } from "../interfaces/IERC1155.sol";
