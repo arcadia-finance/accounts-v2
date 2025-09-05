@@ -347,15 +347,11 @@ contract AccountV4 is AccountStorageV1, IAccount {
         );
 
         // Transfer assets from owner (that are not assets in this account) to the actionTarget.
-        if (transferFromOwnerData.assets.length > 0) {
-            _transferFromOwner(transferFromOwnerData, actionTarget);
-        }
+        _transferFromOwner(transferFromOwnerData, actionTarget);
 
-        // If the function input includes a signature and non-empty token permissions,
+        // If the function input includes non-empty token permissions,
         // initiate a transfer from the owner to the actionTarget via Permit2.
-        if (signature.length > 0 && permit.permitted.length > 0) {
-            _transferFromOwnerWithPermit(permit, signature, actionTarget);
-        }
+        _transferFromOwnerWithPermit(permit, signature, actionTarget);
 
         // Execute external logic on the actionTarget.
         ActionData memory depositData = IActionBase(actionTarget).executeAction(actionTargetData);
@@ -459,6 +455,9 @@ contract AccountV4 is AccountStorageV1, IAccount {
         uint256[] memory assetTypes,
         address from
     ) internal {
+        // If no assets are being deposited, return early.
+        if (assetAddresses.length == 0) return;
+
         for (uint256 i; i < assetAddresses.length; ++i) {
             // Skip if amount is 0 to prevent transferring addresses that have 0 balance.
             if (assetAmounts[i] == 0) continue;
@@ -508,6 +507,9 @@ contract AccountV4 is AccountStorageV1, IAccount {
         uint256[] memory assetTypes,
         address to
     ) internal {
+        // If no assets are being withdrawn, return early.
+        if (assetAddresses.length == 0) return;
+
         for (uint256 i; i < assetAddresses.length; ++i) {
             // Skip if amount is 0 to prevent transferring addresses that have 0 balance.
             if (assetAmounts[i] == 0) continue;
@@ -536,6 +538,9 @@ contract AccountV4 is AccountStorageV1, IAccount {
      */
     function _transferFromOwner(ActionData memory transferFromOwnerData, address to) internal {
         uint256 assetAddressesLength = transferFromOwnerData.assets.length;
+        // If no assets are being transferred, return early.
+        if (assetAddressesLength == 0) return;
+
         address owner_ = owner;
         for (uint256 i; i < assetAddressesLength; ++i) {
             // Skip if amount is 0 to prevent transferring 0 balances.
@@ -578,6 +583,9 @@ contract AccountV4 is AccountStorageV1, IAccount {
         address to
     ) internal {
         uint256 tokenPermissionsLength = permit.permitted.length;
+        // If no assets are being transferred, return early.
+        if (tokenPermissionsLength == 0) return;
+
         IPermit2.SignatureTransferDetails[] memory transferDetails =
             new IPermit2.SignatureTransferDetails[](tokenPermissionsLength);
 
