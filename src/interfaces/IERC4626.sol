@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: MIT
-pragma solidity ^0.8.22;
+pragma solidity ^0.8.0;
 
 interface IERC4626 {
     function asset() external view returns (address);

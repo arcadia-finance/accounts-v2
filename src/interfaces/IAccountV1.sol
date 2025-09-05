@@ -2,7 +2,7 @@
  * Created by Pragma Labs
  * SPDX-License-Identifier: MIT
  */
-pragma solidity ^0.8.22;
+pragma solidity ^0.8.0;
 
 interface IAccountV1 {
     function deposit(address[] calldata assetAddresses, uint256[] calldata assetIds, uint256[] calldata assetAmounts)
