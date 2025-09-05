@@ -406,6 +406,7 @@ contract GetUnderlyingAssetsAmounts_DefaultUniswapV4AM_Fuzz_Test is DefaultUnisw
             }
 
             {
+                vm.assume(feeData.desiredFee1 <= type(uint256).max / FixedPoint128.Q128);
                 uint256 feeGrowthDiff1X128 = feeData.desiredFee1.mulDivDown(FixedPoint128.Q128, liquidity);
                 feeData.upperFeeGrowthOutside1X128 =
                     bound(feeData.upperFeeGrowthOutside1X128, 0, type(uint256).max - feeGrowthDiff1X128);
