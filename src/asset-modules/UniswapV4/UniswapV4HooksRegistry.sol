@@ -2,7 +2,7 @@
  * Created by Pragma Labs
  * SPDX-License-Identifier: BUSL-1.1
  */
-pragma solidity 0.8.30;
+pragma solidity ^0.8.30;
 
 import { AssetModule, IAssetModule, Owned } from "../abstracts/AbstractAM.sol";
 import { AssetValueAndRiskFactors } from "../../libraries/AssetValuationLib.sol";
