@@ -81,9 +81,7 @@ contract UpgradeHook_AccountV4_Fuzz_Test is AccountV4_Fuzz_Test {
         stdstore.target(address(accountSpotLogic)).sig(accountSpotLogic.creditor.selector).checked_write(creditor);
 
         // And: Registry is not zero address.
-        stdstore.target(address(accountSpotLogic)).sig(accountSpotLogic.registry.selector).checked_write(
-            address(registry)
-        );
+        accountSpotLogic.setRegistry(address(registry));
 
         // When: Account calls upgradeHook.
         // Then: It should revert.
@@ -102,9 +100,7 @@ contract UpgradeHook_AccountV4_Fuzz_Test is AccountV4_Fuzz_Test {
         stdstore.target(address(accountSpotLogic)).sig(accountSpotLogic.inAuction.selector).checked_write(true);
 
         // And: Registry is not zero address.
-        stdstore.target(address(accountSpotLogic)).sig(accountSpotLogic.registry.selector).checked_write(
-            address(registry)
-        );
+        accountSpotLogic.setRegistry(address(registry));
 
         // When: Account calls upgradeHook.
         // Then: It should revert.

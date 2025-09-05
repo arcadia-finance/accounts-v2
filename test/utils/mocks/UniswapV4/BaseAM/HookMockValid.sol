@@ -9,6 +9,9 @@ import { BaseHookExtension } from "../../../fixtures/uniswap-v4/extensions/BaseH
 import { BeforeSwapDelta } from "../../../../../lib/v4-periphery/lib/v4-core/src/types/BeforeSwapDelta.sol";
 import { Hooks } from "../../../../../lib/v4-periphery/lib/v4-core/src/libraries/Hooks.sol";
 import { IPoolManager } from "../../../../../lib/v4-periphery/lib/v4-core/src/interfaces/IPoolManager.sol";
+import {
+    ModifyLiquidityParams, SwapParams
+} from "../../../../../lib/v4-periphery/lib/v4-core/src/types/PoolOperation.sol";
 import { PoolKey } from "../../../../../lib/v4-periphery/lib/v4-core/src/types/PoolKey.sol";
 
 contract HookMockValid is BaseHookExtension {
@@ -51,7 +54,7 @@ contract HookMockValid is BaseHookExtension {
         return this.afterInitialize.selector;
     }
 
-    function _beforeAddLiquidity(address, PoolKey calldata, IPoolManager.ModifyLiquidityParams calldata, bytes calldata)
+    function _beforeAddLiquidity(address, PoolKey calldata, ModifyLiquidityParams calldata, bytes calldata)
         internal
         virtual
         override
@@ -63,7 +66,7 @@ contract HookMockValid is BaseHookExtension {
     function _afterAddLiquidity(
         address,
         PoolKey calldata,
-        IPoolManager.ModifyLiquidityParams calldata,
+        ModifyLiquidityParams calldata,
         BalanceDelta,
         BalanceDelta,
         bytes calldata
@@ -72,7 +75,7 @@ contract HookMockValid is BaseHookExtension {
         return (this.afterAddLiquidity.selector, delta);
     }
 
-    function _beforeSwap(address, PoolKey calldata, IPoolManager.SwapParams calldata, bytes calldata)
+    function _beforeSwap(address, PoolKey calldata, SwapParams calldata, bytes calldata)
         internal
         virtual
         override
@@ -82,7 +85,7 @@ contract HookMockValid is BaseHookExtension {
         return (this.beforeSwap.selector, delta, 0);
     }
 
-    function _afterSwap(address, PoolKey calldata, IPoolManager.SwapParams calldata, BalanceDelta, bytes calldata)
+    function _afterSwap(address, PoolKey calldata, SwapParams calldata, BalanceDelta, bytes calldata)
         internal
         virtual
         override
