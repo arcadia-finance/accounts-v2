@@ -2,7 +2,7 @@
 pragma solidity ^0.8.0;
 
 import { ERC20 } from "../../../../lib/solmate/src/tokens/ERC20.sol";
-import { ERC4626 } from "../../../../lib/solmate/src/mixins/ERC4626.sol";
+import { ERC4626 } from "../../../../lib/solmate/src/tokens/ERC4626.sol";
 
 contract ERC4626Mock is ERC4626 {
     constructor(ERC20 _underlying, string memory _name, string memory _symbol) ERC4626(_underlying, _name, _symbol) { }
