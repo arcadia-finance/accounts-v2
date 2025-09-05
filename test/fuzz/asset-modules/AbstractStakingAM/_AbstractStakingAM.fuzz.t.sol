@@ -74,7 +74,7 @@ abstract contract AbstractStakingAM_Fuzz_Test is Fuzz_Test {
     function givenValidStakingAMState(
         StakingAMStateForAsset memory stakingAMStateForAsset,
         StakingAM.PositionState memory stakingAMStateForPosition
-    ) public view returns (StakingAMStateForAsset memory, StakingAM.PositionState memory) {
+    ) public pure returns (StakingAMStateForAsset memory, StakingAM.PositionState memory) {
         // Given: More than 1 gwei is staked.
         stakingAMStateForAsset.totalStaked = uint128(bound(stakingAMStateForAsset.totalStaked, 1, type(uint128).max));
 
