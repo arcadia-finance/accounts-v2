@@ -2,7 +2,7 @@
  * Created by Pragma Labs
  * SPDX-License-Identifier: MIT
  */
-pragma solidity ^0.8.22;
+pragma solidity ^0.8.0;
 
 import { UniswapV2PairMock } from "./UniswapV2PairMock.sol";
 import { IUniswapV2Pair } from "./../asset-modules/interfaces/IUniswapV2Pair.sol";

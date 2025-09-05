@@ -2,7 +2,7 @@
  * Created by Pragma Labs
  * SPDX-License-Identifier: BUSL-1.1
  */
-pragma solidity =0.8.26;
+pragma solidity 0.8.26;
 pragma experimental ABIEncoderV2;
 
 import { PoolManagerExtension } from "./utils/fixtures/uniswap-v4/extensions/PoolManagerExtension.sol";

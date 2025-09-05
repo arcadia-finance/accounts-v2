@@ -2,7 +2,7 @@
  * Created by Pragma Labs
  * SPDX-License-Identifier: BUSL-1.1
  */
-pragma solidity ^0.8.22;
+pragma solidity 0.8.30;
 
 import { AssetValuationLib, AssetValueAndRiskFactors } from "../../libraries/AssetValuationLib.sol";
 import { DerivedAM, FixedPointMathLib, IRegistry } from "../abstracts/AbstractDerivedAM.sol";
@@ -217,7 +217,7 @@ contract SlipstreamAM is DerivedAM {
 
         // As the sole liquidity provider in a new pool,
         // a malicious actor could bypass the max exposure by
-        // continiously swapping large amounts and increasing the fee portion
+        // continuously swapping large amounts and increasing the fee portion
         // of the liquidity position.
         fee0 = fee0 > principal0 ? principal0 : fee0;
         fee1 = fee1 > principal1 ? principal1 : fee1;

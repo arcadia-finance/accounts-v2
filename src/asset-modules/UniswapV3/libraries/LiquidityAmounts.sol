@@ -1,6 +1,6 @@
 // https://github.com/Uniswap/v3-periphery/blob/main/contracts/libraries/LiquidityAmounts.sol
 // SPDX-License-Identifier: GPL-2.0-or-later
-pragma solidity ^0.8.22;
+pragma solidity ^0.8.0;
 
 import { FullMath } from "./FullMath.sol";
 import { FixedPoint96 } from "./FixedPoint96.sol";

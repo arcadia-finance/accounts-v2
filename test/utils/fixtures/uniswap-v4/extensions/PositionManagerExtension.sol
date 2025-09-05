@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: BUSL-1.1
-pragma solidity =0.8.26;
+pragma solidity 0.8.26;
 
 import { IAllowanceTransfer } from "../../../../../lib/v4-periphery/lib/permit2/src/interfaces/IAllowanceTransfer.sol";
 import { IPoolManager } from "../../../../../lib/v4-periphery/lib/v4-core/src/interfaces/IPoolManager.sol";

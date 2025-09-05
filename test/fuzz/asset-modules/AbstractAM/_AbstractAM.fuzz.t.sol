@@ -2,7 +2,7 @@
  * Created by Pragma Labs
  * SPDX-License-Identifier: BUSL-1.1
  */
-pragma solidity ^0.8.22;
+pragma solidity ^0.8.0;
 
 import { Fuzz_Test, Constants } from "../../Fuzz.t.sol";
 import { AssetModuleMock } from "../../../utils/mocks/asset-modules/AssetModuleMock.sol";

@@ -2,7 +2,7 @@
  * Created by Pragma Labs
  * SPDX-License-Identifier: BUSL-1.1
  */
-pragma solidity ^0.8.22;
+pragma solidity ^0.8.0;
 
 import { Actions } from "../../../../lib/v4-periphery/src/libraries/Actions.sol";
 import { ActionConstants } from "../../../../lib/v4-periphery/src/libraries/ActionConstants.sol";

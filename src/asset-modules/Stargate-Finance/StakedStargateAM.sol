@@ -2,7 +2,7 @@
  * Created by Pragma Labs
  * SPDX-License-Identifier: BUSL-1.1
  */
-pragma solidity ^0.8.22;
+pragma solidity 0.8.30;
 
 import { ERC20, IRegistry, StakingAM } from "../abstracts/AbstractStakingAM.sol";
 import { ILpStakingTime } from "./interfaces/ILpStakingTime.sol";
@@ -25,7 +25,7 @@ contract StakedStargateAM is StakingAM {
                                 STORAGE
     ////////////////////////////////////////////////////////////// */
 
-    // Bool indicating if the AssetModule has been initialized and rewardtoken is allowed.
+    // Bool indicating if the AssetModule has been initialized and rewardToken is allowed.
     bool internal initialized;
 
     // Maps a Stargate Pool to its pool specific id.
