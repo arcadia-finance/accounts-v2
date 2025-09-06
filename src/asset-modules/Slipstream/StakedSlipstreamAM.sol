@@ -142,7 +142,7 @@ contract StakedSlipstreamAM is DerivedAM, ERC721, ReentrancyGuard {
      * @dev Killed Gauges can be added, but no positions can be minted.
      */
     function addGauge(address gauge) external onlyOwner {
-        if (AERO_VOTER.isGauge(gauge) != true) revert GaugeNotValid();
+        if (!AERO_VOTER.isGauge(gauge)) revert GaugeNotValid();
         if (ICLGauge(gauge).rewardToken() != address(REWARD_TOKEN)) revert RewardTokenNotValid();
 
         address pool = ICLGauge(gauge).pool();

@@ -104,7 +104,7 @@ contract AccountV3 is AccountStorageV1, IAccount {
      * @dev Throws if called when the Account is in an auction.
      */
     modifier notDuringAuction() {
-        if (inAuction == true) revert AccountErrors.AccountInAuction();
+        if (inAuction) revert AccountErrors.AccountInAuction();
         _;
     }
 

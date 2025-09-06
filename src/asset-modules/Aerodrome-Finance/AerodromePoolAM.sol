@@ -75,7 +75,7 @@ contract AerodromePoolAM is DerivedAM {
      * Since tokens with very high supply might cause an overflow in _getTrustedReservesStable().
      */
     function addAsset(address pool) external onlyOwner {
-        if (AERO_FACTORY.isPool(pool) != true) revert InvalidPool();
+        if (!AERO_FACTORY.isPool(pool)) revert InvalidPool();
 
         (address token0, address token1) = IAeroPool(pool).tokens();
         if (!IRegistry(REGISTRY).isAllowed(token0, 0)) revert AssetNotAllowed();

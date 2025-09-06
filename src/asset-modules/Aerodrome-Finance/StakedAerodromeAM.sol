@@ -67,7 +67,7 @@ contract StakedAerodromeAM is StakingAM {
      * @param gauge The contract address of the gauge to stake the Aerodrome Finance LP.
      */
     function addAsset(address gauge) external {
-        if (AERO_VOTER.isGauge(gauge) != true) revert GaugeNotValid();
+        if (!AERO_VOTER.isGauge(gauge)) revert GaugeNotValid();
 
         address pool = IAeroGauge(gauge).stakingToken();
         if (!IRegistry(REGISTRY).isAllowed(pool, 0)) revert PoolNotAllowed();
