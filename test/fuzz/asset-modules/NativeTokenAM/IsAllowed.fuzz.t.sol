@@ -35,7 +35,7 @@ contract IsAllowed_NativeTokenAM_Fuzz_Test is NativeTokenAM_Fuzz_Test {
         assertTrue(nativeTokenAM.isAllowed(asset, assetId));
     }
 
-    function testFuzz_Success_isAllowed_Negative(address randomAsset, uint256 assetId) public {
+    function testFuzz_Success_isAllowed_Negative(address randomAsset, uint256 assetId) public view {
         assertFalse(nativeTokenAM.isAllowed(randomAsset, assetId));
     }
 }

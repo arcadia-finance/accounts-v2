@@ -122,7 +122,7 @@ abstract contract AbstractDerivedAM_Fuzz_Test is Fuzz_Test {
         UnderlyingAssetModuleState memory underlyingPMState
     )
         internal
-        view
+        pure
         returns (DerivedAMProtocolState memory, DerivedAMAssetState memory, UnderlyingAssetModuleState memory)
     {
         // Given: id's are smaller or equal to type(uint96).max.
@@ -144,7 +144,7 @@ abstract contract AbstractDerivedAM_Fuzz_Test is Fuzz_Test {
         int256 deltaExposureUpperAssetToAsset
     )
         internal
-        view
+        pure
         returns (
             DerivedAMProtocolState memory,
             DerivedAMAssetState memory,
@@ -210,7 +210,7 @@ abstract contract AbstractDerivedAM_Fuzz_Test is Fuzz_Test {
         int256 deltaExposureUpperAssetToAsset
     )
         internal
-        view
+        pure
         returns (
             DerivedAMProtocolState memory,
             DerivedAMAssetState memory,

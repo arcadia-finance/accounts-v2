@@ -26,7 +26,7 @@ contract ComputeTokenAmounts_UniswapV2AM_Fuzz_Test is UniswapV2AM_Fuzz_Test {
         uint112 reserve1,
         uint256 totalSupply,
         uint256 liquidityAmount
-    ) public {
+    ) public view {
         vm.assume(totalSupply > 0); // division by 0
         vm.assume(reserve0 > 0); // division by 0
         vm.assume(reserve1 > 0); // division by 0

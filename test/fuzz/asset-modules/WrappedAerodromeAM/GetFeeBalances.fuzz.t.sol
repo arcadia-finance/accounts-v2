@@ -333,7 +333,7 @@ contract GetFeeBalances_WrappedAerodromeAM_Fuzz_Test is WrappedAerodromeAM_Fuzz_
         WrappedAerodromeAM.PositionState memory positionState,
         uint256 fee0,
         uint256 fee1
-    ) public {
+    ) public view {
         // Given: totalWrapped is zero.
         poolState.totalWrapped = 0;
 
@@ -359,7 +359,7 @@ contract GetFeeBalances_WrappedAerodromeAM_Fuzz_Test is WrappedAerodromeAM_Fuzz_
         WrappedAerodromeAM.PositionState memory positionState,
         uint256 fee0,
         uint256 fee1
-    ) public {
+    ) public view {
         // Given : Valid state
         (poolState, positionState, fee0, fee1) = givenValidAMState(poolState, positionState, fee0, fee1);
 

@@ -71,7 +71,7 @@ abstract contract UniswapV2AM_Fuzz_Test is Fuzz_Test {
     /*////////////////////////////////////////////////////////////////
                         HELPER FUNCTIONS
     ////////////////////////////////////////////////////////////////*/
-    function assertInRange(uint256 actualValue, uint256 expectedValue, uint8 precision) internal {
+    function assertInRange(uint256 actualValue, uint256 expectedValue, uint8 precision) internal pure {
         if (expectedValue == 0) {
             assertEq(actualValue, expectedValue);
         } else {

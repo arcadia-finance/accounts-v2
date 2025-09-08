@@ -35,7 +35,7 @@ contract GetCurrentFees_WrappedAerodromeAM_Fuzz_Test is WrappedAerodromeAM_Fuzz_
         uint256 balanceOf;
     }
 
-    function givenValidPoolFeeState(PoolFeeState memory poolFeeState) public view returns (PoolFeeState memory) {
+    function givenValidPoolFeeState(PoolFeeState memory poolFeeState) public pure returns (PoolFeeState memory) {
         poolFeeState.supplyIndex0 = bound(poolFeeState.supplyIndex0, 0, poolFeeState.index0);
         poolFeeState.supplyIndex1 = bound(poolFeeState.supplyIndex1, 0, poolFeeState.index1);
         uint256 delta0 = poolFeeState.index0 - poolFeeState.supplyIndex0;

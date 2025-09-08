@@ -104,7 +104,7 @@ abstract contract UniswapV3AM_Fuzz_Test is Fuzz_Test, UniswapV3Fixture, UniswapV
 
     function givenValidPosition(NonfungiblePositionManagerMock.Position memory position)
         internal
-        view
+        pure
         returns (NonfungiblePositionManagerMock.Position memory)
     {
         // Given: poolId is non zero (=position is initialised).

@@ -101,7 +101,7 @@ abstract contract AerodromePoolAM_Fuzz_Test is Fuzz_Test, AerodromeFixture {
 
     function givenValidTestVarsVolatile(TestVariables memory testVars)
         public
-        view
+        pure
         returns (TestVariables memory testVars_)
     {
         // Given : Pool is volatile

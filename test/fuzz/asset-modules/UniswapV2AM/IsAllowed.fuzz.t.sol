@@ -24,7 +24,7 @@ contract IsAllowed_UniswapV2AM_Fuzz_Test is UniswapV2AM_Fuzz_Test {
     /*//////////////////////////////////////////////////////////////
                               TESTS
     //////////////////////////////////////////////////////////////*/
-    function testFuzz_Success_isAllowed_Negative_UnknownAsset(uint256 assetId) public {
+    function testFuzz_Success_isAllowed_Negative_UnknownAsset(uint256 assetId) public view {
         // Cannot fuzz asset, since calls to non-contracts are not caught by try/except and does revert.
         // Instead we fuzz to an existing contract without the correct interface.
         address asset = address(uniswapV2AM);
@@ -40,7 +40,7 @@ contract IsAllowed_UniswapV2AM_Fuzz_Test is UniswapV2AM_Fuzz_Test {
         assertFalse(uniswapV2AM.isAllowed(address(pool), assetId));
     }
 
-    function testFuzz_Success_isAllowed_Negative_Token0NotAllowed(uint256 assetId) public {
+    function testFuzz_Success_isAllowed_Negative_Token0NotAllowed(uint256 assetId) public view {
         assertFalse(uniswapV2AM.isAllowed(address(pairToken1Token3), assetId));
     }
 
@@ -51,7 +51,7 @@ contract IsAllowed_UniswapV2AM_Fuzz_Test is UniswapV2AM_Fuzz_Test {
         assertFalse(uniswapV2AM.isAllowed(address(pairToken1Token4), assetId));
     }
 
-    function testFuzz_Success_isAllowListed_Positive_UnderlyingAssetsAllowed(uint256 assetId) public {
+    function testFuzz_Success_isAllowListed_Positive_UnderlyingAssetsAllowed(uint256 assetId) public view {
         assertTrue(uniswapV2AM.isAllowed(address(pairToken1Token2), assetId));
     }
 

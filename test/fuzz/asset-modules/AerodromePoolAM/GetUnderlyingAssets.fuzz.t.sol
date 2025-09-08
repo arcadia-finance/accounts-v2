@@ -46,7 +46,7 @@ contract GetUnderlyingAssets_AerodromePoolAM_Fuzz_Test is AerodromePoolAM_Fuzz_T
         assertEq(actualUnderlyingAssetKeys[1], expectedUnderlyingAssetKeys[1]);
     }
 
-    function testFuzz_Success_getUnderlyingAssets_NotInAssetModule() public {
+    function testFuzz_Success_getUnderlyingAssets_NotInAssetModule() public view {
         bytes32 assetKey = bytes32(abi.encodePacked(uint96(0), address(aeroPool)));
 
         bytes32[] memory underlyingAssetKeys = aeroPoolAM.getUnderlyingAssets(assetKey);

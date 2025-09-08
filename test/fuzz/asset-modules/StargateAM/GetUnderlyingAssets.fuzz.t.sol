@@ -37,7 +37,7 @@ contract GetUnderlyingAssets_StargateAM_Fuzz_Test is StargateAM_Fuzz_Test {
         assertEq(actualUnderlyingAssetKeys[0], expectedUnderlyingAssetKeys[0]);
     }
 
-    function testFuzz_Success_getUnderlyingAssets_NotInAssetModule() public {
+    function testFuzz_Success_getUnderlyingAssets_NotInAssetModule() public view {
         bytes32 assetKey = bytes32(abi.encodePacked(uint96(0), address(poolMock)));
 
         bytes32[] memory underlyingAssetKeys = stargateAssetModule.getUnderlyingAssets(assetKey);

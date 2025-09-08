@@ -69,7 +69,7 @@ abstract contract WrappedAerodromeAM_Fuzz_Test is Fuzz_Test, AerodromeFixture {
         uint256 fee1
     )
         public
-        view
+        pure
         returns (WrappedAerodromeAM.PoolState memory, WrappedAerodromeAM.PositionState memory, uint256, uint256)
     {
         // Given: more than 1 gwei is staked.

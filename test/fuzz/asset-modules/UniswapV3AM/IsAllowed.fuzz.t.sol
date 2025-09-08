@@ -27,13 +27,13 @@ contract IsAllowed_UniswapV3AM_Fuzz_Test is UniswapV3AM_Fuzz_Test {
     /*//////////////////////////////////////////////////////////////
                               TESTS
     //////////////////////////////////////////////////////////////*/
-    function testFuzz_Success_isAllowed_Negative_UnknownAsset(address asset, uint256 assetId) public {
+    function testFuzz_Success_isAllowed_Negative_UnknownAsset(address asset, uint256 assetId) public view {
         vm.assume(asset != address(nonfungiblePositionManager));
 
         assertFalse(uniV3AM.isAllowed(asset, assetId));
     }
 
-    function testFuzz_Success_isAllowed_Negative_UnknownId(uint256 assetId) public {
+    function testFuzz_Success_isAllowed_Negative_UnknownId(uint256 assetId) public view {
         assertFalse(uniV3AM.isAllowed(address(nonfungiblePositionManager), assetId));
     }
 

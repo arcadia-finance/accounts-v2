@@ -192,7 +192,7 @@ contract GetUnderlyingAssetsAmounts_UniswapV3AM_Fuzz_Test is UniswapV3AM_Fuzz_Te
         assertEq(underlyingAssetsAmounts[1], expectedUnderlyingAssetsAmount1);
     }
 
-    function testFuzz_Success_GetUnderlyingAssetsAmounts_AmountIsZero(uint96 tokenId) public {
+    function testFuzz_Success_GetUnderlyingAssetsAmounts_AmountIsZero(uint96 tokenId) public view {
         // Given : Zero amount
         uint256 amount = 0;
 

@@ -53,7 +53,7 @@ contract GetAssetModule_UniswapV4HooksRegistry_Fuzz_Test is UniswapV4HooksRegist
         assertEq(assetModule, address(0));
     }
 
-    function testFuzz_Success_getAssetModule_InvalidTokenId(uint96 tokenId) public {
+    function testFuzz_Success_getAssetModule_InvalidTokenId(uint96 tokenId) public view {
         // Given : tokenId is invalid as no positions are previously minted
         // When : Calling getAssetModule()
         address assetModule = v4HooksRegistry.getAssetModule(tokenId);

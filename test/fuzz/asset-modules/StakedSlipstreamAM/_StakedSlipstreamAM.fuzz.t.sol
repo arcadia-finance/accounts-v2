@@ -106,7 +106,7 @@ abstract contract StakedSlipstreamAM_Fuzz_Test is Fuzz_Test, SlipstreamFixture {
 
     function givenValidPosition(StakedSlipstreamAM.PositionState memory position, int24 tickSpacing)
         internal
-        view
+        pure
         returns (StakedSlipstreamAM.PositionState memory)
     {
         // Given: Ticks are within allowed ranges.

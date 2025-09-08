@@ -22,7 +22,7 @@ contract IsAllowed_AbstractStakingAM_Fuzz_Test is AbstractStakingAM_Fuzz_Test {
                               TESTS
     /////////////////////////////////////////////////////////////// */
 
-    function testFuzz_Success_isAllowed_False_BadAsset(uint256 positionId, address randomAddress) public {
+    function testFuzz_Success_isAllowed_False_BadAsset(uint256 positionId, address randomAddress) public view {
         // Given : randomAddress is not the stakingAM.
         vm.assume(randomAddress != address(stakingAM));
 

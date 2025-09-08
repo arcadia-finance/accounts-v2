@@ -121,7 +121,7 @@ abstract contract SlipstreamAM_Fuzz_Test is Fuzz_Test, SlipstreamFixture {
 
     function givenValidPosition(NonfungiblePositionManagerMock.Position memory position)
         internal
-        view
+        pure
         returns (NonfungiblePositionManagerMock.Position memory)
     {
         // Given: poolId is non zero (=position is initialised).

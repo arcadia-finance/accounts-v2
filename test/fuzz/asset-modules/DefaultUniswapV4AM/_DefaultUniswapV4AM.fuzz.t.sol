@@ -141,7 +141,7 @@ abstract contract DefaultUniswapV4AM_Fuzz_Test is Fuzz_Test, UniswapV4Fixture {
 
     function givenValidTicks(int24 tickLower, int24 tickUpper)
         public
-        view
+        pure
         returns (int24 tickLower_, int24 tickUpper_)
     {
         tickLower_ = int24(bound(tickLower, MIN_TICK, MAX_TICK - 2));

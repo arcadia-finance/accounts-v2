@@ -41,7 +41,7 @@ contract Factory_Invariant_Test is Invariant_Test {
     /*//////////////////////////////////////////////////////////////////////////
                                      INVARIANTS
     //////////////////////////////////////////////////////////////////////////*/
-    function invariant_latestAccountVersion() public {
+    function invariant_latestAccountVersion() public view {
         uint256 numberOfAccounts = factory.allAccountsLength();
         address latestDeployedAccount = factory.allAccounts(numberOfAccounts - 1);
         uint256 latestDeployedAccountVersion = AccountV3(latestDeployedAccount).ACCOUNT_VERSION();

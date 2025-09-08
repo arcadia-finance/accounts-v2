@@ -32,7 +32,7 @@ contract GetPrincipalAmounts_SlipstreamAM_Fuzz_Test is SlipstreamAM_Fuzz_Test {
         uint128 liquidity,
         uint256 priceToken0,
         uint256 priceToken1
-    ) public {
+    ) public view {
         // Check that ticks are within allowed ranges.
         vm.assume(tickLower < tickUpper);
         vm.assume(isWithinAllowedRange(tickLower));

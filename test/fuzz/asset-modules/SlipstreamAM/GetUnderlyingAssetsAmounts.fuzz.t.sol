@@ -191,7 +191,7 @@ contract GetUnderlyingAssetsAmounts_SlipstreamAM_Fuzz_Test is SlipstreamAM_Fuzz_
         assertEq(underlyingAssetsAmounts[1], expectedUnderlyingAssetsAmount1);
     }
 
-    function testFuzz_Success_GetUnderlyingAssetsAmounts_AmountIsZero(uint96 tokenId) public {
+    function testFuzz_Success_GetUnderlyingAssetsAmounts_AmountIsZero(uint96 tokenId) public view {
         // Given : Zero amount
         uint256 amount = 0;
 
