@@ -19,6 +19,7 @@ import { IPermit2 } from "../interfaces/IPermit2.sol";
  * @notice Arcadia Spot Accounts enables individuals, DAOs, and other protocols to deposit and manage a variety of assets easily through Asset Managers.
  * Asset Managers are selected by Spot Account holders and can facilitate automation for tasks such as Liquidity Management and Compounding, among others.
  */
+/// forge-lint: disable-next-item(all)
 contract AccountSpot is AccountStorageV1, IAccount {
     using SafeTransferLib for ERC20;
 

@@ -8,7 +8,7 @@ import { StandardERC4626AM_Fuzz_Test } from "./_StandardERC4626AM.fuzz.t.sol";
 
 import { StdStorage, stdStorage } from "../../../../lib/forge-std/src/Test.sol";
 
-import { AssetValuationLib, AssetValueAndRiskFactors } from "../../../../src/libraries/AssetValuationLib.sol";
+import { AssetValueAndRiskFactors } from "../../../../src/libraries/AssetValuationLib.sol";
 
 /**
  * @notice Fuzz tests for the function "_getUnderlyingAssetsAmounts()" of contract "StandardERC4626AM".

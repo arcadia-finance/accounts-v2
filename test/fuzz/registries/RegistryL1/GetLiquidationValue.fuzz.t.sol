@@ -4,11 +4,10 @@
  */
 pragma solidity ^0.8.0;
 
-import { RegistryL1_Fuzz_Test, RegistryErrors } from "./_RegistryL1.fuzz.t.sol";
+import { RegistryL1_Fuzz_Test } from "./_RegistryL1.fuzz.t.sol";
 
 import { Constants } from "../../../utils/Constants.sol";
-import { AssetModule } from "../../../../src/asset-modules/abstracts/AbstractAM.sol";
-import { AssetValuationLib, AssetValueAndRiskFactors } from "../../../../src/libraries/AssetValuationLib.sol";
+import { AssetValuationLib } from "../../../../src/libraries/AssetValuationLib.sol";
 
 /**
  * @notice Fuzz tests for the function "getLiquidationValue" of contract "RegistryL1".

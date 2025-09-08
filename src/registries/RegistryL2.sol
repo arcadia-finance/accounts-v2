@@ -406,6 +406,7 @@ contract RegistryL2 is IRegistry, RegistryGuardian {
      * denominated in USD with 18 decimals precision.
      * @param riskFactor The risk factor of the asset for the Creditor, 4 decimals precision.
      */
+    /// forge-lint: disable-next-item(mixed-case-function)
     function setRiskParametersOfDerivedAM(
         address creditor,
         address assetModule,

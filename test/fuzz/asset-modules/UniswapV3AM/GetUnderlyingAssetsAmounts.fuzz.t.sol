@@ -6,8 +6,7 @@ pragma solidity ^0.8.0;
 
 import { UniswapV3AM_Fuzz_Test } from "./_UniswapV3AM.fuzz.t.sol";
 
-import { AssetValuationLib, AssetValueAndRiskFactors } from "../../../../src/libraries/AssetValuationLib.sol";
-import { Constants } from "../../../utils/Constants.sol";
+import { AssetValueAndRiskFactors } from "../../../../src/libraries/AssetValuationLib.sol";
 import { ERC20Mock } from "../../../utils/mocks/tokens/ERC20Mock.sol";
 import { IUniswapV3PoolExtension } from
     "../../../utils/fixtures/uniswap-v3/extensions/interfaces/IUniswapV3PoolExtension.sol";

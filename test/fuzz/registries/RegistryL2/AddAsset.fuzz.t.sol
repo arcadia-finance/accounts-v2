@@ -4,13 +4,13 @@
  */
 pragma solidity ^0.8.0;
 
-import { RegistryL2_Fuzz_Test, RegistryErrors } from "./_RegistryL2.fuzz.t.sol";
-
+import { RegistryErrors } from "../../../../src/libraries/Errors.sol";
+import { RegistryL2_Fuzz_Test } from "./_RegistryL2.fuzz.t.sol";
 import { RegistryL2 } from "../../../../src/registries/RegistryL2.sol";
-
 /**
  * @notice Fuzz tests for the function "addAsset" of contract "RegistryL2".
  */
+
 contract AddAsset_RegistryL2_Fuzz_Test is RegistryL2_Fuzz_Test {
     /* ///////////////////////////////////////////////////////////////
                               SETUP

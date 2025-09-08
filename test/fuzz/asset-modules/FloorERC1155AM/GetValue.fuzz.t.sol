@@ -5,9 +5,6 @@
 pragma solidity ^0.8.0;
 
 import { FloorERC1155AM_Fuzz_Test } from "./_FloorERC1155AM.fuzz.t.sol";
-
-import { stdError } from "../../../../lib/forge-std/src/StdError.sol";
-
 import { Constants } from "../../../utils/Constants.sol";
 
 /**

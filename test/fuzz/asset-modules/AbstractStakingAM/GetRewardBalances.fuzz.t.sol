@@ -4,8 +4,6 @@
  */
 pragma solidity ^0.8.0;
 
-import { Fuzz_Test, Constants } from "../../Fuzz.t.sol";
-
 import { AbstractStakingAM_Fuzz_Test } from "./_AbstractStakingAM.fuzz.t.sol";
 import { StakingAM } from "../../../../src/asset-modules/abstracts/AbstractStakingAM.sol";
 import { FixedPointMathLib } from "../../../../lib/solmate/src/utils/FixedPointMathLib.sol";

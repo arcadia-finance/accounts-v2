@@ -5,7 +5,7 @@
 pragma solidity ^0.8.0;
 
 import { AerodromePoolAM } from "../../../src/asset-modules/Aerodrome-Finance/AerodromePoolAM.sol";
-import { AssetValuationLib, AssetValueAndRiskFactors } from "../../../src/libraries/AssetValuationLib.sol";
+import { AssetValueAndRiskFactors } from "../../../src/libraries/AssetValuationLib.sol";
 
 contract AerodromePoolAMExtension is AerodromePoolAM {
     constructor(address registry, address aerodromeFactory) AerodromePoolAM(registry, aerodromeFactory) { }

@@ -8,7 +8,6 @@ import { AccountErrors } from "../../../../src/libraries/Errors.sol";
 import { AccountsGuard } from "../../../../src/accounts/helpers/AccountsGuard.sol";
 import { AccountV3 } from "../../../../src/accounts/AccountV3.sol";
 import { AccountV3_Fuzz_Test } from "./_AccountV3.fuzz.t.sol";
-import { AccountV3Extension } from "../../../utils/extensions/AccountV3Extension.sol";
 import { AssetModule } from "../../../../src/asset-modules/abstracts/AbstractAM.sol";
 import { Constants } from "../../../utils/Constants.sol";
 

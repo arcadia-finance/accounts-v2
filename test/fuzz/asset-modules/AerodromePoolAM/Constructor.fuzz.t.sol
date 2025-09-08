@@ -5,7 +5,6 @@
 pragma solidity ^0.8.0;
 
 import { AerodromePoolAM_Fuzz_Test } from "./_AerodromePoolAM.fuzz.t.sol";
-
 import { AerodromePoolAMExtension } from "../../../utils/extensions/AerodromePoolAMExtension.sol";
 
 /**

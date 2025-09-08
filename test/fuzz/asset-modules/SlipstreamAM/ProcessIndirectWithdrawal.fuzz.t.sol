@@ -9,12 +9,9 @@ import { SlipstreamAM_Fuzz_Test } from "./_SlipstreamAM.fuzz.t.sol";
 import { ERC20 } from "../../../../lib/solmate/src/tokens/ERC20.sol";
 
 import { ERC20Mock } from "../../../utils/mocks/tokens/ERC20Mock.sol";
-import { INonfungiblePositionManagerExtension } from
-    "../../../utils/fixtures/slipstream/extensions/interfaces/INonfungiblePositionManagerExtension.sol";
 import { ICLPoolExtension } from "../../../utils/fixtures/slipstream/extensions/interfaces/ICLPoolExtension.sol";
 import { LiquidityAmounts } from "../../../../src/asset-modules/UniswapV3/libraries/LiquidityAmounts.sol";
 import { TickMath } from "../../../../src/asset-modules/UniswapV3/libraries/TickMath.sol";
-import { AssetModule } from "../../../../src/asset-modules/abstracts/AbstractAM.sol";
 
 /**
  * @notice Fuzz tests for the function "ProcessIndirectWithdrawal" of contract "SlipstreamAM".

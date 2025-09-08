@@ -4,7 +4,7 @@
  */
 pragma solidity ^0.8.0;
 
-import { ActionMultiCallV2, IERC20 } from "../../../src/actions/MultiCallV2.sol";
+import { ActionMultiCallV2 } from "../../../src/actions/MultiCallV2.sol";
 
 contract MultiCallV2Extension is ActionMultiCallV2 {
     function assets() public view returns (address[] memory) {

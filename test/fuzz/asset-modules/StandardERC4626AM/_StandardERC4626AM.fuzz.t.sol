@@ -8,8 +8,6 @@ import { Fuzz_Test } from "../../Fuzz.t.sol";
 
 import { ERC4626Mock } from "../../../utils/mocks/tokens/ERC4626Mock.sol";
 import { ERC4626AMExtension } from "../../../utils/extensions/ERC4626AMExtension.sol";
-import { AssetModule } from "../../../../src/asset-modules/abstracts/AbstractAM.sol";
-import { StandardERC4626AM } from "../../../utils/mocks/asset-modules/StandardERC4626AM.sol";
 
 /**
  * @notice Common logic needed by all "StandardERC4626AM" fuzz tests.

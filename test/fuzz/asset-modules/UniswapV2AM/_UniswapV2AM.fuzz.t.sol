@@ -11,11 +11,9 @@ import { StdStorage, stdStorage } from "../../../../lib/forge-std/src/Test.sol";
 import { ArcadiaOracle } from "../../../utils/mocks/oracles/ArcadiaOracle.sol";
 import { BitPackingLib } from "../../../../src/libraries/BitPackingLib.sol";
 import { ERC20Mock } from "../../../utils/mocks/tokens/ERC20Mock.sol";
-import { AssetModule } from "../../../../src/asset-modules/abstracts/AbstractAM.sol";
 import { UniswapV2PairMock } from "../../../utils/mocks/UniswapV2/UniswapV2PairMock.sol";
 import { UniswapV2AMExtension } from "../../../utils/extensions/UniswapV2AMExtension.sol";
 import { UniswapV2FactoryMock } from "../../../utils/mocks/UniswapV2/UniswapV2FactoryMock.sol";
-import { UniswapV2AM } from "../../../utils/mocks/asset-modules/UniswapV2AM.sol";
 
 /**
  * @notice Common logic needed by all "UniswapV2AM" fuzz tests.

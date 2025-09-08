@@ -5,9 +5,7 @@
 pragma solidity ^0.8.0;
 
 import { Fuzz_Test } from "../../Fuzz.t.sol";
-
 import { BitPackingLib } from "../../../../src/libraries/BitPackingLib.sol";
-import { AssetModule } from "../../../../src/asset-modules/abstracts/AbstractAM.sol";
 
 /**
  * @notice Common logic needed by all "FloorERC1155AM" fuzz tests.

@@ -4,7 +4,7 @@
  */
 pragma solidity ^0.8.30;
 
-import { AssetModule, IAssetModule, Owned } from "../abstracts/AbstractAM.sol";
+import { AssetModule, IAssetModule } from "../abstracts/AbstractAM.sol";
 import { AssetValueAndRiskFactors } from "../../libraries/AssetValuationLib.sol";
 import { DefaultUniswapV4AM } from "./DefaultUniswapV4AM.sol";
 import { Hooks } from "./libraries/Hooks.sol";
@@ -245,6 +245,7 @@ contract UniswapV4HooksRegistry is AssetModule {
      * denominated in USD with 18 decimals precision.
      * @param riskFactor The risk factor of the asset for the Creditor, 4 decimals precision.
      */
+    /// forge-lint: disable-next-item(mixed-case-function)
     function setRiskParametersOfDerivedAM(
         address creditor,
         address assetModule,

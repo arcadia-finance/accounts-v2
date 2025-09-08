@@ -7,7 +7,6 @@ pragma solidity ^0.8.0;
 import { Fuzz_Test } from "../../Fuzz.t.sol";
 
 import { RegistryGuardianExtension } from "../../../utils/extensions/RegistryGuardianExtension.sol";
-import { BaseGuardian } from "../../../../src/guardians/BaseGuardian.sol";
 
 /**
  * @notice Common logic needed by all "RegistryGuardian" fuzz tests.

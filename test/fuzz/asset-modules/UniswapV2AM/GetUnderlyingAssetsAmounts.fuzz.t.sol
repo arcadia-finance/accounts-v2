@@ -9,8 +9,7 @@ import { UniswapV2AM_Fuzz_Test } from "./_UniswapV2AM.fuzz.t.sol";
 import { StdStorage, stdStorage } from "../../../../lib/forge-std/src/Test.sol";
 
 import { Constants } from "../../../utils/Constants.sol";
-import { AssetModule } from "../../../../src/asset-modules/abstracts/AbstractAM.sol";
-import { AssetValuationLib, AssetValueAndRiskFactors } from "../../../../src/libraries/AssetValuationLib.sol";
+import { AssetValueAndRiskFactors } from "../../../../src/libraries/AssetValuationLib.sol";
 
 /**
  * @notice Fuzz tests for the function "_getUnderlyingAssetsAmounts()" of contract "UniswapV2AM".

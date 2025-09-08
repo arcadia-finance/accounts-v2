@@ -7,6 +7,7 @@ import { FixedPoint96 } from "./FixedPoint96.sol";
 
 /// @title Liquidity amount functions
 /// @notice Provides functions for computing liquidity amounts from token amounts and prices
+/// forge-lint: disable-next-item(mixed-case-variable)
 library LiquidityAmounts {
     /// @notice Computes the amount of token0 for a given amount of liquidity and a price range
     /// @param sqrtRatioAX96 A sqrt price representing the first tick boundary

@@ -30,6 +30,7 @@ contract Factory is IFactory, ERC721, FactoryGuardian {
     // The latest Account version, newly deployed Account use the latest version by default.
     uint88 public latestAccountVersion;
     // The baseURI of the ERC721 tokens.
+    /// forge-lint: disable-next-item(mixed-case-variable)
     string public baseURI;
 
     // The Merkle root of the Merkle tree of all the compatible Account versions.
@@ -230,6 +231,7 @@ contract Factory is IFactory, ERC721, FactoryGuardian {
         if (to == account) revert FactoryErrors.InvalidRecipient();
 
         IAccount(account).transferOwnership(to);
+        /// forge-lint: disable-next-line(erc20-unchecked-transfer)
         super.transferFrom(from, to, id);
     }
 
@@ -345,6 +347,7 @@ contract Factory is IFactory, ERC721, FactoryGuardian {
      * and might be updated later to allow users to choose/create their own Account art,
      * as such no URI freeze is added.
      */
+    /// forge-lint: disable-next-item(mixed-case-function,mixed-case-variable)
     function setBaseURI(string calldata newBaseURI) external onlyOwner {
         baseURI = newBaseURI;
     }
@@ -354,6 +357,7 @@ contract Factory is IFactory, ERC721, FactoryGuardian {
      * @param tokenId The id of the Account.
      * @return uri The token URI.
      */
+    /// forge-lint: disable-next-item(mixed-case-function,mixed-case-variable)
     function tokenURI(uint256 tokenId) public view override returns (string memory uri) {
         return bytes(baseURI).length > 0 ? string(abi.encodePacked(baseURI, tokenId.toString())) : "";
     }

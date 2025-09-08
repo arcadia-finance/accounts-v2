@@ -5,7 +5,6 @@
 pragma solidity ^0.8.0;
 
 import { IWrappedStakedSlipstream } from "./interfaces/IWrappedStakedSlipstream.sol";
-import { Utils } from "../../../utils/Utils.sol";
 import { Test } from "../../../../lib/forge-std/src/Test.sol";
 
 contract WrappedStakedSlipstreamFixture is Test {

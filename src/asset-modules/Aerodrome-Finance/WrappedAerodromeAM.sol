@@ -33,6 +33,7 @@ contract WrappedAerodromeAM is DerivedAM, ERC721, ReentrancyGuard {
     uint256 internal lastPositionId;
 
     // The baseURI of the ERC721 tokens.
+    /// forge-lint: disable-next-item(mixed-case-variable)
     string public baseURI;
 
     // Map a Pool to its corresponding token0.
@@ -611,6 +612,7 @@ contract WrappedAerodromeAM is DerivedAM, ERC721, ReentrancyGuard {
      * @notice Function that stores a new base URI.
      * @param newBaseURI The new base URI to store.
      */
+    /// forge-lint: disable-next-item(mixed-case-function,mixed-case-variable)
     function setBaseURI(string calldata newBaseURI) external onlyOwner {
         baseURI = newBaseURI;
     }
@@ -620,6 +622,7 @@ contract WrappedAerodromeAM is DerivedAM, ERC721, ReentrancyGuard {
      * @param tokenId The id of the Account.
      * @return uri The token URI.
      */
+    /// forge-lint: disable-next-item(mixed-case-function,mixed-case-variable)
     function tokenURI(uint256 tokenId) public view override returns (string memory uri) {
         return bytes(baseURI).length > 0 ? string(abi.encodePacked(baseURI, tokenId.toString())) : "";
     }

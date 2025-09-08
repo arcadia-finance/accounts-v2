@@ -8,7 +8,6 @@ import { Invariant_Test } from "./Invariant.t.sol";
 
 import { AccountV3 } from "../../src/accounts/AccountV3.sol";
 import { AccountLogicMock } from "../utils/mocks/accounts/AccountLogicMock.sol";
-import { Factory } from "../../src/Factory.sol";
 import { FactoryHandler } from "./handlers/FactoryHandler.sol";
 
 /// @dev Invariant tests for { Factory }.

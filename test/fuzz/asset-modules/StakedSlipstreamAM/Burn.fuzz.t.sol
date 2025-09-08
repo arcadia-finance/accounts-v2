@@ -12,7 +12,6 @@ import { FixedPoint128 } from "../../../../src/asset-modules/UniswapV3/libraries
 import { FullMath } from "../../../../src/asset-modules/UniswapV3/libraries/FullMath.sol";
 import { StakedSlipstreamAM } from "../../../../src/asset-modules/Slipstream/StakedSlipstreamAM.sol";
 import { StdStorage, stdStorage } from "../../../../lib/forge-std/src/Test.sol";
-import { TickMath } from "../../../../src/asset-modules/UniswapV3/libraries/TickMath.sol";
 
 /**
  * @notice Fuzz tests for the function "burn" of contract "StakedSlipstreamAM".

@@ -4,8 +4,7 @@
  */
 pragma solidity ^0.8.0;
 
-import { AbstractStakingAM_Fuzz_Test, Constants } from "./_AbstractStakingAM.fuzz.t.sol";
-
+import { AbstractStakingAM_Fuzz_Test } from "./_AbstractStakingAM.fuzz.t.sol";
 import { AssetValueAndRiskFactors } from "../../../../src/libraries/AssetValuationLib.sol";
 
 /**

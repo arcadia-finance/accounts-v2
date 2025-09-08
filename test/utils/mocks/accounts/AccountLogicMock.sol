@@ -798,6 +798,7 @@ contract AccountLogicMock is AccountStorageV2 {
      * @dev Used for all tokens type == 0.
      * @dev If the token has not yet been deposited, the ERC20 token address is stored.
      */
+    /// forge-lint: disable-next-item(mixed-case-function,mixed-case-variable)
     function _depositERC20(address from, address ERC20Address, uint256 amount) internal {
         ERC20(ERC20Address).safeTransferFrom(from, address(this), amount);
 
@@ -821,6 +822,7 @@ contract AccountLogicMock is AccountStorageV2 {
      * @dev After successful transfer, the function pushes the ERC721 address to the stored token and stored ID array.
      * This may cause duplicates in the ERC721 stored addresses array, but this is intended.
      */
+    /// forge-lint: disable-next-item(mixed-case-function,mixed-case-variable)
     function _depositERC721(address from, address ERC721Address, uint256 id) internal {
         IERC721(ERC721Address).safeTransferFrom(from, address(this), id);
 

@@ -4,9 +4,9 @@
  */
 pragma solidity ^0.8.0;
 
-import { FloorERC1155AM_Fuzz_Test, AssetModule } from "./_FloorERC1155AM.fuzz.t.sol";
-
+import { AssetModule } from "../../../../src/asset-modules/abstracts/AbstractAM.sol";
 import { FloorERC1155AM } from "../../../utils/mocks/asset-modules/FloorERC1155AM.sol";
+import { FloorERC1155AM_Fuzz_Test } from "./_FloorERC1155AM.fuzz.t.sol";
 
 /**
  * @notice Fuzz tests for the function "processDirectDeposit" of contract "FloorERC1155AM".

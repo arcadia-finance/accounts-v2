@@ -11,7 +11,6 @@ import { BitPackingLib } from "../../../../src/libraries/BitPackingLib.sol";
 
 import { Constants } from "../../../utils/Constants.sol";
 import { ERC20Mock } from "../../../utils/mocks/tokens/ERC20Mock.sol";
-import { AssetModule } from "../../../../src/asset-modules/abstracts/AbstractAM.sol";
 import { PrimaryAM, ERC20PrimaryAM } from "../../../../src/asset-modules/ERC20-Primaries/ERC20PrimaryAM.sol";
 import { RegistryErrors } from "../../../../src/libraries/Errors.sol";
 

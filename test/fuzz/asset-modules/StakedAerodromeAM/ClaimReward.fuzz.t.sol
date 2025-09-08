@@ -4,9 +4,8 @@
  */
 pragma solidity ^0.8.0;
 
-import { StakedAerodromeAM_Fuzz_Test, StakedAerodromeAM } from "./_StakedAerodromeAM.fuzz.t.sol";
-
 import { ERC20 } from "../../../../lib/solmate/src/tokens/ERC20.sol";
+import { StakedAerodromeAM_Fuzz_Test } from "./_StakedAerodromeAM.fuzz.t.sol";
 
 /**
  * @notice Fuzz tests for the "ClaimReward" function of contract "StakedAerodromeAM".

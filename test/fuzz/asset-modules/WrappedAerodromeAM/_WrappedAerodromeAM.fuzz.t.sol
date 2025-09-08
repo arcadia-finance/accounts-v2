@@ -4,7 +4,7 @@
  */
 pragma solidity ^0.8.0;
 
-import { Fuzz_Test, Constants } from "../../Fuzz.t.sol";
+import { Fuzz_Test } from "../../Fuzz.t.sol";
 import { AerodromeFixture } from "../../../utils/fixtures/aerodrome/AerodromeFixture.f.sol";
 
 import { AerodromePoolAM } from "../../../../src/asset-modules/Aerodrome-Finance/AerodromePoolAM.sol";

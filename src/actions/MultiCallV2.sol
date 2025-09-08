@@ -17,6 +17,7 @@ import { IAeroAM } from "./interfaces/IAeroAM.sol";
  * @dev Only calls are used, no delegatecalls.
  * @dev This address will approve random addresses. Do not store any funds on this address!
  */
+/// forge-lint: disable-next-item(all)
 contract ActionMultiCallV2 is IActionBase, ERC721TokenReceiver {
     /* //////////////////////////////////////////////////////////////
                                 STORAGE

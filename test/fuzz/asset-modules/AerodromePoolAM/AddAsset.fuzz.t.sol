@@ -4,8 +4,8 @@
  */
 pragma solidity ^0.8.0;
 
-import { AerodromePoolAM_Fuzz_Test } from "./_AerodromePoolAM.fuzz.t.sol";
 import { AerodromePoolAM } from "../../../../src/asset-modules/Aerodrome-Finance/AerodromePoolAM.sol";
+import { AerodromePoolAM_Fuzz_Test } from "./_AerodromePoolAM.fuzz.t.sol";
 
 /**
  * @notice Fuzz tests for the function "addAsset" of contract "AerodromePoolAM".
