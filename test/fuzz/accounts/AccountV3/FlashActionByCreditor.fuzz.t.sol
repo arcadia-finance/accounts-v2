@@ -81,6 +81,7 @@ contract FlashActionByCreditor_AccountV3_Fuzz_Test is AccountV3_Fuzz_Test, Permi
         address approvedCreditor,
         bytes calldata callbackData
     ) public {
+        vm.assume(sender != users.accountOwner);
         vm.assume(approvedCreditor != address(0));
         vm.assume(approvedCreditor != creditor);
 
