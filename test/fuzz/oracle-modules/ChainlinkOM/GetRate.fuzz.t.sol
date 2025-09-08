@@ -6,7 +6,7 @@ pragma solidity ^0.8.0;
 
 import { ArcadiaOracle } from "../../../utils/mocks/oracles/ArcadiaOracle.sol";
 import { ChainlinkOM_Fuzz_Test } from "./_ChainlinkOM.fuzz.t.sol";
-import { OracleModule } from "../../../../src/oracle-modules/abstracts/abstractOM.sol";
+import { OracleModule } from "../../../../src/oracle-modules/abstracts/AbstractOM.sol";
 import { RevertingOracle } from "../../../utils/mocks/oracles/RevertingOracle.sol";
 
 /**
