@@ -17,10 +17,9 @@ contract MintAeroPosition_MultiCallV2_Fuzz_Test is MultiCallV2_Fuzz_Test {
                             VARIABLES
     /////////////////////////////////////////////////////////////// */
 
-    ERC20Mock poolMock;
-    AerodromeAMMock aerodromeAMMock;
-
-    uint24 fee = 300;
+    ERC20Mock internal poolMock;
+    /// forge-lint: disable-next-line(mixed-case-variable)
+    AerodromeAMMock internal aerodromeAMMock;
 
     /* ///////////////////////////////////////////////////////////////
                               SETUP

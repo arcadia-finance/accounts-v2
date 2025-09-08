@@ -87,8 +87,8 @@ contract UpgradeAccount_SpotToMarginMigrator_Fuzz_Test is SpotToMarginMigrator_F
         assertEq(accountSpot.creditor(), address(creditorStable1));
         assertEq(accountSpot.registry(), address(registry));
         assertEq(accountSpot.numeraire(), address(mockERC20.stable1));
-        assertEq(accountSpot.minimumMargin(), Constants.initLiquidationCost);
-        assertEq(accountSpot.liquidator(), Constants.initLiquidator);
+        assertEq(accountSpot.minimumMargin(), Constants.MINIMUM_MARGIN);
+        assertEq(accountSpot.liquidator(), Constants.LIQUIDATOR);
         assertEq(accountSpot.erc20Balances(address(mockERC20.token1)), erc20Amount);
         assertEq(accountSpot.erc1155Balances(address(mockERC1155.sft1), 1), erc1155Amount);
         assertEq(AccountV3Extension(address(accountSpot)).isAccountUnhealthy(), false);

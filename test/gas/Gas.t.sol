@@ -17,18 +17,18 @@ abstract contract Gas_Test is Fuzz_Test {
         Fuzz_Test.setUp();
     }
 
-    function prepare_deposit_single_erc20(address newAccount)
+    function prepareDepositSingleErc20(address newAccount)
         public
-        returns (address[] memory assets, uint256[] memory ids, uint256[] memory amounts, AccountV3 account)
+        returns (address[] memory assets, uint256[] memory ids, uint256[] memory amounts, AccountV3 account_)
     {
         vm.pauseGasMetering();
-        account = AccountV3(newAccount);
+        account_ = AccountV3(newAccount);
 
         vm.prank(users.tokenCreator);
         mockERC20.stable1.mint(users.accountOwner, 1000 * 10 ** 18);
 
         vm.startPrank(users.accountOwner);
-        mockERC20.stable1.approve(address(account), 1000 * 10 ** 18);
+        mockERC20.stable1.approve(address(account_), 1000 * 10 ** 18);
 
         assets = new address[](1);
         assets[0] = address(mockERC20.stable1);
@@ -41,20 +41,20 @@ abstract contract Gas_Test is Fuzz_Test {
         vm.resumeGasMetering();
     }
 
-    function prepare_deposit_double_erc20(address newAccount)
+    function prepareDepositDoubleErc20(address newAccount)
         public
-        returns (address[] memory assets, uint256[] memory ids, uint256[] memory amounts, AccountV3 account)
+        returns (address[] memory assets, uint256[] memory ids, uint256[] memory amounts, AccountV3 account_)
     {
         vm.pauseGasMetering();
-        account = AccountV3(newAccount);
+        account_ = AccountV3(newAccount);
 
         vm.prank(users.tokenCreator);
         mockERC20.stable1.mint(users.accountOwner, 1000 * 10 ** 18);
         mockERC20.stable2.mint(users.accountOwner, 1000 * 10 ** 18);
 
         vm.startPrank(users.accountOwner);
-        mockERC20.stable1.approve(address(account), 1000 * 10 ** 18);
-        mockERC20.stable2.approve(address(account), 1000 * 10 ** 18);
+        mockERC20.stable1.approve(address(account_), 1000 * 10 ** 18);
+        mockERC20.stable2.approve(address(account_), 1000 * 10 ** 18);
 
         assets = new address[](2);
         assets[0] = address(mockERC20.stable1);
@@ -69,12 +69,12 @@ abstract contract Gas_Test is Fuzz_Test {
         vm.resumeGasMetering();
     }
 
-    function prepare_deposit_tripple_erc20(address newAccount)
+    function prepareDepositTripleErc20(address newAccount)
         public
-        returns (address[] memory assets, uint256[] memory ids, uint256[] memory amounts, AccountV3 account)
+        returns (address[] memory assets, uint256[] memory ids, uint256[] memory amounts, AccountV3 account_)
     {
         vm.pauseGasMetering();
-        account = AccountV3(newAccount);
+        account_ = AccountV3(newAccount);
 
         vm.prank(users.tokenCreator);
         mockERC20.stable1.mint(users.accountOwner, 1000 * 10 ** 18);
@@ -82,9 +82,9 @@ abstract contract Gas_Test is Fuzz_Test {
         mockERC20.token1.mint(users.accountOwner, 1000 * 10 ** 18);
 
         vm.startPrank(users.accountOwner);
-        mockERC20.stable1.approve(address(account), 1000 * 10 ** 18);
-        mockERC20.stable2.approve(address(account), 1000 * 10 ** 18);
-        mockERC20.token1.approve(address(account), 1000 * 10 ** 18);
+        mockERC20.stable1.approve(address(account_), 1000 * 10 ** 18);
+        mockERC20.stable2.approve(address(account_), 1000 * 10 ** 18);
+        mockERC20.token1.approve(address(account_), 1000 * 10 ** 18);
 
         assets = new address[](3);
         assets[0] = address(mockERC20.stable1);

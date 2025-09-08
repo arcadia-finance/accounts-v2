@@ -34,11 +34,13 @@ contract GetValue_FloorERC721AM_Fuzz_Test is FloorERC721AM_Fuzz_Test {
     //////////////////////////////////////////////////////////////*/
     function testFuzz_Revert_getValue_Overflow(uint256 rateNft2ToUsd, uint256 assetId, uint256 amount) public {
         // No overflow Registry.
-        rateNft2ToUsd = bound(rateNft2ToUsd, 1, type(uint256).max / 10 ** (36 - Constants.nftOracleDecimals));
+        rateNft2ToUsd = bound(rateNft2ToUsd, 1, type(uint256).max / 10 ** (36 - Constants.NFT_ORACLE_DECIMALS));
 
         // Overflow valueInUsd Asset Module (test-case).
         amount = bound(
-            amount, type(uint256).max / rateNft2ToUsd / 10 ** (18 - Constants.nftOracleDecimals) + 1, type(uint256).max
+            amount,
+            type(uint256).max / rateNft2ToUsd / 10 ** (18 - Constants.NFT_ORACLE_DECIMALS) + 1,
+            type(uint256).max
         );
 
         vm.prank(users.transmitter);
@@ -50,14 +52,14 @@ contract GetValue_FloorERC721AM_Fuzz_Test is FloorERC721AM_Fuzz_Test {
 
     function testFuzz_Success_getValue(uint256 rateNft2ToUsd, uint256 assetId, uint256 amount) public {
         // No overflow Registry.
-        rateNft2ToUsd = bound(rateNft2ToUsd, 0, type(uint256).max / 10 ** (36 - Constants.nftOracleDecimals));
+        rateNft2ToUsd = bound(rateNft2ToUsd, 0, type(uint256).max / 10 ** (36 - Constants.NFT_ORACLE_DECIMALS));
 
         // No overflow valueInUsd in Asset Module.
         if (rateNft2ToUsd != 0) {
-            amount = bound(amount, 0, type(uint256).max / rateNft2ToUsd / 10 ** (18 - Constants.nftOracleDecimals));
+            amount = bound(amount, 0, type(uint256).max / rateNft2ToUsd / 10 ** (18 - Constants.NFT_ORACLE_DECIMALS));
         }
 
-        uint256 expectedValueInUsd = amount * rateNft2ToUsd * 10 ** (18 - Constants.nftOracleDecimals);
+        uint256 expectedValueInUsd = amount * rateNft2ToUsd * 10 ** (18 - Constants.NFT_ORACLE_DECIMALS);
 
         vm.prank(users.transmitter);
         mockOracles.nft2ToUsd.transmit(int256(rateNft2ToUsd));

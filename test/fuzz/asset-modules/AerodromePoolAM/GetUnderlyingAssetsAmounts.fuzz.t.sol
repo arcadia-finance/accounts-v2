@@ -980,6 +980,7 @@ contract GetUnderlyingAssetsAmounts_AerodromePoolAM_Fuzz_Test is AerodromePoolAM
         // And : We swap tokens (but do not change relative price)
         deal(address(token0), users.accountOwner, amount0In);
         vm.prank(users.accountOwner);
+        /// forge-lint: disable-next-line(erc20-unchecked-transfer)
         token0.transfer(address(aeroPool), amount0In);
 
         aeroPool.swap(0, amount1Out, users.accountOwner, "");
@@ -1054,6 +1055,7 @@ contract GetUnderlyingAssetsAmounts_AerodromePoolAM_Fuzz_Test is AerodromePoolAM
             // And : We swap tokens (but do not change relative price)
             deal(address(token0), users.accountOwner, amount0In);
             vm.startPrank(users.accountOwner);
+            /// forge-lint: disable-next-line(erc20-unchecked-transfer)
             token0.transfer(address(aeroPool), amount0In);
 
             aeroPool.swap(0, amount1Out, users.accountOwner, "");

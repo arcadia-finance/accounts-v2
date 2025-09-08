@@ -25,11 +25,13 @@ abstract contract WrappedAerodromeAM_Fuzz_Test is Fuzz_Test, AerodromeFixture {
                             TEST CONTRACTS
     /////////////////////////////////////////////////////////////// */
 
+    /// forge-lint: disable-start(mixed-case-variable)
     AerodromePoolAM internal aerodromePoolAM;
     ERC20Mock internal asset0;
     ERC20Mock internal asset1;
     Pool internal aeroPool;
     WrappedAerodromeAMExtension internal wrappedAerodromeAM;
+    /// forge-lint: disable-end(mixed-case-variable)
 
     /* ///////////////////////////////////////////////////////////////
                               SETUP
@@ -62,6 +64,8 @@ abstract contract WrappedAerodromeAM_Fuzz_Test is Fuzz_Test, AerodromeFixture {
     /* ///////////////////////////////////////////////////////////////
                           HELPER FUNCTIONS
     /////////////////////////////////////////////////////////////// */
+
+    /// forge-lint: disable-next-item(mixed-case-function)
     function givenValidAMState(
         WrappedAerodromeAM.PoolState memory poolState,
         WrappedAerodromeAM.PositionState memory positionState,
@@ -129,6 +133,7 @@ abstract contract WrappedAerodromeAM_Fuzz_Test is Fuzz_Test, AerodromeFixture {
         return (poolState, positionState, fee0, fee1);
     }
 
+    /// forge-lint: disable-next-item(mixed-case-function)
     function setAMState(
         Pool pool_,
         uint256 positionId,

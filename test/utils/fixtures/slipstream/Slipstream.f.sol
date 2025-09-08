@@ -18,6 +18,7 @@ import { LiquidityAmountsExtension } from "../uniswap-v3/extensions/libraries/Li
 import { TickMath } from "../../../../src/asset-modules/UniswapV3/libraries/TickMath.sol";
 import { Utils } from "../../Utils.sol";
 
+/// forge-lint: disable-next-item(divide-before-multiply,mixed-case-function)
 contract SlipstreamFixture is WETH9Fixture, AerodromeFixture {
     /*//////////////////////////////////////////////////////////////////////////
                                    CONTRACTS

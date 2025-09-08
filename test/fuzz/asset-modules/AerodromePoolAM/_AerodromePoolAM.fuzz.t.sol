@@ -22,7 +22,7 @@ abstract contract AerodromePoolAM_Fuzz_Test is Fuzz_Test, AerodromeFixture {
     /////////////////////////////////////////////////////////////// */
 
     uint256 internal constant MINIMUM_LIQUIDITY = 10 ** 3;
-    uint256 MINIMUM_K = 10 ** 10;
+    uint256 internal constant MINIMUM_K = 10 ** 10;
 
     /*////////////////////////////////////////////////////////////////
                             VARIABLES
@@ -46,6 +46,7 @@ abstract contract AerodromePoolAM_Fuzz_Test is Fuzz_Test, AerodromeFixture {
                             TEST CONTRACTS
     /////////////////////////////////////////////////////////////// */
 
+    /// forge-lint: disable-next-line(mixed-case-variable)
     AerodromePoolAMExtension internal aeroPoolAM;
     Pool internal aeroPool;
 
@@ -71,7 +72,7 @@ abstract contract AerodromePoolAM_Fuzz_Test is Fuzz_Test, AerodromeFixture {
                           HELPER FUNCTIONS
     /////////////////////////////////////////////////////////////// */
     function initAndSetValidStateInPoolFixture(TestVariables memory testVars)
-        public
+        internal
         returns (TestVariables memory testVars_)
     {
         ERC20Mock token0 = new ERC20Mock("Token 0", "TOK0", uint8(testVars.decimals0));
@@ -99,7 +100,7 @@ abstract contract AerodromePoolAM_Fuzz_Test is Fuzz_Test, AerodromeFixture {
     }
 
     function givenValidTestVarsVolatile(TestVariables memory testVars)
-        public
+        internal
         pure
         returns (TestVariables memory testVars_)
     {
@@ -151,8 +152,8 @@ abstract contract AerodromePoolAM_Fuzz_Test is Fuzz_Test, AerodromeFixture {
     }
 
     function givenValidTestVarsStable(TestVariables memory testVars)
-        public
-        view
+        internal
+        pure
         returns (TestVariables memory testVars_)
     {
         // Given : Pool is stable
@@ -216,7 +217,7 @@ abstract contract AerodromePoolAM_Fuzz_Test is Fuzz_Test, AerodromeFixture {
     }
 
     function convertToDecimals(uint256 amount, uint256 assetDecimals, uint256 assetToDecimals)
-        public
+        internal
         pure
         returns (uint256 convertedAmount)
     {
@@ -230,7 +231,7 @@ abstract contract AerodromePoolAM_Fuzz_Test is Fuzz_Test, AerodromeFixture {
     }
 
     function getK(uint256 reserve0, uint256 reserve1, uint256 decimals0, uint256 decimals1)
-        public
+        internal
         pure
         returns (uint256 k)
     {
@@ -242,7 +243,7 @@ abstract contract AerodromePoolAM_Fuzz_Test is Fuzz_Test, AerodromeFixture {
     }
 
     function _k(uint256 reserve0, uint256 reserve1, uint256 decimals0, uint256 decimals1)
-        public
+        internal
         pure
         returns (uint256 k)
     {

@@ -42,7 +42,7 @@ contract SetNewAccountInfo_Factory_Fuzz_Test is Factory_Fuzz_Test {
 
         vm.startPrank(unprivilegedAddress_);
         vm.expectRevert("UNAUTHORIZED");
-        factory.setNewAccountInfo(address(registry), logic, Constants.upgradeRoot3To4And4To3, "");
+        factory.setNewAccountInfo(address(registry), logic, Constants.ROOT, "");
         vm.stopPrank();
     }
 
@@ -82,22 +82,20 @@ contract SetNewAccountInfo_Factory_Fuzz_Test is Factory_Fuzz_Test {
         } else {
             vm.expectRevert(bytes(""));
         }
-        factory.setNewAccountInfo(address(registry2), logic, Constants.upgradeRoot3To4And4To3, "");
+        factory.setNewAccountInfo(address(registry2), logic, Constants.ROOT, "");
         vm.stopPrank();
     }
 
     function testFuzz_Revert_setNewAccountInfo_InvalidAccountVersion() public {
         AccountLogicMock newAccountLogicMock = new AccountLogicMock(address(factory));
-        AccountLogicMock newAccountLogicMock_2 = new AccountLogicMock(address(factory));
+        AccountLogicMock newAccountLogicMock2 = new AccountLogicMock(address(factory));
 
         vm.startPrank(users.owner);
         //first set an actual version 2
-        factory.setNewAccountInfo(address(registry), address(newAccountLogicMock), Constants.upgradeRoot3To4And4To3, "");
+        factory.setNewAccountInfo(address(registry), address(newAccountLogicMock), Constants.ROOT, "");
         //then try to register another account logic address which has version 2 in its bytecode
         vm.expectRevert(FactoryErrors.VersionMismatch.selector);
-        factory.setNewAccountInfo(
-            address(registry), address(newAccountLogicMock_2), Constants.upgradeRoot3To4And4To3, ""
-        );
+        factory.setNewAccountInfo(address(registry), address(newAccountLogicMock2), Constants.ROOT, "");
         vm.stopPrank();
     }
 
@@ -108,7 +106,7 @@ contract SetNewAccountInfo_Factory_Fuzz_Test is Factory_Fuzz_Test {
 
         vm.prank(users.owner);
         vm.expectRevert(FactoryErrors.FactoryMismatch.selector);
-        factory.setNewAccountInfo(address(registry), address(badAccount), Constants.upgradeRoot3To4And4To3, "");
+        factory.setNewAccountInfo(address(registry), address(badAccount), Constants.ROOT, "");
     }
 
     function testFuzz_Revert_setNewAccountInfo_InvalidRegistryFactory(address nonFactory) public {
@@ -119,7 +117,7 @@ contract SetNewAccountInfo_Factory_Fuzz_Test is Factory_Fuzz_Test {
 
         vm.prank(users.owner);
         vm.expectRevert(FactoryErrors.FactoryMismatch.selector);
-        factory.setNewAccountInfo(address(badRegistry), address(account_), Constants.upgradeRoot3To4And4To3, "");
+        factory.setNewAccountInfo(address(badRegistry), address(account_), Constants.ROOT, "");
     }
 
     function testFuzz_Success_setNewAccountInfo(address logic, bytes calldata data) public {
@@ -145,10 +143,10 @@ contract SetNewAccountInfo_Factory_Fuzz_Test is Factory_Fuzz_Test {
         vm.startPrank(users.owner);
         vm.expectEmit(true, true, true, true);
         emit Factory.AccountVersionAdded(uint16(latestAccountVersionPre + 1), address(registry2), logic);
-        factory.setNewAccountInfo(address(registry2), logic, Constants.upgradeRoot3To4And4To3, data);
+        factory.setNewAccountInfo(address(registry2), logic, Constants.ROOT, data);
         vm.stopPrank();
 
-        assertEq(factory.versionRoot(), Constants.upgradeRoot3To4And4To3);
+        assertEq(factory.versionRoot(), Constants.ROOT);
         (address registry_, address addresslogic_, bytes memory data_) =
             factory.versionInformation(latestAccountVersionPre + 1);
         assertEq(registry_, address(registry2));

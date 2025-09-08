@@ -7,6 +7,7 @@ import { Strings } from "../../../../src/libraries/Strings.sol";
 contract ERC721Mock is ERC721 {
     using Strings for uint256;
 
+    /// forge-lint: disable-next-line(mixed-case-variable)
     string baseURI;
     address owner;
 

@@ -11,15 +11,23 @@ import { Utils } from "../../Utils.sol";
 
 contract UniswapV3AMFixture is Base_Test {
     /*//////////////////////////////////////////////////////////////////////////
+                                  CONSTANTS
+    //////////////////////////////////////////////////////////////////////////*/
+
+    bytes32 internal constant POOL_INIT_CODE_HASH = 0xe34f199b19b2b4f47f68442619d555527d244f78a3297ea89325f843f87b8b54;
+
+    /*//////////////////////////////////////////////////////////////////////////
                                      VARIABLES
     //////////////////////////////////////////////////////////////////////////*/
 
+    /// forge-lint: disable-next-line(mixed-case-variable)
     UniswapV3AMExtension internal uniV3AM;
 
     /*//////////////////////////////////////////////////////////////////////////
                                   HELPER FUNCTIONS
     //////////////////////////////////////////////////////////////////////////*/
 
+    /// forge-lint: disable-next-item(mixed-case-function)
     function deployUniswapV3AM(address nonfungiblePositionManager_) internal {
         // Get the bytecode of the UniswapV3PoolExtension.
         bytes memory args = abi.encode();
@@ -32,7 +40,6 @@ contract UniswapV3AMFixture is Base_Test {
 
         // Overwrite constant in bytecode of NonfungiblePositionManager.
         // -> Replace the code hash of UniswapV3Pool.sol with the code hash of UniswapV3PoolExtension.sol
-        bytes32 POOL_INIT_CODE_HASH = 0xe34f199b19b2b4f47f68442619d555527d244f78a3297ea89325f843f87b8b54;
         bytecode = Utils.veryBadBytesReplacer(bytecode, POOL_INIT_CODE_HASH, poolExtensionInitCodeHash);
 
         // Deploy UniswapV3PoolExtension with modified bytecode.

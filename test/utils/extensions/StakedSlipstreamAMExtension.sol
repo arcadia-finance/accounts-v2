@@ -12,6 +12,7 @@ contract StakedSlipstreamAMExtension is StakedSlipstreamAM {
         StakedSlipstreamAM(registry_, nonfungiblePositionManager, aerodromeVoter, rewardToken)
     { }
 
+    /// forge-lint: disable-next-item(mixed-case-function,mixed-case-variable)
     function getCLFactory() public view returns (address cLFactory) {
         cLFactory = address(CL_FACTORY);
     }

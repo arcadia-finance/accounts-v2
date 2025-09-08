@@ -136,7 +136,7 @@ contract GetCollateralValue_RegistryL2_Fuzz_Test is RegistryL2_Fuzz_Test {
         vm.prank(users.transmitter);
         mockOracles.token1ToUsd.transmit(rateToken1ToUsd);
 
-        uint256 token1ValueInUsd = convertAssetToUsd(Constants.tokenDecimals, amountToken1, oracleToken1ToUsdArr);
+        uint256 token1ValueInUsd = convertAssetToUsd(Constants.TOKEN_DECIMALS, amountToken1, oracleToken1ToUsdArr);
         vm.assume(token1ValueInUsd > 0);
 
         vm.prank(users.riskManager);

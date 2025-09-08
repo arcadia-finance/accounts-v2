@@ -27,12 +27,13 @@ abstract contract Fork_Test is Base_Test, ArcadiaAccountsFixture {
     ERC20 internal constant WETH = ERC20(0x4200000000000000000000000000000000000006);
 
     // The Chainlink USDC oracle on Base
-    address oracleUSDC = 0x7e860098F58bBFC8648a4311b374B1D669a2bc6B;
+    address internal constant ORACLE_USDC = 0x7e860098F58bBFC8648a4311b374B1D669a2bc6B;
     // The Chainlink DAI oracle on Base
-    address oracleDAI = 0x591e79239a7d679378eC8c847e5038150364C78F;
+    address internal constant ORACLE_DAI = 0x591e79239a7d679378eC8c847e5038150364C78F;
     // The Chainlink WETH oracle on Base
-    address oracleETH = 0x71041dddad3595F9CEd3DcCFBe3D1F4b0a16Bb70;
+    address internal constant ORACLE_ETH = 0x71041dddad3595F9CEd3DcCFBe3D1F4b0a16Bb70;
 
+    /// forge-lint: disable-next-line(mixed-case-variable)
     string internal RPC_URL = vm.envString("RPC_URL");
 
     /*///////////////////////////////////////////////////////////////
@@ -53,7 +54,7 @@ abstract contract Fork_Test is Base_Test, ArcadiaAccountsFixture {
 
         vm.startPrank(users.owner);
         // Add USDC to the protocol (same oracle will be used for USDBC).
-        uint256 oracleId = chainlinkOM.addOracle(oracleUSDC, "USDC", "USD", 2 days);
+        uint256 oracleId = chainlinkOM.addOracle(ORACLE_USDC, "USDC", "USD", 2 days);
         bool[] memory boolValues = new bool[](1);
         boolValues[0] = true;
         uint80[] memory uintValues = new uint80[](1);
@@ -63,13 +64,13 @@ abstract contract Fork_Test is Base_Test, ArcadiaAccountsFixture {
         erc20AM.addAsset(address(USDBC), oracleSequence);
 
         // Add DAI to the protocol.
-        oracleId = chainlinkOM.addOracle(oracleDAI, "DAI", "USD", 2 days);
+        oracleId = chainlinkOM.addOracle(ORACLE_DAI, "DAI", "USD", 2 days);
         uintValues[0] = uint80(oracleId);
         oracleSequence = BitPackingLib.pack(boolValues, uintValues);
         erc20AM.addAsset(address(DAI), oracleSequence);
 
         // Add WETH to the protocol.
-        oracleId = chainlinkOM.addOracle(oracleETH, "WETH", "USD", 2 days);
+        oracleId = chainlinkOM.addOracle(ORACLE_ETH, "WETH", "USD", 2 days);
         uintValues[0] = uint80(oracleId);
         oracleSequence = BitPackingLib.pack(boolValues, uintValues);
         erc20AM.addAsset(address(WETH), oracleSequence);

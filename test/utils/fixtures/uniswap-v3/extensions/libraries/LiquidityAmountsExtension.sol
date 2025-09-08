@@ -4,6 +4,7 @@ pragma solidity ^0.8.0;
 import { FullMath } from "../../../../../../src/asset-modules/UniswapV3/libraries/FullMath.sol";
 import { FixedPoint96 } from "../../../../../../src/asset-modules/UniswapV3/libraries/FixedPoint96.sol";
 
+/// forge-lint: disable-next-item(mixed-case-variable)
 library LiquidityAmountsExtension {
     /// @notice Computes the amount of liquidity received for a given amount of token0 and price range
     /// @dev Calculates amount0 * (sqrt(upper) * sqrt(lower)) / (sqrt(upper) - sqrt(lower))

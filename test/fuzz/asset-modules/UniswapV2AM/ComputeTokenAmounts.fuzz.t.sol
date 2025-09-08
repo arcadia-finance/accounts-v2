@@ -61,7 +61,7 @@ contract ComputeTokenAmounts_UniswapV2AM_Fuzz_Test is UniswapV2AM_Fuzz_Test {
         uint112 reserve1 = uint112(uint256(reserve0) * reserve1Last / reserve0Last); // pool is still balanced and fees accrued
 
         // Given: Fees are enabled
-        vm.prank(haydenAdams);
+        vm.prank(HAYDEN_ADAMS);
         uniswapV2Factory.setFeeTo(address(1));
         uniswapV2AM.syncFee();
 

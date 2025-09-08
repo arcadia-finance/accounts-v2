@@ -24,6 +24,7 @@ abstract contract DefaultUniswapV4AM_Fuzz_Test is Fuzz_Test, UniswapV4Fixture {
                               CONSTANTS
     /////////////////////////////////////////////////////////////// */
 
+    /// forge-lint: disable-next-line(mixed-case-variable)
     DefaultUniswapV4AMExtension internal uniswapV4AM;
     UniswapV4HooksRegistryExtension internal v4HooksRegistry;
     PoolKey internal stablePoolKey;

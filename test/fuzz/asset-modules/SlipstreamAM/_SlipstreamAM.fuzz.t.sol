@@ -31,6 +31,7 @@ abstract contract SlipstreamAM_Fuzz_Test is Fuzz_Test, SlipstreamFixture {
                               VARIABLES
     /////////////////////////////////////////////////////////////// */
 
+    /// forge-lint: disable-next-line(mixed-case-variable)
     SlipstreamAMExtension internal slipstreamAM;
     ICLPoolExtension internal poolStable1Stable2;
     NonfungiblePositionManagerMock internal nonfungiblePositionManagerMock;
@@ -82,6 +83,7 @@ abstract contract SlipstreamAM_Fuzz_Test is Fuzz_Test, SlipstreamFixture {
         vm.label({ account: address(nonfungiblePositionManagerMock), newLabel: "NonfungiblePositionManagerMock" });
     }
 
+    /// forge-lint: disable-next-item(mixed-case-function)
     function deploySlipstreamAM(address nonfungiblePositionManager_) internal {
         // Deploy SlipstreamAM.
         vm.startPrank(users.owner);

@@ -45,7 +45,7 @@ abstract contract SpotToMarginMigrator_Fuzz_Test is Fuzz_Test {
         // Deploy a new Spot Account
         accountSpotLogic = new AccountV4Extension(address(factory), address(accountsGuard), address(0));
         vm.prank(users.owner);
-        factory.setNewAccountInfo(address(registry), address(accountSpotLogic), Constants.upgradeRoot3To4And4To3, "");
+        factory.setNewAccountInfo(address(registry), address(accountSpotLogic), Constants.ROOT, "");
 
         vm.prank(users.accountOwner);
         address payable proxyAddress = payable(factory.createAccount(1001, 4, address(0)));
@@ -66,7 +66,7 @@ abstract contract SpotToMarginMigrator_Fuzz_Test is Fuzz_Test {
 
     function upgradeAccount(uint112 erc20Amount, uint8 erc721Id, uint112 erc1155Amount, address creditor) public {
         bytes32[] memory proofs = new bytes32[](1);
-        proofs[0] = Constants.upgradeProof3To4;
+        proofs[0] = Constants.PROOF_3_TO_4;
 
         address[] memory assets = new address[](3);
         assets[0] = address(mockERC20.token1);

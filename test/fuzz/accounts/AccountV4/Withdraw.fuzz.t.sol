@@ -138,13 +138,13 @@ contract Withdraw_AccountV4_Fuzz_Test is AccountV4_Fuzz_Test {
         uint256[] memory assetTypes = new uint256[](3);
         assetTypes[0] = 0;
 
-        uint256 initETHBalance = users.accountOwner.balance;
+        uint256 initEthBalance = users.accountOwner.balance;
 
         // When : Trying to withdraw ETH
         vm.prank(users.accountOwner);
         accountSpot.withdraw(assets, assetIds, assetAmounts, assetTypes);
 
         // Then : ETH should have been received by the accountOwner
-        assertEq(users.accountOwner.balance, initETHBalance + ethAmount);
+        assertEq(users.accountOwner.balance, initEthBalance + ethAmount);
     }
 }

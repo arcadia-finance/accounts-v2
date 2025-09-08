@@ -20,6 +20,7 @@ contract GetUsdValueExposureToUnderlyingAssetAfterDeposit_UniswapV4HooksRegistry
                              VARIABLES
     /////////////////////////////////////////////////////////////// */
 
+    /// forge-lint: disable-next-line(mixed-case-variable)
     PrimaryAMMock internal primaryAM;
 
     /* ///////////////////////////////////////////////////////////////

@@ -61,15 +61,15 @@ contract AddAsset_StakedAerodromeAM_Fuzz_Test is StakedAerodromeAM_Fuzz_Test {
         stakedAerodromeAM.addAsset(address(aeroGauge));
     }
 
-    function testFuzz_Revert_AddAsset_RewardTokenNotValid(address notAERO) public {
-        vm.assume(notAERO != AERO);
+    function testFuzz_Revert_AddAsset_RewardTokenNotValid(address notAero) public {
+        vm.assume(notAero != AERO);
         // Given : the aeroPool is allowed in the Registry
         aeroPool = createPoolAerodrome(address(mockERC20.token1), address(mockERC20.stable1), false);
         vm.prank(users.owner);
         aerodromePoolAM.addAsset(address(aeroPool));
 
         // Given : Valid aeroGauge
-        aeroGauge = createGaugeAerodrome(aeroPool, notAERO);
+        aeroGauge = createGaugeAerodrome(aeroPool, notAero);
 
         // When :  Calling addAsset()
         // Then : It should revert

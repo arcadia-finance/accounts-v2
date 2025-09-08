@@ -79,7 +79,7 @@ contract Deposit_AccountV3_Fuzz_Test is AccountV3_Fuzz_Test {
 
         uint256[] memory assetAmounts = new uint256[](arrLength);
 
-        (assetAddresses, assetIds, assetAmounts,) = generateERC721DepositList(arrLength);
+        (assetAddresses, assetIds, assetAmounts,) = generateErc721DepositList(arrLength);
 
         approveAllAssets();
 
@@ -93,7 +93,7 @@ contract Deposit_AccountV3_Fuzz_Test is AccountV3_Fuzz_Test {
 
         //deposit a single asset first
         vm.assume(amountToken1 > 0);
-        depositERC20InAccount(mockERC20.token1, amountToken1, users.accountOwner, address(accountExtension));
+        depositErc20InAccount(mockERC20.token1, amountToken1, users.accountOwner, address(accountExtension));
 
         //then try to go over the asset limit
         address[] memory assetAddresses = new address[](arrLength);
@@ -102,7 +102,7 @@ contract Deposit_AccountV3_Fuzz_Test is AccountV3_Fuzz_Test {
 
         uint256[] memory assetAmounts = new uint256[](arrLength);
 
-        (assetAddresses, assetIds, assetAmounts,) = generateERC721DepositList(arrLength);
+        (assetAddresses, assetIds, assetAmounts,) = generateErc721DepositList(arrLength);
 
         approveAllAssets();
 

@@ -84,7 +84,7 @@ contract Skim_AccountV3_Fuzz_Test is AccountV3_Fuzz_Test {
         depositAmount = bound(depositAmount, 1, type(uint112).max - 1);
         transferAmount = bound(transferAmount, 1, type(uint256).max - depositAmount);
 
-        depositERC20InAccount(mockERC20.token1, depositAmount, users.accountOwner, address(accountExtension));
+        depositErc20InAccount(mockERC20.token1, depositAmount, users.accountOwner, address(accountExtension));
 
         // Mint erc20 directly to account without proper deposit.
         mockERC20.token1.mint(address(accountExtension), transferAmount);
@@ -115,7 +115,7 @@ contract Skim_AccountV3_Fuzz_Test is AccountV3_Fuzz_Test {
         // Deposit ERC20.
         depositAmount = bound(depositAmount, 1, type(uint112).max - 1);
 
-        depositERC20InAccount(mockERC20.token1, depositAmount, users.accountOwner, address(accountExtension));
+        depositErc20InAccount(mockERC20.token1, depositAmount, users.accountOwner, address(accountExtension));
 
         vm.warp(time);
 
@@ -140,7 +140,7 @@ contract Skim_AccountV3_Fuzz_Test is AccountV3_Fuzz_Test {
         uint256[] memory assetIds = new uint256[](arrLength);
         uint256[] memory assetAmounts = new uint256[](arrLength);
 
-        (assetAddresses, assetIds, assetAmounts,) = generateERC721DepositList(uint8(arrLength));
+        (assetAddresses, assetIds, assetAmounts,) = generateErc721DepositList(uint8(arrLength));
         vm.startPrank(users.accountOwner);
         mockERC721.nft1.setApprovalForAll(address(accountExtension), true);
         accountExtension.deposit(assetAddresses, assetIds, assetAmounts);
@@ -174,7 +174,7 @@ contract Skim_AccountV3_Fuzz_Test is AccountV3_Fuzz_Test {
         uint256[] memory assetIds = new uint256[](arrLength);
         uint256[] memory assetAmounts = new uint256[](arrLength);
 
-        (assetAddresses, assetIds, assetAmounts,) = generateERC721DepositList(uint8(arrLength));
+        (assetAddresses, assetIds, assetAmounts,) = generateErc721DepositList(uint8(arrLength));
         vm.startPrank(users.accountOwner);
         mockERC721.nft1.setApprovalForAll(address(accountExtension), true);
         accountExtension.deposit(assetAddresses, assetIds, assetAmounts);

@@ -90,15 +90,15 @@ contract GetValuesInNumeraire_RegistryL1_Fuzz_Test is RegistryL1_Fuzz_Test {
         assetIds[2] = 1;
 
         uint256[] memory assetAmounts = new uint256[](3);
-        assetAmounts[0] = 10 ** Constants.stableDecimals;
-        assetAmounts[1] = 10 ** Constants.tokenDecimals;
+        assetAmounts[0] = 10 ** Constants.STABLE_DECIMALS;
+        assetAmounts[1] = 10 ** Constants.TOKEN_DECIMALS;
         assetAmounts[2] = 1;
 
         AssetValueAndRiskFactors[] memory actualValuesPerAsset =
             registry_.getValuesInNumeraire(address(0), address(creditorUsd), assetAddresses, assetIds, assetAmounts);
 
-        uint256 stable1ValueInUsd = convertAssetToUsd(Constants.stableDecimals, assetAmounts[0], oracleStable1ToUsdArr);
-        uint256 token1ValueInUsd = convertAssetToUsd(Constants.tokenDecimals, assetAmounts[1], oracleToken1ToUsdArr);
+        uint256 stable1ValueInUsd = convertAssetToUsd(Constants.STABLE_DECIMALS, assetAmounts[0], oracleStable1ToUsdArr);
+        uint256 token1ValueInUsd = convertAssetToUsd(Constants.TOKEN_DECIMALS, assetAmounts[1], oracleToken1ToUsdArr);
         uint256 nft1ValueInUsd = convertAssetToUsd(0, assetAmounts[2], oracleNft1ToToken1ToUsd);
 
         uint256[] memory expectedListOfValuesPerAsset = new uint256[](3);
@@ -151,26 +151,26 @@ contract GetValuesInNumeraire_RegistryL1_Fuzz_Test is RegistryL1_Fuzz_Test {
         assetIds[2] = 1;
 
         uint256[] memory assetAmounts = new uint256[](3);
-        assetAmounts[0] = 10 ** Constants.stableDecimals;
-        assetAmounts[1] = 10 ** Constants.tokenDecimals;
+        assetAmounts[0] = 10 ** Constants.STABLE_DECIMALS;
+        assetAmounts[1] = 10 ** Constants.TOKEN_DECIMALS;
         assetAmounts[2] = 1;
 
         AssetValueAndRiskFactors[] memory actualValuesPerAsset = registry_.getValuesInNumeraire(
             address(mockERC20.token1), address(creditorUsd), assetAddresses, assetIds, assetAmounts
         );
 
-        uint256 stable1ValueInUsd = convertAssetToUsd(Constants.stableDecimals, assetAmounts[0], oracleStable1ToUsdArr);
-        uint256 token1ValueInUsd = convertAssetToUsd(Constants.tokenDecimals, assetAmounts[1], oracleToken1ToUsdArr);
+        uint256 stable1ValueInUsd = convertAssetToUsd(Constants.STABLE_DECIMALS, assetAmounts[0], oracleStable1ToUsdArr);
+        uint256 token1ValueInUsd = convertAssetToUsd(Constants.TOKEN_DECIMALS, assetAmounts[1], oracleToken1ToUsdArr);
         uint256 nft1ValueInUsd = convertAssetToUsd(0, assetAmounts[2], oracleNft1ToToken1ToUsd);
 
         uint256 stable1ValueInBCurrency = convertUsdToNumeraire(
-            Constants.tokenDecimals, stable1ValueInUsd, rates.token1ToUsd, Constants.tokenOracleDecimals
+            Constants.TOKEN_DECIMALS, stable1ValueInUsd, rates.token1ToUsd, Constants.TOKEN_ORACLE_DECIMALS
         );
         uint256 token1ValueInBCurrency = convertUsdToNumeraire(
-            Constants.tokenDecimals, token1ValueInUsd, rates.token1ToUsd, Constants.tokenOracleDecimals
+            Constants.TOKEN_DECIMALS, token1ValueInUsd, rates.token1ToUsd, Constants.TOKEN_ORACLE_DECIMALS
         );
         uint256 nft1ValueInBCurrency = convertUsdToNumeraire(
-            Constants.tokenDecimals, nft1ValueInUsd, rates.token1ToUsd, Constants.tokenOracleDecimals
+            Constants.TOKEN_DECIMALS, nft1ValueInUsd, rates.token1ToUsd, Constants.TOKEN_ORACLE_DECIMALS
         );
 
         uint256[] memory expectedListOfValuesPerAsset = new uint256[](3);

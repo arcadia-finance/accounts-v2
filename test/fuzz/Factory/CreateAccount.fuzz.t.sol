@@ -66,7 +66,7 @@ contract CreateAccount_Factory_Fuzz_Test is Factory_Fuzz_Test {
             account_.setAccountVersion(uint16(i + 4));
 
             vm.prank(users.owner);
-            factory.setNewAccountInfo(address(registry), address(account_), Constants.upgradeRoot3To4And4To3, "");
+            factory.setNewAccountInfo(address(registry), address(account_), Constants.ROOT, "");
         }
 
         for (uint256 y; y < versionsToBlock.length; ++y) {
@@ -118,7 +118,7 @@ contract CreateAccount_Factory_Fuzz_Test is Factory_Fuzz_Test {
         vm.expectEmit();
         emit ERC721.Transfer(address(0), address(this), amountBefore + 1);
         vm.expectEmit();
-        emit AccountV3.MarginAccountChanged(address(creditorStable1), Constants.initLiquidator);
+        emit AccountV3.MarginAccountChanged(address(creditorStable1), Constants.LIQUIDATOR);
         vm.expectEmit(false, true, true, true);
         emit Factory.AccountUpgraded(address(0), 3);
 

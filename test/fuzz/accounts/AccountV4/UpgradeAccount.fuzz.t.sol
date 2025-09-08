@@ -65,7 +65,7 @@ contract UpgradeAccount_AccountV4_Fuzz_Test is AccountV4_Fuzz_Test {
 
     function testFuzz_Success_upgradeAccountVersion(uint32 time) public {
         bytes32[] memory proofs = new bytes32[](1);
-        proofs[0] = Constants.upgradeProof3To4;
+        proofs[0] = Constants.PROOF_3_TO_4;
 
         vm.warp(time);
 
