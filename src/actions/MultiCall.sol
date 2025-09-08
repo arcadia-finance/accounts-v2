@@ -7,7 +7,6 @@ pragma solidity ^0.8.30;
 import { IERC20 } from "../interfaces/IERC20.sol";
 import { IERC1155 } from "../interfaces/IERC1155.sol";
 import { ERC721TokenReceiver } from "../../lib/solmate/src/tokens/ERC721.sol";
-import { IPermit2 } from "../interfaces/IPermit2.sol";
 import { IActionBase, ActionData } from "../interfaces/IActionBase.sol";
 
 /**
@@ -17,6 +16,7 @@ import { IActionBase, ActionData } from "../interfaces/IActionBase.sol";
  * @dev Only calls are used, no delegatecalls.
  * @dev This address will approve random addresses. Do not store any funds on this address!
  */
+/// forge-lint: disable-next-item(all)
 contract ActionMultiCall is IActionBase, ERC721TokenReceiver {
     /* //////////////////////////////////////////////////////////////
                                 STORAGE

@@ -4,7 +4,7 @@
  */
 pragma solidity ^0.8.0;
 
-import { Fuzz_Test, Constants } from "../../Fuzz.t.sol";
+import { Fuzz_Test } from "../../Fuzz.t.sol";
 import { AerodromeFixture } from "../../../utils/fixtures/aerodrome/AerodromeFixture.f.sol";
 
 import { AerodromePoolAM } from "../../../../src/asset-modules/Aerodrome-Finance/AerodromePoolAM.sol";
@@ -69,7 +69,7 @@ abstract contract WrappedAerodromeAM_Fuzz_Test is Fuzz_Test, AerodromeFixture {
         uint256 fee1
     )
         public
-        view
+        pure
         returns (WrappedAerodromeAM.PoolState memory, WrappedAerodromeAM.PositionState memory, uint256, uint256)
     {
         // Given: more than 1 gwei is staked.

@@ -4,13 +4,11 @@
  */
 pragma solidity ^0.8.0;
 
-import { RegistryL2_Fuzz_Test, RegistryErrors } from "./_RegistryL2.fuzz.t.sol";
-
-import { stdError } from "../../../../lib/forge-std/src/StdError.sol";
-
+import { AssetValueAndRiskFactors } from "../../../../src/libraries/AssetValuationLib.sol";
 import { CompareArrays } from "../../../utils/CompareArrays.sol";
 import { Constants } from "../../../utils/Constants.sol";
-import { AssetValuationLib, AssetValueAndRiskFactors } from "../../../../src/libraries/AssetValuationLib.sol";
+import { RegistryErrors } from "../../../../src/libraries/Errors.sol";
+import { RegistryL2_Fuzz_Test } from "./_RegistryL2.fuzz.t.sol";
 
 /**
  * @notice Fuzz tests for the function "getValuesInNumeraire" of contract "RegistryL2".

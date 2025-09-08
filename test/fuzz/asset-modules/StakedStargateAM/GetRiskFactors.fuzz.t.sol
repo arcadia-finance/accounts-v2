@@ -6,8 +6,7 @@ pragma solidity ^0.8.0;
 
 import { StakedStargateAM_Fuzz_Test } from "./_StakedStargateAM.fuzz.t.sol";
 
-import { AssetValuationLib, AssetValueAndRiskFactors } from "../../../../src/libraries/AssetValuationLib.sol";
-import { Utils } from "../../../utils/Utils.sol";
+import { AssetValuationLib } from "../../../../src/libraries/AssetValuationLib.sol";
 
 /**
  * @notice Fuzz tests for the function "getRiskFactors" of contract "StakedStargateAM".

@@ -8,6 +8,7 @@ import { Base_Script } from "../Base.s.sol";
 import { Safes } from "../utils/constants/Base.sol";
 
 contract AddAccountImplementationsStep3 is Base_Script {
+    /// forge-lint: disable-next-line(mixed-case-variable)
     address internal SAFE = Safes.OWNER;
 
     function run() public {

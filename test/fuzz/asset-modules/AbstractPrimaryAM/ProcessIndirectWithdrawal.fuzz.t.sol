@@ -4,7 +4,8 @@
  */
 pragma solidity ^0.8.0;
 
-import { AbstractPrimaryAM_Fuzz_Test, AssetModule } from "./_AbstractPrimaryAM.fuzz.t.sol";
+import { AbstractPrimaryAM_Fuzz_Test } from "./_AbstractPrimaryAM.fuzz.t.sol";
+import { AssetModule } from "../../../../src/asset-modules/abstracts/AbstractAM.sol";
 
 /**
  * @notice Fuzz tests for the function "processIndirectWithdrawal" of contract "AbstractPrimaryAM".

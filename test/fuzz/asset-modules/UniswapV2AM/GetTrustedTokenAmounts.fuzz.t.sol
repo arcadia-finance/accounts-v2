@@ -4,8 +4,8 @@
  */
 pragma solidity ^0.8.0;
 
-import { UniswapV2AM_Fuzz_Test, UniswapV2AM } from "./_UniswapV2AM.fuzz.t.sol";
-
+import { UniswapV2AM } from "../../../utils/mocks/asset-modules/UniswapV2AM.sol";
+import { UniswapV2AM_Fuzz_Test } from "./_UniswapV2AM.fuzz.t.sol";
 import { StdStorage, stdStorage } from "../../../../lib/forge-std/src/Test.sol";
 
 /**

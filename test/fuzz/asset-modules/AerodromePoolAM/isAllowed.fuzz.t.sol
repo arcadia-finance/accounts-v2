@@ -24,7 +24,7 @@ contract IsAllowed_AerodromePoolAM_Fuzz_Test is AerodromePoolAM_Fuzz_Test {
                               TESTS
     /////////////////////////////////////////////////////////////// */
 
-    function testFuzz_Success_isAllowed_False(address asset, uint256 id) public {
+    function testFuzz_Success_isAllowed_False(address asset, uint256 id) public view {
         // When : Calling isAllowed()
         bool allowed = aeroPoolAM.isAllowed(asset, id);
 

@@ -6,7 +6,7 @@ pragma solidity ^0.8.0;
 
 import { AbstractDerivedAM_Fuzz_Test } from "./_AbstractDerivedAM.fuzz.t.sol";
 
-import { AssetValuationLib, AssetValueAndRiskFactors } from "../../../../src/libraries/AssetValuationLib.sol";
+import { AssetValueAndRiskFactors } from "../../../../src/libraries/AssetValuationLib.sol";
 
 /**
  * @notice Fuzz tests for the function "_getRateUnderlyingAssetsToUsd" of contract "AbstractDerivedAM".

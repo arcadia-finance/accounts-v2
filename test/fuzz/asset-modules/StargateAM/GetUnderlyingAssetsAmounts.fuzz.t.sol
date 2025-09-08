@@ -4,8 +4,7 @@
  */
 pragma solidity ^0.8.0;
 
-import { StargateAM_Fuzz_Test, Constants } from "./_StargateAM.fuzz.t.sol";
-
+import { StargateAM_Fuzz_Test } from "./_StargateAM.fuzz.t.sol";
 import { AssetValueAndRiskFactors } from "../../../../src/libraries/AssetValuationLib.sol";
 
 /**

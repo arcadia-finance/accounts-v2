@@ -4,13 +4,12 @@
  */
 pragma solidity ^0.8.0;
 
-import { Fuzz_Test, Constants } from "../../Fuzz.t.sol";
 import { AerodromeFixture } from "../../../utils/fixtures/aerodrome/AerodromeFixture.f.sol";
-
 import { AerodromePoolAMExtension } from "../../../utils/extensions/AerodromePoolAMExtension.sol";
 import { ERC20Mock } from "../../../utils/mocks/tokens/ERC20Mock.sol";
 import { FixedPointMathLib } from "../../../../lib/solmate/src/utils/FixedPointMathLib.sol";
 import { FullMath } from "../../../../src/asset-modules/Aerodrome-Finance/AerodromePoolAM.sol";
+import { Fuzz_Test } from "../../Fuzz.t.sol";
 import { Pool } from "../../../utils/mocks/Aerodrome/AeroPoolMock.sol";
 
 /**
@@ -101,7 +100,7 @@ abstract contract AerodromePoolAM_Fuzz_Test is Fuzz_Test, AerodromeFixture {
 
     function givenValidTestVarsVolatile(TestVariables memory testVars)
         public
-        view
+        pure
         returns (TestVariables memory testVars_)
     {
         // Given : Pool is volatile

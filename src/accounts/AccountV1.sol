@@ -32,6 +32,7 @@ import { IPermit2 } from "../interfaces/IPermit2.sol";
  * Arcadia's Account functions will guarantee you a certain value of the Account.
  * For allowlists or liquidation strategies specific to your protocol, contact pragmalabs.dev
  */
+/// forge-lint: disable-next-item(all)
 contract AccountV1 is AccountStorageV1, IAccount {
     using AssetValuationLib for AssetValueAndRiskFactors[];
     using SafeTransferLib for ERC20;

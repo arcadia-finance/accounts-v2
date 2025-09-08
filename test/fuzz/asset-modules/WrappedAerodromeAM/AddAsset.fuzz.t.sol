@@ -5,9 +5,6 @@
 pragma solidity ^0.8.0;
 
 import { WrappedAerodromeAM_Fuzz_Test } from "./_WrappedAerodromeAM.fuzz.t.sol";
-
-import { ERC20 } from "../../../../lib/solmate/src/tokens/ERC20.sol";
-import { Pool } from "../../../utils/mocks/Aerodrome/AeroPoolMock.sol";
 import { WrappedAerodromeAM } from "../../../../src/asset-modules/Aerodrome-Finance/WrappedAerodromeAM.sol";
 
 /**

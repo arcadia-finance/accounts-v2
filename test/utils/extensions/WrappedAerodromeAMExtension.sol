@@ -4,7 +4,7 @@
  */
 pragma solidity ^0.8.0;
 
-import { AssetValuationLib, AssetValueAndRiskFactors } from "../../../src/libraries/AssetValuationLib.sol";
+import { AssetValueAndRiskFactors } from "../../../src/libraries/AssetValuationLib.sol";
 import { WrappedAerodromeAM } from "../../../src/asset-modules/Aerodrome-Finance/WrappedAerodromeAM.sol";
 
 contract WrappedAerodromeAMExtension is WrappedAerodromeAM {

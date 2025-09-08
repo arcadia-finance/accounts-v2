@@ -8,7 +8,6 @@ import { RegistryL2_Fuzz_Test } from "./_RegistryL2.fuzz.t.sol";
 
 import { AssetModule } from "../../../../src/asset-modules/abstracts/AbstractAM.sol";
 import { GuardianErrors } from "../../../../src/libraries/Errors.sol";
-import { RegistryL2 } from "../../../../src/registries/RegistryL2.sol";
 import { RegistryErrors } from "../../../../src/libraries/Errors.sol";
 /**
  * @notice Fuzz tests for the function "batchProcessDeposit" of contract "RegistryL2".

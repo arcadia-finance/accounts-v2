@@ -4,6 +4,7 @@
  */
 pragma solidity ^0.8.0;
 
+/// forge-lint: disable-next-item(mixed-case-function)
 interface IAccount {
     /**
      * @notice Returns the Account version.

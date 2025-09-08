@@ -8,10 +8,8 @@ import { AccountErrors } from "../../../../src/libraries/Errors.sol";
 import { AccountsGuard } from "../../../../src/accounts/helpers/AccountsGuard.sol";
 import { AccountV3 } from "../../../../src/accounts/AccountV3.sol";
 import { AccountV4_Fuzz_Test } from "./_AccountV4.fuzz.t.sol";
-import { AccountVariableVersion } from "../../../utils/mocks/accounts/AccountVariableVersion.sol";
 import { Constants } from "../../../utils/Constants.sol";
 import { Factory } from "../../../../src/Factory.sol";
-import { RegistryL2Extension } from "../../../utils/extensions/RegistryL2Extension.sol";
 
 /**
  * @notice Fuzz tests for the function "upgradeAccount" of contract "AccountV4".

@@ -22,7 +22,7 @@ contract IsAllowed_WrappedAerodromeAM_Fuzz_Test is WrappedAerodromeAM_Fuzz_Test 
                               TESTS
     /////////////////////////////////////////////////////////////// */
 
-    function testFuzz_Success_isAllowed_False_BadAsset(uint256 positionId, address randomAddress) public {
+    function testFuzz_Success_isAllowed_False_BadAsset(uint256 positionId, address randomAddress) public view {
         // Given : randomAddress is not the stakingAM.
         vm.assume(randomAddress != address(wrappedAerodromeAM));
 

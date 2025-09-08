@@ -7,7 +7,6 @@ pragma solidity ^0.8.0;
 import { AssetValueAndRiskFactors } from "../../../src/libraries/AssetValuationLib.sol";
 import { DefaultUniswapV4AM } from "../../../src/asset-modules/UniswapV4/DefaultUniswapV4AM.sol";
 import { PoolId } from "../../../lib/v4-periphery/lib/v4-core/src/types/PoolId.sol";
-import { PoolKey } from "../../../lib/v4-periphery/lib/v4-core/src/types/PoolKey.sol";
 import { PositionInfo } from "../../../lib/v4-periphery/src/libraries/PositionInfoLibrary.sol";
 
 contract DefaultUniswapV4AMExtension is DefaultUniswapV4AM {

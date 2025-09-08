@@ -6,14 +6,11 @@ pragma solidity ^0.8.0;
 
 import { AbstractStakingAM_Fuzz_Test } from "../AbstractStakingAM/_AbstractStakingAM.fuzz.t.sol";
 import { AerodromeFixture } from "../../../utils/fixtures/aerodrome/AerodromeFixture.f.sol";
-import { Fuzz_Test } from "../../Fuzz.t.sol";
-
 import { AerodromePoolAM } from "../../../../src/asset-modules/Aerodrome-Finance/AerodromePoolAM.sol";
-import { ERC20 } from "../../../../lib/solmate/src/tokens/ERC20.sol";
 import { ERC20Mock } from "../../../utils/mocks/tokens/ERC20Mock.sol";
+import { Fuzz_Test } from "../../Fuzz.t.sol";
 import { Gauge } from "../../../utils/mocks/Aerodrome/AeroGaugeMock.sol";
 import { Pool } from "../../../utils/mocks/Aerodrome/AeroPoolMock.sol";
-import { StakedAerodromeAM } from "../../../../src/asset-modules/Aerodrome-Finance/StakedAerodromeAM.sol";
 import { StakedAerodromeAMExtension } from "../../../utils/extensions/StakedAerodromeAMExtension.sol";
 import { StakingAM } from "../../../../src/asset-modules/abstracts/AbstractStakingAM.sol";
 import { StdStorage, stdStorage } from "../../../../lib/forge-std/src/Test.sol";

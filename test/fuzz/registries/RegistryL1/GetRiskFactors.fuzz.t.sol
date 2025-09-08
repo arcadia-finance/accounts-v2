@@ -6,7 +6,7 @@ pragma solidity ^0.8.0;
 
 import { RegistryL1_Fuzz_Test } from "./_RegistryL1.fuzz.t.sol";
 
-import { AssetValuationLib, AssetValueAndRiskFactors } from "../../../../src/libraries/AssetValuationLib.sol";
+import { AssetValuationLib } from "../../../../src/libraries/AssetValuationLib.sol";
 import { Utils } from "../../../utils/Utils.sol";
 
 /**

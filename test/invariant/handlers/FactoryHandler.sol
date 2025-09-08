@@ -9,7 +9,6 @@ import { AccountV3 } from "../../../src/accounts/AccountV3.sol";
 import { AccountLogicMock } from "../../utils/mocks/accounts/AccountLogicMock.sol";
 import { Factory } from "../../../src/Factory.sol";
 import { RegistryL2Extension } from "../../utils/extensions/RegistryL2Extension.sol";
-import { CreditorMock } from "../../utils/mocks/creditors/CreditorMock.sol";
 import { Constants } from "../../utils/Constants.sol";
 
 /// @dev This contract and not { Factory } is exposed to Foundry for invariant testing. The point is

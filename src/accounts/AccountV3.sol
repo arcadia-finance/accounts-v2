@@ -1071,6 +1071,7 @@ contract AccountV3 is AccountStorageV1, IAccount {
      * @dev Used for all asset type == 1.
      * @dev If the token has not yet been deposited, the ERC20 token address is stored.
      */
+    /// forge-lint: disable-next-item(mixed-case-function,mixed-case-variable)
     function _depositERC20(address from, address ERC20Address, uint256 amount) internal {
         ERC20(ERC20Address).safeTransferFrom(from, address(this), amount);
 
@@ -1094,6 +1095,7 @@ contract AccountV3 is AccountStorageV1, IAccount {
      * @dev After successful transfer, the function pushes the ERC721 address to the stored token and stored ID array.
      * This may cause duplicates in the ERC721 stored addresses array, but this is intended.
      */
+    /// forge-lint: disable-next-item(mixed-case-function,mixed-case-variable)
     function _depositERC721(address from, address ERC721Address, uint256 id) internal {
         IERC721(ERC721Address).safeTransferFrom(from, address(this), id);
 
@@ -1112,6 +1114,7 @@ contract AccountV3 is AccountStorageV1, IAccount {
      * If not, the function pushes the new address and ID to the stored arrays.
      * This may cause duplicates in the ERC1155 stored addresses array, this is intended.
      */
+    /// forge-lint: disable-next-item(mixed-case-function,mixed-case-variable)
     function _depositERC1155(address from, address ERC1155Address, uint256 id, uint256 amount) internal {
         IERC1155(ERC1155Address).safeTransferFrom(from, address(this), id, amount, "");
 
@@ -1139,6 +1142,7 @@ contract AccountV3 is AccountStorageV1, IAccount {
      * @dev This check is done using a loop:
      * gas usage of writing it in a mapping vs extra loops is in favor of extra loops in this case.
      */
+    /// forge-lint: disable-next-item(mixed-case-function,mixed-case-variable)
     function _withdrawERC20(address to, address ERC20Address, uint256 amount) internal {
         erc20Balances[ERC20Address] -= amount;
 
@@ -1174,6 +1178,7 @@ contract AccountV3 is AccountStorageV1, IAccount {
      * then replaces it with the last index, followed by a pop().
      * @dev Sensitive to ReEntrance attacks! SafeTransferFrom therefore done at the end of the function.
      */
+    /// forge-lint: disable-next-item(mixed-case-function,mixed-case-variable)
     function _withdrawERC721(address to, address ERC721Address, uint256 id) internal {
         uint256 tokenIdLength = erc721TokenIds.length;
 
@@ -1216,6 +1221,7 @@ contract AccountV3 is AccountStorageV1, IAccount {
      * and then replaces it with the last index, followed by a pop().
      * @dev Sensitive to ReEntrance attacks! SafeTransferFrom therefore done at the end of the function.
      */
+    /// forge-lint: disable-next-item(mixed-case-function,mixed-case-variable)
     function _withdrawERC1155(address to, address ERC1155Address, uint256 id, uint256 amount) internal {
         uint256 tokenIdLength = erc1155TokenIds.length;
 
@@ -1459,6 +1465,7 @@ contract AccountV3 is AccountStorageV1, IAccount {
     @notice Returns the onERC721Received selector.
     @dev Needed to receive ERC721 tokens.
     */
+    /// forge-lint: disable-next-item(mixed-case-function)
     function onERC721Received(address, address, uint256, bytes calldata) public pure returns (bytes4) {
         return this.onERC721Received.selector;
     }
@@ -1467,6 +1474,7 @@ contract AccountV3 is AccountStorageV1, IAccount {
     @notice Returns the onERC1155Received selector.
     @dev Needed to receive ERC1155 tokens.
     */
+    /// forge-lint: disable-next-item(mixed-case-function)
     function onERC1155Received(address, address, uint256, uint256, bytes calldata) public pure returns (bytes4) {
         return this.onERC1155Received.selector;
     }

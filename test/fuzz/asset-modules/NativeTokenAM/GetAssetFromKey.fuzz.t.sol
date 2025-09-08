@@ -21,7 +21,7 @@ contract GetAssetFromKey_NativeTokenAM_Fuzz_Test is NativeTokenAM_Fuzz_Test {
     /*//////////////////////////////////////////////////////////////
                               TESTS
     //////////////////////////////////////////////////////////////*/
-    function testFuzz_Success_getAssetFromKey(address asset, uint96 assetId) public {
+    function testFuzz_Success_getAssetFromKey(address asset, uint96 assetId) public view {
         bytes32 key = bytes32(abi.encodePacked(assetId, asset));
         (address actualAsset, uint256 actualAssetId) = nativeTokenAM.getAssetFromKey(key);
 

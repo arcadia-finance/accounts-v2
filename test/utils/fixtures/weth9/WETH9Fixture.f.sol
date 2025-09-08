@@ -4,9 +4,8 @@
  */
 pragma solidity ^0.8.0;
 
-import { Utils } from "../../../utils/Utils.sol";
-import { Test } from "../../../../lib/forge-std/src/Test.sol";
 import { IERC20 } from "../../../../src/interfaces/IERC20.sol";
+import { Test } from "../../../../lib/forge-std/src/Test.sol";
 
 contract WETH9Fixture is Test {
     /*//////////////////////////////////////////////////////////////////////////

@@ -6,9 +6,6 @@ pragma solidity ^0.8.0;
 
 import { Fuzz_Test } from "../../Fuzz.t.sol";
 import { SlipstreamFixture } from "../../../utils/fixtures/slipstream/Slipstream.f.sol";
-
-import { ArcadiaOracle } from "../../../utils/mocks/oracles/ArcadiaOracle.sol";
-import { BitPackingLib } from "../../../../src/libraries/BitPackingLib.sol";
 import { FixedPointMathLib } from "../../../../lib/solmate/src/utils/FixedPointMathLib.sol";
 import { ICLPoolExtension } from "../../../utils/fixtures/slipstream/extensions/interfaces/ICLPoolExtension.sol";
 import { NonfungiblePositionManagerMock } from "../../../utils/mocks/Slipstream/NonfungiblePositionManager.sol";
@@ -121,7 +118,7 @@ abstract contract SlipstreamAM_Fuzz_Test is Fuzz_Test, SlipstreamFixture {
 
     function givenValidPosition(NonfungiblePositionManagerMock.Position memory position)
         internal
-        view
+        pure
         returns (NonfungiblePositionManagerMock.Position memory)
     {
         // Given: poolId is non zero (=position is initialised).

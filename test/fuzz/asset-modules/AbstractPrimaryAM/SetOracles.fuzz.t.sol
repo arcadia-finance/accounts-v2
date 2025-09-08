@@ -4,7 +4,7 @@
  */
 pragma solidity ^0.8.0;
 
-import { AbstractPrimaryAM_Fuzz_Test, AssetModule } from "./_AbstractPrimaryAM.fuzz.t.sol";
+import { AbstractPrimaryAM_Fuzz_Test } from "./_AbstractPrimaryAM.fuzz.t.sol";
 
 import { BitPackingLib } from "../../../../src/libraries/BitPackingLib.sol";
 import { PrimaryAM } from "../../../../src/asset-modules/abstracts/AbstractPrimaryAM.sol";

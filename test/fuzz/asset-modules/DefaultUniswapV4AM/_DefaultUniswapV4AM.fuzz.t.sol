@@ -4,13 +4,10 @@
  */
 pragma solidity ^0.8.0;
 
-import { Base_Test } from "../../../Base.t.sol";
-import { BaseHook } from "../../../../lib/v4-periphery/src/utils/BaseHook.sol";
 import { DefaultUniswapV4AMExtension } from "../../../../test/utils/extensions/DefaultUniswapV4AMExtension.sol";
 import { ERC20 } from "../../../../lib/solmate/src/tokens/ERC20.sol";
 import { Fuzz_Test } from "../../Fuzz.t.sol";
 import { FixedPointMathLib } from "../../../../lib/solmate/src/utils/FixedPointMathLib.sol";
-import { Hooks } from "../../../../lib/v4-periphery/lib/v4-core/src/libraries/Hooks.sol";
 import { LiquidityAmounts } from "../../../../src/asset-modules/UniswapV3/libraries/LiquidityAmounts.sol";
 import { LiquidityAmountsExtension } from
     "../../../utils/fixtures/uniswap-v3/extensions/libraries/LiquidityAmountsExtension.sol";
@@ -141,7 +138,7 @@ abstract contract DefaultUniswapV4AM_Fuzz_Test is Fuzz_Test, UniswapV4Fixture {
 
     function givenValidTicks(int24 tickLower, int24 tickUpper)
         public
-        view
+        pure
         returns (int24 tickLower_, int24 tickUpper_)
     {
         tickLower_ = int24(bound(tickLower, MIN_TICK, MAX_TICK - 2));

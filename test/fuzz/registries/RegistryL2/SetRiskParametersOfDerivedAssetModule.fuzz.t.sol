@@ -4,9 +4,10 @@
  */
 pragma solidity ^0.8.0;
 
-import { RegistryL2_Fuzz_Test, RegistryErrors } from "./_RegistryL2.fuzz.t.sol";
+import { RegistryErrors } from "../../../../src/libraries/Errors.sol";
+import { RegistryL2_Fuzz_Test } from "./_RegistryL2.fuzz.t.sol";
 
-import { AssetValuationLib, AssetValueAndRiskFactors } from "../../../../src/libraries/AssetValuationLib.sol";
+import { AssetValuationLib } from "../../../../src/libraries/AssetValuationLib.sol";
 
 /**
  * @notice Fuzz tests for the function "setRiskParametersOfDerivedAM" of contract "RegistryL2".

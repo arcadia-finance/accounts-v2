@@ -81,7 +81,7 @@ contract ComputeProfitMaximizingTrade_UniswapV2AM_Fuzz_Test is UniswapV2AM_Fuzz_
         uint256 priceToken1,
         uint112 reserve0,
         uint112 reserve1
-    ) public {
+    ) public view {
         vm.assume(reserve0 > 10e6); //Minimum liquidity
         vm.assume(reserve1 > 10e6); //Minimum liquidity
         vm.assume(priceToken0 > 10e6); //Realistic prices

@@ -5,11 +5,9 @@
 pragma solidity ^0.8.0;
 
 import { AerodromePoolAM_Fuzz_Test, FixedPointMathLib, FullMath, ERC20Mock } from "./_AerodromePoolAM.fuzz.t.sol";
-
-import { stdError } from "../../../../lib/forge-std/src/StdError.sol";
 import { AssetValueAndRiskFactors } from "../../../../src/libraries/AssetValuationLib.sol";
+import { stdError } from "../../../../lib/forge-std/src/StdError.sol";
 import { StdStorage, stdStorage } from "../../../../lib/forge-std/src/Test.sol";
-import { AerodromePoolAM } from "../../../../src/asset-modules/Aerodrome-Finance/AerodromePoolAM.sol";
 
 /**
  * @notice Fuzz tests for the function "getUnderlyingAssetsAmounts" of contract "AerodromePoolAM".

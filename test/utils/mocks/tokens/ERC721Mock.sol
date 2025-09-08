@@ -15,7 +15,7 @@ contract ERC721Mock is ERC721 {
         _;
     }
 
-    constructor(string memory name, string memory symbol) ERC721(name, symbol) {
+    constructor(string memory name_, string memory symbol_) ERC721(name_, symbol_) {
         owner = msg.sender;
     }
 
@@ -27,6 +27,7 @@ contract ERC721Mock is ERC721 {
         baseURI = newBaseUri;
     }
 
+    /// forge-lint: disable-next-item(mixed-case-function,mixed-case-variable)
     function tokenURI(uint256 tokenId) public view override returns (string memory) {
         require(_ownerOf[tokenId] != address(0), "ERC721Metadata: URI query for nonexistent token");
         string memory currentBaseURI = baseURI;

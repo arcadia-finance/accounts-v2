@@ -7,7 +7,6 @@ pragma solidity ^0.8.0;
 import { AccountV4Extension } from "../../../utils/extensions/AccountV4Extension.sol";
 import { ActionMultiCall } from "../../../../src/actions/MultiCall.sol";
 import { Constants } from "../../../utils/Constants.sol";
-import { ERC20Mock } from "../../../utils/mocks/tokens/ERC20Mock.sol";
 import { Fuzz_Test } from "../../Fuzz.t.sol";
 import { MultiActionMock } from "../../../utils/mocks/actions/MultiActionMock.sol";
 

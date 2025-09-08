@@ -21,7 +21,7 @@ contract GetKeyFromAsset_AbstractAM_Fuzz_Test is AbstractAM_Fuzz_Test {
     /*//////////////////////////////////////////////////////////////
                               TESTS
     //////////////////////////////////////////////////////////////*/
-    function testFuzz_Success_getKeyFromAsset(address asset, uint96 assetId) public {
+    function testFuzz_Success_getKeyFromAsset(address asset, uint96 assetId) public view {
         bytes32 expectedKey = bytes32(abi.encodePacked(assetId, asset));
         bytes32 actualKey = assetModule.getKeyFromAsset(asset, assetId);
 

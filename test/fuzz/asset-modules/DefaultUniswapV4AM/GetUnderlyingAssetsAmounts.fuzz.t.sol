@@ -10,7 +10,7 @@ import { DefaultUniswapV4AM_Fuzz_Test } from "./_DefaultUniswapV4AM.fuzz.t.sol";
 import { FixedPoint128 } from "../../../../lib/v4-periphery/lib/v4-core/src/libraries/FixedPoint128.sol";
 import { FixedPointMathLib } from "../../../../lib/solmate/src/utils/FixedPointMathLib.sol";
 import { LiquidityAmounts } from "../../../../src/asset-modules/UniswapV3/libraries/LiquidityAmounts.sol";
-import { PositionInfo, PositionInfoLibrary } from "../../../../lib/v4-periphery/src/libraries/PositionInfoLibrary.sol";
+import { PositionInfoLibrary } from "../../../../lib/v4-periphery/src/libraries/PositionInfoLibrary.sol";
 import { TickMath } from "../../../../lib/v4-periphery/lib/v4-core/src/libraries/TickMath.sol";
 
 /**
@@ -127,7 +127,7 @@ contract GetUnderlyingAssetsAmounts_DefaultUniswapV4AM_Fuzz_Test is DefaultUnisw
         uniswapV4AM.getUnderlyingAssetsAmounts(address(creditorUsd), assetKey, 1, new bytes32[](0));
     }
 
-    function testFuzz_Success_GetUnderlyingAssetsAmounts_AmountIsZero(uint96 tokenId) public {
+    function testFuzz_Success_GetUnderlyingAssetsAmounts_AmountIsZero(uint96 tokenId) public view {
         // Given : Zero amount
         uint256 amount = 0;
 

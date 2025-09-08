@@ -28,7 +28,7 @@ contract CalculateLiquidationValue_AssetValuationLib_Fuzz_Test is AssetValuation
         uint128 secondValue,
         uint16 firstLiqFactor,
         uint16 secondLiqFactor
-    ) public {
+    ) public view {
         // Given: 2 Assets with value bigger than zero
         // Values are uint128 to prevent overflow in multiplication
         AssetValueAndRiskFactors[] memory values = new AssetValueAndRiskFactors[](2);

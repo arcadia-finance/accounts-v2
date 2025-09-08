@@ -4,7 +4,8 @@
  */
 pragma solidity ^0.8.0;
 
-import { AbstractDerivedAM_Fuzz_Test, AssetModule } from "./_AbstractDerivedAM.fuzz.t.sol";
+import { AbstractDerivedAM_Fuzz_Test } from "./_AbstractDerivedAM.fuzz.t.sol";
+import { AssetModule } from "../../../../src/asset-modules/abstracts/AbstractAM.sol";
 
 /**
  * @notice Fuzz tests for the function "processDirectDeposit" of contract "AbstractDerivedAM".

@@ -21,7 +21,7 @@ contract OwnerOfAccount_Factory_Fuzz_Test is Factory_Fuzz_Test {
     /*//////////////////////////////////////////////////////////////
                               TESTS
     //////////////////////////////////////////////////////////////*/
-    function testFuzz_Success_ownerOfAccount_NonAccount(address nonAccount) public {
+    function testFuzz_Success_ownerOfAccount_NonAccount(address nonAccount) public view {
         vm.assume(nonAccount != address(account));
 
         assertEq(factory.ownerOfAccount(nonAccount), address(0));

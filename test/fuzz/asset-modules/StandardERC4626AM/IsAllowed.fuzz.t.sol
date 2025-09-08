@@ -21,7 +21,7 @@ contract IsAllowed_StandardERC4626AM_Fuzz_Test is StandardERC4626AM_Fuzz_Test {
     /*//////////////////////////////////////////////////////////////
                               TESTS
     //////////////////////////////////////////////////////////////*/
-    function testFuzz_Success_isAllowed_Negative(address randomAsset, uint256 assetId) public {
+    function testFuzz_Success_isAllowed_Negative(address randomAsset, uint256 assetId) public view {
         assertFalse(erc4626AM.isAllowed(randomAsset, assetId));
     }
 

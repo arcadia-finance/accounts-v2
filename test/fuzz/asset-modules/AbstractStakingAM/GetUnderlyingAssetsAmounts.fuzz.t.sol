@@ -4,8 +4,7 @@
  */
 pragma solidity ^0.8.0;
 
-import { AbstractStakingAM_Fuzz_Test, Constants } from "./_AbstractStakingAM.fuzz.t.sol";
-
+import { AbstractStakingAM_Fuzz_Test } from "./_AbstractStakingAM.fuzz.t.sol";
 import { AssetValueAndRiskFactors } from "../../../../src/libraries/AssetValuationLib.sol";
 
 /**
@@ -60,6 +59,7 @@ contract GetUnderlyingAssetsAmounts_AbstractStakingAM_Fuzz_Test is AbstractStaki
 
     function testFuzz_Success_getUnderlyingAssetsAmounts_amountIsZero(uint256 positionId, address underLyingAsset)
         public
+        view
     {
         bytes32[] memory underlyingAssetKeys = new bytes32[](2);
         underlyingAssetKeys[0] = stakingAM.getKeyFromAsset(underLyingAsset, 0);

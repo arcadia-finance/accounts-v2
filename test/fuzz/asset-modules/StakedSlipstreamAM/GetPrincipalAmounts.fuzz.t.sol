@@ -31,7 +31,7 @@ contract GetPrincipalAmounts_StakedSlipstreamAM_Fuzz_Test is StakedSlipstreamAM_
         StakedSlipstreamAM.PositionState memory position,
         uint256 priceToken0,
         uint256 priceToken1
-    ) public {
+    ) public view {
         // Given: Ticks are within allowed ranges.
         position = givenValidPosition(position, 1);
 

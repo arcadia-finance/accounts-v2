@@ -10,7 +10,6 @@ import { AccountV4 } from "../../src/accounts/AccountV4.sol";
 import { ArcadiaAccounts, Deployers } from "../utils/constants/Shared.sol";
 import { Base_Script } from "../Base.s.sol";
 import { Merkl, Safes } from "../utils/constants/Base.sol";
-import { Utils } from "../../test/utils/Utils.sol";
 
 contract AddAccountImplementationsStep1 is Base_Script {
     function run() public {

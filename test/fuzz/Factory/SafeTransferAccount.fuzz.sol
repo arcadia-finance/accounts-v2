@@ -4,10 +4,10 @@
  */
 pragma solidity ^0.8.0;
 
-import { Factory_Fuzz_Test, FactoryErrors } from "./_Factory.fuzz.t.sol";
-
 import { BadERC721TokenReceiver } from "../../utils/mocks/BadERC721TokenReceiver.sol";
 import { ERC721 } from "../../../lib/solmate/src/tokens/ERC721.sol";
+import { Factory_Fuzz_Test } from "./_Factory.fuzz.t.sol";
+import { FactoryErrors } from "../../../src/libraries/Errors.sol";
 
 /**
  * @notice Fuzz tests for the functions "safeTransferAccount" of contract "Factory".

@@ -5,8 +5,7 @@
 pragma solidity ^0.8.0;
 
 import { AbstractStakingAM_Fuzz_Test, StakingAM, ERC20Mock } from "./_AbstractStakingAM.fuzz.t.sol";
-
-import { Fuzz_Test, Constants } from "../../Fuzz.t.sol";
+import { Constants } from "../../Fuzz.t.sol";
 import { FixedPointMathLib } from "../../../../lib/solmate/src/utils/FixedPointMathLib.sol";
 import { stdError } from "../../../../lib/forge-std/src/StdError.sol";
 

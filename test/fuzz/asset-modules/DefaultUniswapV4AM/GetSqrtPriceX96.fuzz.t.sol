@@ -23,7 +23,7 @@ contract GetSqrtPriceX96_DefaultUniswapV4AM_Fuzz_Test is DefaultUniswapV4AM_Fuzz
     /*//////////////////////////////////////////////////////////////
                               TESTS
     //////////////////////////////////////////////////////////////*/
-    function testFuzz_Success_getSqrtPriceX96_ZeroPriceToken1(uint256 priceToken0) public {
+    function testFuzz_Success_getSqrtPriceX96_ZeroPriceToken1(uint256 priceToken0) public view {
         // Given : token1 price is 0.
         uint256 priceToken1 = 0;
 
@@ -35,7 +35,7 @@ contract GetSqrtPriceX96_DefaultUniswapV4AM_Fuzz_Test is DefaultUniswapV4AM_Fuzz
         assertEq(actualSqrtPriceX96, expectedSqrtPriceX96);
     }
 
-    function testFuzz_Success_getSqrtPriceX96_Overflow(uint256 priceToken0, uint256 priceToken1) public {
+    function testFuzz_Success_getSqrtPriceX96_Overflow(uint256 priceToken0, uint256 priceToken1) public view {
         // Given : Avoid divide by 0, which is already checked in earlier in function.
         priceToken1 = bound(priceToken1, 1, type(uint256).max);
         // And : priceToken0 is max 1.158e+49, otherwise function would overflow, not realistic.
@@ -55,7 +55,7 @@ contract GetSqrtPriceX96_DefaultUniswapV4AM_Fuzz_Test is DefaultUniswapV4AM_Fuzz
         assertLt(actualSqrtPriceX96, expectedSqrtPriceX96);
     }
 
-    function testFuzz_Success_getSqrtPriceX96(uint256 priceToken0, uint256 priceToken1) public {
+    function testFuzz_Success_getSqrtPriceX96(uint256 priceToken0, uint256 priceToken1) public view {
         // Given : Avoid divide by 0, which is already checked in earlier in function.
         priceToken1 = bound(priceToken1, 1, type(uint256).max);
         // And : priceToken0 is max 1.158e+49, otherwise function would overflow, not realistic.

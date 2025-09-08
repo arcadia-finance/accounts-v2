@@ -45,6 +45,7 @@ abstract contract StakingAM is DerivedAM, ERC721, ReentrancyGuard {
     uint256 internal lastPositionId;
 
     // The baseURI of the ERC721 tokens.
+    /// forge-lint: disable-next-item(mixed-case-variable)
     string public baseURI;
 
     // Map Asset to its corresponding struct with global state.
@@ -572,6 +573,7 @@ abstract contract StakingAM is DerivedAM, ERC721, ReentrancyGuard {
      * @notice Function that stores a new base URI.
      * @param newBaseURI The new base URI to store.
      */
+    /// forge-lint: disable-next-item(mixed-case-function,mixed-case-variable)
     function setBaseURI(string calldata newBaseURI) external virtual onlyOwner {
         baseURI = newBaseURI;
     }
@@ -581,6 +583,7 @@ abstract contract StakingAM is DerivedAM, ERC721, ReentrancyGuard {
      * @param tokenId The id of the Account.
      * @return uri The token URI.
      */
+    /// forge-lint: disable-next-item(mixed-case-function,mixed-case-variable)
     function tokenURI(uint256 tokenId) public view virtual override returns (string memory uri) {
         return bytes(baseURI).length > 0 ? string(abi.encodePacked(baseURI, tokenId.toString())) : "";
     }

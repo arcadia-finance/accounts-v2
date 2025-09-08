@@ -8,7 +8,6 @@ import { StargateBase_Fork_Test } from "./StargateBase.fork.t.sol";
 
 import { IPool } from "../../../../src/asset-modules/Stargate-Finance/interfaces/IPool.sol";
 import { ERC20 } from "../../../../lib/solmate/src/tokens/ERC20.sol";
-import { BitPackingLib } from "../../../../src/libraries/BitPackingLib.sol";
 
 /**
  * @notice Fork tests for "StargateAssetModule - USDBC Pool".

@@ -4,10 +4,8 @@
  */
 pragma solidity ^0.8.0;
 
+import { ActionData } from "../../../../src/interfaces/IActionBase.sol";
 import { MultiCallV2_Fuzz_Test } from "./_MultiCallV2.fuzz.t.sol";
-
-import { IActionBase, ActionData } from "../../../../src/interfaces/IActionBase.sol";
-import { IPermit2 } from "../../../../src/interfaces/IPermit2.sol";
 
 /**
  * @notice Fuzz tests for the function "executeAction" of contract "MultiCall".

@@ -17,7 +17,6 @@ import { FloorERC721AMExtension } from "../../../utils/extensions/FloorERC721AME
 import { FloorERC1155AMExtension } from "../../../utils/extensions/FloorERC1155AMExtension.sol";
 import { OracleModuleMock } from "../../../utils/mocks/oracle-modules/OracleModuleMock.sol";
 import { PrimaryAMMock } from "../../../utils/mocks/asset-modules/PrimaryAMMock.sol";
-import { RegistryErrors } from "../../../../src/registries/RegistryL1.sol";
 import { RegistryL1Extension } from "../../../utils/extensions/RegistryL1Extension.sol";
 
 /**

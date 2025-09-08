@@ -27,7 +27,7 @@ contract IsAccount_Factory_Fuzz_Test is Factory_Fuzz_Test {
         assertTrue(factory.isAccount(newAccount));
     }
 
-    function testFuzz_Success_isAccount_negative(address random) public {
+    function testFuzz_Success_isAccount_negative(address random) public view {
         vm.assume(random != address(account));
 
         assertFalse(factory.isAccount(random));

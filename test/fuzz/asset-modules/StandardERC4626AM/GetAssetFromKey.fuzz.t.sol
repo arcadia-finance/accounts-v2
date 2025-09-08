@@ -21,7 +21,7 @@ contract GetAssetFromKey_StandardERC4626AM_Fuzz_Test is StandardERC4626AM_Fuzz_T
     /*//////////////////////////////////////////////////////////////
                               TESTS
     //////////////////////////////////////////////////////////////*/
-    function testFuzz_Success_getAssetFromKey(address asset, uint96 assetId) public {
+    function testFuzz_Success_getAssetFromKey(address asset, uint96 assetId) public view {
         bytes32 key = bytes32(abi.encodePacked(assetId, asset));
         (address actualAsset, uint256 actualAssetId) = erc4626AM.getAssetFromKey(key);
 

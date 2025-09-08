@@ -24,11 +24,11 @@ contract IsAllowed_FloorERC1155AM_Fuzz_Test is FloorERC1155AM_Fuzz_Test {
     /*//////////////////////////////////////////////////////////////
                               TESTS
     //////////////////////////////////////////////////////////////*/
-    function testFuzz_Success_isAllowed_Positive() public {
+    function testFuzz_Success_isAllowed_Positive() public view {
         assertTrue(floorERC1155AM.isAllowed(address(mockERC1155.sft2), 1));
     }
 
-    function testFuzz_Success_isAllowed_Negative(address randomAsset, uint256 randomId) public {
+    function testFuzz_Success_isAllowed_Negative(address randomAsset, uint256 randomId) public view {
         vm.assume(randomAsset != address(mockERC1155.sft2) && randomId != 1);
         assertFalse(floorERC1155AM.isAllowed(randomAsset, randomId));
     }

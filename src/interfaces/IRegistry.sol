@@ -11,6 +11,7 @@ interface IRegistry {
      * @notice Returns the Arcadia Accounts Factory.
      * @return factory The contract address of the Arcadia Accounts Factory.
      */
+    /// forge-lint: disable-next-item(mixed-case-function)
     function FACTORY() external view returns (address);
 
     /**

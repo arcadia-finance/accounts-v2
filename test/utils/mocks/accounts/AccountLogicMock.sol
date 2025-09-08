@@ -13,8 +13,6 @@ import { IERC1155 } from "../../../../src/interfaces/IERC1155.sol";
 import { IRegistry } from "../../../../src/interfaces/IRegistry.sol";
 import { ICreditor } from "../../../../src/interfaces/ICreditor.sol";
 import { IActionBase, ActionData } from "../../../../src/interfaces/IActionBase.sol";
-import { IAccount } from "../../../../src/interfaces/IAccount.sol";
-import { IFactory } from "../../../../src/interfaces/IFactory.sol";
 import { IPermit2 } from "../../../../src/interfaces/IPermit2.sol";
 
 /**
@@ -800,6 +798,7 @@ contract AccountLogicMock is AccountStorageV2 {
      * @dev Used for all tokens type == 0.
      * @dev If the token has not yet been deposited, the ERC20 token address is stored.
      */
+    /// forge-lint: disable-next-item(mixed-case-function,mixed-case-variable)
     function _depositERC20(address from, address ERC20Address, uint256 amount) internal {
         ERC20(ERC20Address).safeTransferFrom(from, address(this), amount);
 
@@ -823,6 +822,7 @@ contract AccountLogicMock is AccountStorageV2 {
      * @dev After successful transfer, the function pushes the ERC721 address to the stored token and stored ID array.
      * This may cause duplicates in the ERC721 stored addresses array, but this is intended.
      */
+    /// forge-lint: disable-next-item(mixed-case-function,mixed-case-variable)
     function _depositERC721(address from, address ERC721Address, uint256 id) internal {
         IERC721(ERC721Address).safeTransferFrom(from, address(this), id);
 
@@ -841,6 +841,7 @@ contract AccountLogicMock is AccountStorageV2 {
      * If not, the function pushes the new address and ID to the stored arrays.
      * This may cause duplicates in the ERC1155 stored addresses array, this is intended.
      */
+    /// forge-lint: disable-next-item(mixed-case-function,mixed-case-variable)
     function _depositERC1155(address from, address ERC1155Address, uint256 id, uint256 amount) internal {
         IERC1155(ERC1155Address).safeTransferFrom(from, address(this), id, amount, "");
 
@@ -868,6 +869,7 @@ contract AccountLogicMock is AccountStorageV2 {
      * @dev This check is done using a loop:
      * gas usage of writing it in a mapping vs extra loops is in favor of extra loops in this case.
      */
+    /// forge-lint: disable-next-item(mixed-case-function,mixed-case-variable)
     function _withdrawERC20(address to, address ERC20Address, uint256 amount) internal {
         erc20Balances[ERC20Address] -= amount;
 
@@ -906,6 +908,7 @@ contract AccountLogicMock is AccountStorageV2 {
      * then replaces it with the last index, followed by a pop().
      * @dev Sensitive to ReEntrance attacks! SafeTransferFrom therefore done at the end of the function.
      */
+    /// forge-lint: disable-next-item(mixed-case-function,mixed-case-variable)
     function _withdrawERC721(address to, address ERC721Address, uint256 id) internal {
         uint256 tokenIdLength = erc721TokenIds.length;
 
@@ -950,6 +953,7 @@ contract AccountLogicMock is AccountStorageV2 {
      * and then replaces it with the last index, followed by a pop().
      * @dev Sensitive to ReEntrance attacks! SafeTransferFrom therefore done at the end of the function.
      */
+    /// forge-lint: disable-next-item(mixed-case-function,mixed-case-variable)
     function _withdrawERC1155(address to, address ERC1155Address, uint256 id, uint256 amount) internal {
         uint256 tokenIdLength = erc1155TokenIds.length;
 
@@ -1098,10 +1102,12 @@ contract AccountLogicMock is AccountStorageV2 {
         }
     }
 
+    /// forge-lint: disable-next-item(mixed-case-function)
     function onERC721Received(address, address, uint256, bytes calldata) public pure returns (bytes4) {
         return this.onERC721Received.selector;
     }
 
+    /// forge-lint: disable-next-item(mixed-case-function)
     function onERC1155Received(address, address, uint256, uint256, bytes calldata) public pure returns (bytes4) {
         return this.onERC1155Received.selector;
     }

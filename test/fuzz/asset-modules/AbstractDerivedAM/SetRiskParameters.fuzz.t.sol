@@ -4,10 +4,11 @@
  */
 pragma solidity ^0.8.0;
 
-import { AbstractDerivedAM_Fuzz_Test, AssetModule } from "./_AbstractDerivedAM.fuzz.t.sol";
+import { AbstractDerivedAM_Fuzz_Test } from "./_AbstractDerivedAM.fuzz.t.sol";
+import { AssetModule } from "../../../../src/asset-modules/abstracts/AbstractAM.sol";
 
 import { DerivedAM } from "../../../../src/asset-modules/abstracts/AbstractDerivedAM.sol";
-import { AssetValuationLib, AssetValueAndRiskFactors } from "../../../../src/libraries/AssetValuationLib.sol";
+import { AssetValuationLib } from "../../../../src/libraries/AssetValuationLib.sol";
 
 /**
  * @notice Fuzz tests for the function "setRiskParameters" of contract "AbstractDerivedAM".

@@ -9,7 +9,6 @@ import { AccountsGuard } from "../../../../src/accounts/helpers/AccountsGuard.so
 import { AccountV3 } from "../../../../src/accounts/AccountV3.sol";
 import { AccountV3_Fuzz_Test } from "./_AccountV3.fuzz.t.sol";
 import { RegistryErrors } from "../../../../src/libraries/Errors.sol";
-import { AssetModuleMock } from "../../../utils/mocks/asset-modules/AssetModuleMock.sol";
 
 /**
  * @notice Fuzz tests for the function "deposit" of contract "AccountV3".

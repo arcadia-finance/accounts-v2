@@ -8,9 +8,7 @@ import { BalanceDelta } from "../../../../../lib/v4-periphery/lib/v4-core/src/ty
 import { BaseHookExtension } from "../../../fixtures/uniswap-v4/extensions/BaseHookExtension.sol";
 import { Hooks } from "../../../../../lib/v4-periphery/lib/v4-core/src/libraries/Hooks.sol";
 import { IPoolManager } from "../../../../../lib/v4-periphery/lib/v4-core/src/interfaces/IPoolManager.sol";
-import {
-    ModifyLiquidityParams, SwapParams
-} from "../../../../../lib/v4-periphery/lib/v4-core/src/types/PoolOperation.sol";
+import { ModifyLiquidityParams } from "../../../../../lib/v4-periphery/lib/v4-core/src/types/PoolOperation.sol";
 import { PoolKey } from "../../../../../lib/v4-periphery/lib/v4-core/src/types/PoolKey.sol";
 
 contract HookMockUnvalid is BaseHookExtension {

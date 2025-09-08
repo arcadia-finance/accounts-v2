@@ -6,9 +6,9 @@ pragma solidity ^0.8.0;
 
 import { AccountErrors } from "../../../../src/libraries/Errors.sol";
 import { AccountsGuard } from "../../../../src/accounts/helpers/AccountsGuard.sol";
-import { AccountV3, AccountV3Extension } from "../../../utils/extensions/AccountV3Extension.sol";
+import { AccountV3Extension } from "../../../utils/extensions/AccountV3Extension.sol";
 import { AccountV3_Fuzz_Test } from "./_AccountV3.fuzz.t.sol";
-import { AssetValuationLib, AssetValueAndRiskFactors } from "../../../../src/libraries/AssetValuationLib.sol";
+import { AssetValueAndRiskFactors } from "../../../../src/libraries/AssetValuationLib.sol";
 import { AssetValuationLibExtension } from "../../../utils/extensions/AssetValuationLibExtension.sol";
 import { ICreditor } from "../../../../src/interfaces/ICreditor.sol";
 import { StdStorage, stdStorage } from "../../../../lib/forge-std/src/Test.sol";

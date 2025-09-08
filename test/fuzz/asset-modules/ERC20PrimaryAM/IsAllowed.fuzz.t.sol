@@ -21,11 +21,11 @@ contract IsAllowed_ERC20PrimaryAM_Fuzz_Test is ERC20PrimaryAM_Fuzz_Test {
     /*//////////////////////////////////////////////////////////////
                               TESTS
     //////////////////////////////////////////////////////////////*/
-    function testFuzz_Success_isAllowed_Positive(uint256 assetId) public {
+    function testFuzz_Success_isAllowed_Positive(uint256 assetId) public view {
         assertTrue(erc20AM.isAllowed(address(mockERC20.stable1), assetId));
     }
 
-    function testFuzz_Success_isAllowed_Negative(address randomAsset, uint256 assetId) public {
+    function testFuzz_Success_isAllowed_Negative(address randomAsset, uint256 assetId) public view {
         vm.assume(randomAsset != address(mockERC20.stable1));
         vm.assume(randomAsset != address(mockERC20.stable2));
         vm.assume(randomAsset != address(mockERC20.token1));

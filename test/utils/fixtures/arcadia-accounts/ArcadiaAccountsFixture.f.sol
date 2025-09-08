@@ -18,7 +18,6 @@ import { ERC20PrimaryAMExtension } from "../../extensions/ERC20PrimaryAMExtensio
 import { FactoryExtension } from "../../extensions/FactoryExtension.sol";
 import { RegistryL2Extension } from "../../extensions/RegistryL2Extension.sol";
 import { SequencerUptimeOracle } from "../../mocks/oracles/SequencerUptimeOracle.sol";
-import { Utils } from "../../Utils.sol";
 
 contract ArcadiaAccountsFixture is Base_Test {
     function deployArcadiaAccounts(address merklDistributor) public {

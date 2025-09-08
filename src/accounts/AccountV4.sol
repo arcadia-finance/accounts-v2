@@ -616,6 +616,7 @@ contract AccountV4 is AccountStorageV1, IAccount {
     @notice Returns the onERC721Received selector.
     @dev Needed to receive ERC721 tokens.
     */
+    /// forge-lint: disable-next-item(mixed-case-function)
     function onERC721Received(address, address, uint256, bytes calldata) public pure returns (bytes4) {
         return this.onERC721Received.selector;
     }
@@ -624,6 +625,7 @@ contract AccountV4 is AccountStorageV1, IAccount {
     @notice Returns the onERC1155Received selector.
     @dev Needed to receive ERC1155 tokens.
     */
+    /// forge-lint: disable-next-item(mixed-case-function)
     function onERC1155Received(address, address, uint256, uint256, bytes calldata) public pure returns (bytes4) {
         return this.onERC1155Received.selector;
     }

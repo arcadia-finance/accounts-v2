@@ -19,6 +19,7 @@ import { ProtocolTimeLibrary } from "./libraries/ProtocolTimeLibrary.sol";
 /// @title Protocol Gauge
 /// @author veldorome.finance, @figs999, @pegahcarter
 /// @notice Gauge contract for distribution of emissions by address
+/// forge-lint: disable-next-item(all)
 contract Gauge is IGauge, ERC2771Context, ReentrancyGuard {
     using SafeERC20 for IERC20;
     /// @inheritdoc IGauge

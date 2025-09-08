@@ -4,7 +4,8 @@
  */
 pragma solidity ^0.8.0;
 
-import { RegistryL1_Fuzz_Test, RegistryErrors } from "./_RegistryL1.fuzz.t.sol";
+import { RegistryErrors } from "../../../../src/libraries/Errors.sol";
+import { RegistryL1_Fuzz_Test } from "./_RegistryL1.fuzz.t.sol";
 
 import { BitPackingLib } from "../../../../src/libraries/BitPackingLib.sol";
 import { OracleModuleMock } from "../../../utils/mocks/oracle-modules/OracleModuleMock.sol";
