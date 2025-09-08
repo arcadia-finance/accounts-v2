@@ -4,8 +4,8 @@
  */
 pragma solidity ^0.8.0;
 
-import { Fuzz_Test, Constants } from "../../Fuzz.t.sol";
 import { AssetModuleMock } from "../../../utils/mocks/asset-modules/AssetModuleMock.sol";
+import { Fuzz_Test } from "../../Fuzz.t.sol";
 
 /**
  * @notice Common logic needed by all "AbstractAssetModule" fuzz tests.

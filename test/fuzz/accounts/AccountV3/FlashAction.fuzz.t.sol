@@ -9,7 +9,7 @@ import { AccountsGuard } from "../../../../src/accounts/helpers/AccountsGuard.so
 import { AccountV3 } from "../../../../src/accounts/AccountV3.sol";
 import { AccountV3_Fuzz_Test } from "./_AccountV3.fuzz.t.sol";
 import { AccountV3Extension } from "../../../utils/extensions/AccountV3Extension.sol";
-import { ActionData, IActionBase } from "../../../../src/interfaces/IActionBase.sol";
+import { ActionData } from "../../../../src/interfaces/IActionBase.sol";
 import { ActionMultiCall } from "../../../../src/actions/MultiCall.sol";
 import { Constants } from "../../../utils/Constants.sol";
 import { IPermit2 } from "../../../utils/Interfaces.sol";

@@ -4,12 +4,13 @@
  */
 pragma solidity ^0.8.0;
 
-import { Asset, Oracle } from "./Shared.sol";
+import { Asset } from "./Shared.sol";
 
 library AerodromeGauges { }
 
 library AerodromePools { }
 
+/// forge-lint: disable-next-item(mixed-case-function)
 library Assets {
     function USDC() internal pure returns (Asset memory) {
         return Asset({ asset: 0x078D782b760474a361dDA0AF3839290b0EF57AD6, decimals: 6 });

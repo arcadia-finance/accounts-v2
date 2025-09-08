@@ -4,13 +4,13 @@
  */
 pragma solidity ^0.8.0;
 
-import { Factory_Fuzz_Test, FactoryErrors } from "./_Factory.fuzz.t.sol";
-
 import { Factory } from "../../../src/Factory.sol";
-
+import { Factory_Fuzz_Test } from "./_Factory.fuzz.t.sol";
+import { FactoryErrors } from "../../../src/libraries/Errors.sol";
 /**
  * @notice Fuzz tests for the function "blockAccountVersion" of contract "Factory".
  */
+
 contract BlockAccountVersion_Factory_Fuzz_Test is Factory_Fuzz_Test {
     /* ///////////////////////////////////////////////////////////////
                               SETUP

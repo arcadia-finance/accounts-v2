@@ -4,11 +4,11 @@
  */
 pragma solidity ^0.8.0;
 
-import { Factory_Fuzz_Test, FactoryErrors } from "./_Factory.fuzz.t.sol";
-
 import { AccountLogicMock } from "../../utils/mocks/accounts/AccountLogicMock.sol";
 import { Constants } from "../../utils/Constants.sol";
 import { Factory } from "../../../src/Factory.sol";
+import { Factory_Fuzz_Test } from "./_Factory.fuzz.t.sol";
+import { FactoryErrors } from "../../../src/libraries/Errors.sol";
 
 /**
  * @notice Fuzz tests for the function "upgradeAccountVersion" of contract "Factory".
