@@ -15,6 +15,7 @@ import { ERC20Mock } from "../../../utils/mocks/tokens/ERC20Mock.sol";
 /**
  * @notice Fuzz tests for the function "getTotalValue" of contract "RegistryL2".
  */
+/// forge-lint: disable-next-item(divide-before-multiply)
 contract GetTotalValue_RegistryL2_Fuzz_Test is RegistryL2_Fuzz_Test {
     /* ///////////////////////////////////////////////////////////////
                               SETUP
@@ -115,13 +116,13 @@ contract GetTotalValue_RegistryL2_Fuzz_Test is RegistryL2_Fuzz_Test {
         uint256 amountToken2,
         uint8 token2Decimals
     ) public {
-        vm.assume(token2Decimals < Constants.tokenOracleDecimals);
+        vm.assume(token2Decimals < Constants.TOKEN_ORACLE_DECIMALS);
         vm.assume(rateToken1ToUsd <= uint256(type(int256).max));
         vm.assume(rateToken1ToUsd > 0);
         vm.assume(
             amountToken2
-                > ((type(uint256).max / uint256(rates.token2ToUsd) / Constants.WAD) * 10 ** Constants.tokenOracleDecimals)
-                    / 10 ** (Constants.tokenOracleDecimals - token2Decimals)
+                > ((type(uint256).max / uint256(rates.token2ToUsd) / Constants.WAD) * 10 ** Constants.TOKEN_ORACLE_DECIMALS)
+                    / 10 ** (Constants.TOKEN_ORACLE_DECIMALS - token2Decimals)
         );
 
         ArcadiaOracle oracle = initMockedOracle(uint8(0), "LINK / USD", int256(0));
@@ -219,8 +220,8 @@ contract GetTotalValue_RegistryL2_Fuzz_Test is RegistryL2_Fuzz_Test {
         assetIds[2] = 1;
 
         uint256[] memory assetAmounts = new uint256[](3);
-        assetAmounts[0] = 10 ** Constants.tokenDecimals;
-        assetAmounts[1] = 10 ** Constants.tokenDecimals;
+        assetAmounts[0] = 10 ** Constants.TOKEN_DECIMALS;
+        assetAmounts[1] = 10 ** Constants.TOKEN_DECIMALS;
         assetAmounts[2] = 1;
 
         // Numeraire for actualTotalValue is set to mockERC20.token1
@@ -230,16 +231,16 @@ contract GetTotalValue_RegistryL2_Fuzz_Test is RegistryL2_Fuzz_Test {
 
         uint256 token1ValueInToken1 = assetAmounts[0];
         uint256 token2ValueInToken1 = convertUsdToNumeraire(
-            Constants.tokenDecimals,
-            convertAssetToUsd(Constants.tokenDecimals, assetAmounts[1], oracleToken2ToUsdArr),
+            Constants.TOKEN_DECIMALS,
+            convertAssetToUsd(Constants.TOKEN_DECIMALS, assetAmounts[1], oracleToken2ToUsdArr),
             rates.token1ToUsd,
-            Constants.tokenOracleDecimals
+            Constants.TOKEN_ORACLE_DECIMALS
         );
         uint256 nft1ValueInToken1 = convertUsdToNumeraire(
-            Constants.tokenDecimals,
+            Constants.TOKEN_DECIMALS,
             convertAssetToUsd(0, assetAmounts[2], oracleNft1ToToken1ToUsd),
             rates.token1ToUsd,
-            Constants.tokenOracleDecimals
+            Constants.TOKEN_ORACLE_DECIMALS
         );
 
         uint256 expectedTotalValue = token1ValueInToken1 + token2ValueInToken1 + nft1ValueInToken1;
@@ -251,19 +252,21 @@ contract GetTotalValue_RegistryL2_Fuzz_Test is RegistryL2_Fuzz_Test {
         uint256 rateToken1ToUsd,
         uint256 amountToken2
     ) public {
-        rateToken1ToUsd = bound(rateToken1ToUsd, 1, type(uint256).max / 10 ** (36 - Constants.tokenOracleDecimals));
+        rateToken1ToUsd = bound(rateToken1ToUsd, 1, type(uint256).max / 10 ** (36 - Constants.TOKEN_ORACLE_DECIMALS));
 
         vm.assume(
             amountToken2
                 <= type(uint256).max / uint256(rates.token2ToUsd) / Constants.WAD
-                    / 10 ** (Constants.tokenOracleDecimals - Constants.tokenOracleDecimals)
+                    / 10 ** (Constants.TOKEN_ORACLE_DECIMALS - Constants.TOKEN_ORACLE_DECIMALS)
         );
         vm.assume(
             amountToken2
                 <= (
-                    ((type(uint256).max / uint256(rates.token2ToUsd) / Constants.WAD) * 10 ** Constants.tokenOracleDecimals)
-                        / 10 ** Constants.tokenOracleDecimals
-                ) * 10 ** Constants.tokenDecimals
+                    (
+                        (type(uint256).max / uint256(rates.token2ToUsd) / Constants.WAD)
+                            * 10 ** Constants.TOKEN_ORACLE_DECIMALS
+                    ) / 10 ** Constants.TOKEN_ORACLE_DECIMALS
+                ) * 10 ** Constants.TOKEN_DECIMALS
         );
 
         vm.startPrank(users.transmitter);
@@ -283,9 +286,9 @@ contract GetTotalValue_RegistryL2_Fuzz_Test is RegistryL2_Fuzz_Test {
             address(mockERC20.token1), address(creditorToken1), assetAddresses, assetIds, assetAmounts
         );
 
-        uint256 token2ValueInUsd = convertAssetToUsd(Constants.tokenDecimals, amountToken2, oracleToken2ToUsdArr);
+        uint256 token2ValueInUsd = convertAssetToUsd(Constants.TOKEN_DECIMALS, amountToken2, oracleToken2ToUsdArr);
         uint256 token2ValueInToken1 = convertUsdToNumeraire(
-            Constants.tokenDecimals, token2ValueInUsd, rateToken1ToUsd, Constants.tokenOracleDecimals
+            Constants.TOKEN_DECIMALS, token2ValueInUsd, rateToken1ToUsd, Constants.TOKEN_ORACLE_DECIMALS
         );
 
         uint256 expectedValue = token2ValueInToken1;
@@ -300,7 +303,7 @@ contract GetTotalValue_RegistryL2_Fuzz_Test is RegistryL2_Fuzz_Test {
     ) public {
         // Here it's safe to consider a max value of uint128.max for amountToken2, as we tested for overflow on previous related test.
         // Objective is to test if calculation hold true with different token decimals (in this case mockERC20.stable tokens have 6 decimals)
-        rateToken1ToUsd = bound(rateToken1ToUsd, 1, type(uint256).max / 10 ** (36 - Constants.tokenOracleDecimals));
+        rateToken1ToUsd = bound(rateToken1ToUsd, 1, type(uint256).max / 10 ** (36 - Constants.TOKEN_ORACLE_DECIMALS));
 
         vm.startPrank(users.transmitter);
         mockOracles.token1ToUsd.transmit(int256(rateToken1ToUsd));
@@ -319,9 +322,9 @@ contract GetTotalValue_RegistryL2_Fuzz_Test is RegistryL2_Fuzz_Test {
             address(mockERC20.token1), address(creditorToken1), assetAddresses, assetIds, assetAmounts
         );
 
-        uint256 token2ValueInUsd = convertAssetToUsd(Constants.stableDecimals, amountToken2, oracleStable2ToUsdArr);
+        uint256 token2ValueInUsd = convertAssetToUsd(Constants.STABLE_DECIMALS, amountToken2, oracleStable2ToUsdArr);
         uint256 token2ValueInToken1 = convertUsdToNumeraire(
-            Constants.tokenDecimals, token2ValueInUsd, rateToken1ToUsd, Constants.tokenOracleDecimals
+            Constants.TOKEN_DECIMALS, token2ValueInUsd, rateToken1ToUsd, Constants.TOKEN_ORACLE_DECIMALS
         );
 
         uint256 expectedValue = token2ValueInToken1;

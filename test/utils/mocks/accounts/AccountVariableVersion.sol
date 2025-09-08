@@ -11,8 +11,10 @@ contract AccountVariableVersion is AccountStorageV1 {
                                 STORAGE
     ////////////////////////////////////////////////////////////// */
 
+    /// forge-lint: disable-start(mixed-case-variable)
     uint16 public ACCOUNT_VERSION;
     address public FACTORY;
+    /// forge-lint: disable-end(mixed-case-variable)
 
     constructor(uint256 accountVersion_, address factory) {
         ACCOUNT_VERSION = uint16(accountVersion_);

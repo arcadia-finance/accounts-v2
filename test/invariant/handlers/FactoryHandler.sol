@@ -60,7 +60,7 @@ contract FactoryHandler is BaseHandler {
         // Objective is to only activate a V2 once
         if (callsToSetNewAccountInfo == 3) {
             vm.prank(factory.owner());
-            factory.setNewAccountInfo(address(registry), address(accountV2), Constants.upgradeRoot3To4And4To3, "");
+            factory.setNewAccountInfo(address(registry), address(accountV2), Constants.ROOT, "");
         }
     }
 }

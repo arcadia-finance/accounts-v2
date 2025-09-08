@@ -4,11 +4,10 @@
  */
 pragma solidity ^0.8.0;
 
-import { Fork_Test } from "../../Fork.t.sol";
-
 import { AccountV3 } from "../../../../src/accounts/AccountV3.sol";
 import { BitPackingLib } from "../../../../src/libraries/BitPackingLib.sol";
 import { ERC20 } from "../../../../lib/solmate/src/tokens/ERC20.sol";
+import { Fork_Test } from "../../Fork.t.sol";
 import { ILpStakingTime } from "../../../../src/asset-modules/Stargate-Finance/interfaces/ILpStakingTime.sol";
 import { IPool } from "../../../../src/asset-modules/Stargate-Finance/interfaces/IPool.sol";
 import { IRouter } from "../../../../src/asset-modules/Stargate-Finance/interfaces/IRouter.sol";
@@ -24,13 +23,18 @@ contract StargateBase_Fork_Test is Fork_Test {
                             CONSTANTS
     ///////////////////////////////////////////////////////////////*/
 
-    IRouter public router = IRouter(0x45f1A95A4D3f3836523F5c83673c797f4d4d263B);
-    ILpStakingTime public lpStakingTime = ILpStakingTime(0x06Eb48763f117c7Be887296CDcdfad2E4092739C);
-    ISGFactory public sgFactory = ISGFactory(0xAf5191B0De278C7286d6C7CC6ab6BB8A73bA2Cd6);
-    address oracleSTG = 0x63Af8341b62E683B87bB540896bF283D96B4D385;
+    IRouter internal constant ROUTER = IRouter(0x45f1A95A4D3f3836523F5c83673c797f4d4d263B);
+    ILpStakingTime internal constant LP_STAKING_TIME = ILpStakingTime(0x06Eb48763f117c7Be887296CDcdfad2E4092739C);
+    ISGFactory internal constant SG_FACTORY = ISGFactory(0xAf5191B0De278C7286d6C7CC6ab6BB8A73bA2Cd6);
+    address internal constant ORACLE_STG = 0x63Af8341b62E683B87bB540896bF283D96B4D385;
 
-    StargateAM public stargateAssetModule;
-    StakedStargateAM public stakedStargateAM;
+    /*////////////////////////////////////////////////////////////////
+                            TEST CONTRACTS
+    /////////////////////////////////////////////////////////////// */
+
+    StargateAM internal stargateAssetModule;
+    /// forge-lint: disable-next-line(mixed-case-variable)
+    StakedStargateAM internal stakedStargateAM;
 
     /*///////////////////////////////////////////////////////////////
                             SET-UP FUNCTION
@@ -41,29 +45,29 @@ contract StargateBase_Fork_Test is Fork_Test {
 
         // Add STG and it's Chainlink oracle to the protocol.
         vm.startPrank(users.owner);
-        uint256 oracleId = chainlinkOM.addOracle(oracleSTG, "STG", "USD", 2 days);
+        uint256 oracleId = chainlinkOM.addOracle(ORACLE_STG, "STG", "USD", 2 days);
         bool[] memory boolValues = new bool[](1);
         boolValues[0] = true;
         uint80[] memory uintValues = new uint80[](1);
         uintValues[0] = uint80(oracleId);
         bytes32 oracleSequence = BitPackingLib.pack(boolValues, uintValues);
-        erc20AM.addAsset(address(lpStakingTime.eToken()), oracleSequence);
+        erc20AM.addAsset(address(LP_STAKING_TIME.eToken()), oracleSequence);
         vm.stopPrank();
 
         vm.startPrank(users.owner);
         // Deploy StargateAssetModule.
-        stargateAssetModule = new StargateAM(address(registry), address(sgFactory));
+        stargateAssetModule = new StargateAM(address(registry), address(SG_FACTORY));
         registry.addAssetModule(address(stargateAssetModule));
 
         // Deploy StakedStargateAssetModule.
-        stakedStargateAM = new StakedStargateAM(address(registry), address(lpStakingTime));
+        stakedStargateAM = new StakedStargateAM(address(registry), address(LP_STAKING_TIME));
         registry.addAssetModule(address(stakedStargateAM));
         stakedStargateAM.initialize();
 
         // Label contracts
-        vm.label({ account: address(router), newLabel: "Stargate Router" });
-        vm.label({ account: address(lpStakingTime), newLabel: "Stargate Lp Staking" });
-        vm.label({ account: address(sgFactory), newLabel: "Stargate Factory" });
+        vm.label({ account: address(ROUTER), newLabel: "Stargate Router" });
+        vm.label({ account: address(LP_STAKING_TIME), newLabel: "Stargate Lp Staking" });
+        vm.label({ account: address(SG_FACTORY), newLabel: "Stargate Factory" });
         vm.label({ account: address(stargateAssetModule), newLabel: "Stargate Asset Module" });
         vm.label({ account: address(stakedStargateAM), newLabel: "Staked Stargate Asset Module" });
     }
@@ -84,8 +88,8 @@ contract StargateBase_Fork_Test is Fork_Test {
         vm.startPrank(user);
         deal(address(underlyingAsset), user, amount);
 
-        underlyingAsset.approve(address(router), amount);
-        router.addLiquidity(poolId, amount, user);
+        underlyingAsset.approve(address(ROUTER), amount);
+        ROUTER.addLiquidity(poolId, amount, user);
 
         // The user stakes the LP token via the StargateAssetModule
         lpBalance = ERC20(address(pool)).balanceOf(user);

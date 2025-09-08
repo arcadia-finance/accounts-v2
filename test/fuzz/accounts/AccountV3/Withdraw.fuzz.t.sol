@@ -289,7 +289,7 @@ contract Withdraw_AccountV3_Fuzz_Test is AccountV3_Fuzz_Test {
         assetAddresses = new address[](arrLength);
         assetIds = new uint256[](arrLength);
         assetAmounts = new uint256[](arrLength);
-        (assetAddresses, assetIds, assetAmounts,) = generateERC721DepositList(arrLength);
+        (assetAddresses, assetIds, assetAmounts,) = generateErc721DepositList(arrLength);
         vm.startPrank(users.accountOwner);
         mockERC721.nft1.setApprovalForAll(address(accountExtension), true);
         accountExtension.deposit(assetAddresses, assetIds, assetAmounts);
@@ -343,7 +343,7 @@ contract Withdraw_AccountV3_Fuzz_Test is AccountV3_Fuzz_Test {
         creditorStable1.setOpenPosition(address(accountExtension), debt);
 
         // Set Liquidation Value of assets (Liquidation value of token1 is 1:1 the amount of token1 tokens).
-        depositERC20InAccount(accountExtension, mockERC20.stable1, collateralValueInitial);
+        depositErc20InAccount(accountExtension, mockERC20.stable1, collateralValueInitial);
 
         // When: "accountOwner" withdraws assets.
         // Then: Transaction should revert with AccountErrors.UnknownAsset.selector.
@@ -671,7 +671,7 @@ contract Withdraw_AccountV3_Fuzz_Test is AccountV3_Fuzz_Test {
         creditorStable1.setOpenPosition(address(accountExtension), debt);
 
         // Set Liquidation Value of assets (Liquidation value of token1 is 1:1 the amount of token1 tokens).
-        depositERC20InAccount(accountExtension, mockERC20.stable1, collateralValueInitial);
+        depositErc20InAccount(accountExtension, mockERC20.stable1, collateralValueInitial);
 
         // When: "accountOwner" withdraws assets.
         address[] memory assetAddresses = new address[](1);

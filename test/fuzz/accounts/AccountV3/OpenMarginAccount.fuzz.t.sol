@@ -82,7 +82,7 @@ contract OpenMarginAccount_AccountV3_Fuzz_Test is AccountV3_Fuzz_Test {
         account.openMarginAccount(address(creditorUsd));
 
         // And: The account has assets deposited.
-        depositERC20InAccount(account, mockERC20.stable1, exposure);
+        depositErc20InAccount(account, mockERC20.stable1, exposure);
 
         // Assert old creditor has been set.
         assertEq(account.creditor(), address(creditorUsd));
@@ -125,7 +125,7 @@ contract OpenMarginAccount_AccountV3_Fuzz_Test is AccountV3_Fuzz_Test {
         );
 
         // And: The account has assets deposited.
-        depositERC20InAccount(account, mockERC20.stable1, exposure);
+        depositErc20InAccount(account, mockERC20.stable1, exposure);
 
         // Assert no creditor has been set on deployment
         assertEq(account.creditor(), address(0));
@@ -139,14 +139,14 @@ contract OpenMarginAccount_AccountV3_Fuzz_Test is AccountV3_Fuzz_Test {
         // Open a margin account
         vm.startPrank(users.accountOwner);
         vm.expectEmit();
-        emit AccountV3.MarginAccountChanged(address(creditorStable1), Constants.initLiquidator);
+        emit AccountV3.MarginAccountChanged(address(creditorStable1), Constants.LIQUIDATOR);
         account.openMarginAccount(address(creditorStable1));
         vm.stopPrank();
 
         // Assert a creditor has been set and other variables updated
         assertEq(account.creditor(), address(creditorStable1));
-        assertEq(account.liquidator(), Constants.initLiquidator);
-        assertEq(account.minimumMargin(), Constants.initLiquidationCost);
+        assertEq(account.liquidator(), Constants.LIQUIDATOR);
+        assertEq(account.minimumMargin(), Constants.MINIMUM_MARGIN);
         assertEq(account.numeraire(), address(mockERC20.stable1));
         assertEq(account.lastActionTimestamp(), time);
 
@@ -178,7 +178,7 @@ contract OpenMarginAccount_AccountV3_Fuzz_Test is AccountV3_Fuzz_Test {
         account.openMarginAccount(address(creditorUsd));
 
         // And: The account has assets deposited.
-        depositERC20InAccount(account, mockERC20.stable1, exposure);
+        depositErc20InAccount(account, mockERC20.stable1, exposure);
 
         // Assert old creditor has been set.
         assertEq(account.creditor(), address(creditorUsd));
@@ -196,14 +196,14 @@ contract OpenMarginAccount_AccountV3_Fuzz_Test is AccountV3_Fuzz_Test {
         // When: Open a margin account with a new creditor.
         vm.startPrank(users.accountOwner);
         vm.expectEmit();
-        emit AccountV3.MarginAccountChanged(address(creditorStable1), Constants.initLiquidator);
+        emit AccountV3.MarginAccountChanged(address(creditorStable1), Constants.LIQUIDATOR);
         account.openMarginAccount(address(creditorStable1));
         vm.stopPrank();
 
         // Then: A creditor has been set and other variables updated
         assertEq(account.creditor(), address(creditorStable1));
-        assertEq(account.liquidator(), Constants.initLiquidator);
-        assertEq(account.minimumMargin(), Constants.initLiquidationCost);
+        assertEq(account.liquidator(), Constants.LIQUIDATOR);
+        assertEq(account.minimumMargin(), Constants.MINIMUM_MARGIN);
         assertEq(account.numeraire(), address(mockERC20.stable1));
         assertEq(account.lastActionTimestamp(), time);
 
@@ -256,13 +256,13 @@ contract OpenMarginAccount_AccountV3_Fuzz_Test is AccountV3_Fuzz_Test {
         vm.warp(time);
 
         vm.expectEmit();
-        emit AccountV3.MarginAccountChanged(address(creditorStable1), Constants.initLiquidator);
+        emit AccountV3.MarginAccountChanged(address(creditorStable1), Constants.LIQUIDATOR);
         AccountV3(deployedAccount).openMarginAccount(address(creditorStable1));
 
-        assertEq(AccountV3(deployedAccount).liquidator(), Constants.initLiquidator);
+        assertEq(AccountV3(deployedAccount).liquidator(), Constants.LIQUIDATOR);
         assertEq(AccountV3(deployedAccount).creditor(), address(creditorStable1));
         assertEq(AccountV3(deployedAccount).numeraire(), address(mockERC20.stable1));
-        assertEq(AccountV3(deployedAccount).minimumMargin(), Constants.initLiquidationCost);
+        assertEq(AccountV3(deployedAccount).minimumMargin(), Constants.MINIMUM_MARGIN);
         assertEq(AccountV3(deployedAccount).lastActionTimestamp(), time);
     }
 }

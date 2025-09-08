@@ -35,7 +35,7 @@ contract ArcadiaAccountsFixture is Base_Test {
         accountsGuard = new AccountsGuardExtension(users.owner, address(factory));
         accountLogic = new AccountV3(address(factory), address(accountsGuard), merklDistributor);
         factory.setLatestAccountVersion(2);
-        factory.setNewAccountInfo(address(registry), address(accountLogic), Constants.upgradeRoot3To4And4To3, "");
+        factory.setNewAccountInfo(address(registry), address(accountLogic), Constants.ROOT, "");
 
         // Set the Guardians.
         vm.startPrank(users.owner);
@@ -116,7 +116,7 @@ contract ArcadiaAccountsFixture is Base_Test {
         vm.stopPrank();
     }
 
-    function depositERC20InAccount(AccountV3 account_, ERC20Mock token, uint256 amount) public {
+    function depositErc20InAccount(AccountV3 account_, ERC20Mock token, uint256 amount) public {
         address[] memory assets = new address[](1);
         assets[0] = address(token);
 

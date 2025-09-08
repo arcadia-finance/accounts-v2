@@ -13,7 +13,7 @@ import { ActionData } from "../../../../src/interfaces/IActionBase.sol";
 import { AssetModule } from "../../../../src/asset-modules/abstracts/AbstractAM.sol";
 import { Constants } from "../../../utils/Constants.sol";
 import { CreditorMock } from "../../../utils/mocks/creditors/CreditorMock.sol";
-import { IPermit2 } from "../../../utils/Interfaces.sol";
+import { IPermit2 } from "../../../utils/interfaces/IPermit2.sol";
 import { MultiActionMock } from "../../.././utils/mocks/actions/MultiActionMock.sol";
 import { Permit2Fixture } from "../../../utils/fixtures/permit2/Permit2Fixture.f.sol";
 import { SignatureVerification } from "../../../../lib/v4-periphery/lib/permit2/src/libraries/SignatureVerification.sol";
@@ -151,7 +151,7 @@ contract FlashActionByCreditor_AccountV3_Fuzz_Test is AccountV3_Fuzz_Test, Permi
         accountExtension.setApprovedCreditor(address(creditorToken1));
 
         // And: The accountExtension has assets deposited.
-        depositERC20InAccount(accountExtension, mockERC20.stable1, collateralAmount);
+        depositErc20InAccount(accountExtension, mockERC20.stable1, collateralAmount);
 
         // And: the flashAction is initiated on the Creditor for the Account.
         creditorToken1.setCallbackAccount(address(accountExtension));
@@ -402,7 +402,7 @@ contract FlashActionByCreditor_AccountV3_Fuzz_Test is AccountV3_Fuzz_Test, Permi
         accountExtension.setApprovedCreditor(address(creditorToken1));
 
         // And: The accountExtension has assets deposited.
-        depositERC20InAccount(accountExtension, mockERC20.stable1, collateralAmount);
+        depositErc20InAccount(accountExtension, mockERC20.stable1, collateralAmount);
 
         // And: the flashAction is initiated on the Creditor for the Account.
         creditorToken1.setCallbackAccount(address(accountExtension));
@@ -434,7 +434,7 @@ contract FlashActionByCreditor_AccountV3_Fuzz_Test is AccountV3_Fuzz_Test, Permi
         accountExtension.setApprovedCreditor(address(creditorToken1));
 
         // And: The accountExtension has assets deposited.
-        depositERC20InAccount(accountExtension, mockERC20.stable1, collateralAmount);
+        depositErc20InAccount(accountExtension, mockERC20.stable1, collateralAmount);
 
         // And: Both the old Creditor has an open position for the Account.
         oldCreditorDebtAmount = uint128(bound(oldCreditorDebtAmount, 1, type(uint128).max));
@@ -471,7 +471,7 @@ contract FlashActionByCreditor_AccountV3_Fuzz_Test is AccountV3_Fuzz_Test, Permi
         assertEq(accountExtension.creditor(), address(creditorStable1));
 
         // And: The accountExtension has assets deposited.
-        depositERC20InAccount(accountExtension, mockERC20.stable1, collateralAmount);
+        depositErc20InAccount(accountExtension, mockERC20.stable1, collateralAmount);
 
         // And: The Creditor has an open position for the Account.
         accountExtension.setMinimumMargin(minimumMargin);
@@ -509,7 +509,7 @@ contract FlashActionByCreditor_AccountV3_Fuzz_Test is AccountV3_Fuzz_Test, Permi
         accountExtension.setApprovedCreditor(address(creditorStable1));
 
         // And: The accountExtension has assets deposited.
-        depositERC20InAccount(accountExtension, mockERC20.stable1, collateralAmount);
+        depositErc20InAccount(accountExtension, mockERC20.stable1, collateralAmount);
 
         // And: The new Creditor will have an open position after the flashAction.
         creditorStable1.setMinimumMargin(minimumMargin);
@@ -542,7 +542,7 @@ contract FlashActionByCreditor_AccountV3_Fuzz_Test is AccountV3_Fuzz_Test, Permi
         assertEq(accountExtension.creditor(), address(creditorStable1));
 
         // And: The accountExtension has assets deposited.
-        depositERC20InAccount(accountExtension, mockERC20.stable1, collateralAmount);
+        depositErc20InAccount(accountExtension, mockERC20.stable1, collateralAmount);
 
         // And: The Creditor has an open position for the Account.
         accountExtension.setMinimumMargin(minimumMargin);
@@ -581,7 +581,7 @@ contract FlashActionByCreditor_AccountV3_Fuzz_Test is AccountV3_Fuzz_Test, Permi
         accountExtension.setApprovedCreditor(address(creditorStable1));
 
         // And: The accountExtension has assets deposited.
-        depositERC20InAccount(accountExtension, mockERC20.stable1, collateralAmount);
+        depositErc20InAccount(accountExtension, mockERC20.stable1, collateralAmount);
 
         // And: The new Creditor will have an open position after the flashAction.
         creditorStable1.setMinimumMargin(minimumMargin);
@@ -635,7 +635,7 @@ contract FlashActionByCreditor_AccountV3_Fuzz_Test is AccountV3_Fuzz_Test, Permi
         accountExtension.setApprovedCreditor(address(creditorStable1));
 
         // And: The accountExtension has assets deposited.
-        depositERC20InAccount(accountExtension, mockERC20.stable1, collateralAmount);
+        depositErc20InAccount(accountExtension, mockERC20.stable1, collateralAmount);
 
         // And: The new Creditor will have an open position after the flashAction.
         creditorStable1.setMinimumMargin(minimumMargin);
@@ -680,8 +680,8 @@ contract FlashActionByCreditor_AccountV3_Fuzz_Test is AccountV3_Fuzz_Test, Permi
         ActionData[] memory actionDatas = new ActionData[](3);
         bytes memory callData;
         {
-            uint256 token1AmountForAction = 1000 * 10 ** Constants.tokenDecimals;
-            uint256 token2AmountForAction = 1000 * 10 ** Constants.tokenDecimals;
+            uint256 token1AmountForAction = 1000 * 10 ** Constants.TOKEN_DECIMALS;
+            uint256 token2AmountForAction = 1000 * 10 ** Constants.TOKEN_DECIMALS;
             uint256 token1ToToken2Ratio = rates.token1ToUsd / rates.token2ToUsd;
 
             vm.assume(
@@ -691,7 +691,7 @@ contract FlashActionByCreditor_AccountV3_Fuzz_Test is AccountV3_Fuzz_Test, Permi
 
             // We increase the price of token 2 in order to avoid to end up with unhealthy state of accountExtension
             vm.startPrank(users.transmitter);
-            mockOracles.token2ToUsd.transmit(int256(1000 * 10 ** Constants.tokenOracleDecimals));
+            mockOracles.token2ToUsd.transmit(int256(1000 * 10 ** Constants.TOKEN_ORACLE_DECIMALS));
             vm.stopPrank();
 
             bytes[] memory data = new bytes[](3);
@@ -759,7 +759,7 @@ contract FlashActionByCreditor_AccountV3_Fuzz_Test is AccountV3_Fuzz_Test, Permi
             callData = abi.encode(actionDatas[0], transferFromOwner, tokenPermissions, signatureStack, actionTargetData);
 
             // Deposit token1 in accountExtension first
-            depositERC20InAccount(
+            depositErc20InAccount(
                 mockERC20.token1, token1AmountForAction, users.accountOwner, address(accountExtension)
             );
         }
@@ -771,7 +771,7 @@ contract FlashActionByCreditor_AccountV3_Fuzz_Test is AccountV3_Fuzz_Test, Permi
 
         vm.startPrank(users.transmitter);
         // We increase the price of token 2 in order to avoid to end up with unhealthy state of account
-        mockOracles.token2ToUsd.transmit(int256(1000 * 10 ** Constants.tokenOracleDecimals));
+        mockOracles.token2ToUsd.transmit(int256(1000 * 10 ** Constants.TOKEN_ORACLE_DECIMALS));
         // We transmit price to token 1 oracle in order to have the oracle active
         mockOracles.token1ToUsd.transmit(int256(rates.token1ToUsd));
         vm.stopPrank();
@@ -863,12 +863,10 @@ contract FlashActionByCreditor_AccountV3_Fuzz_Test is AccountV3_Fuzz_Test, Permi
             IPermit2.PermitBatchTransferFrom memory permit =
                 Utils.defaultERC20PermitMultiple(tokens, amounts, nonce, deadline);
 
-            bytes32 DOMAIN_SEPARATOR = permit2.DOMAIN_SEPARATOR();
-
             // Get signature
             vm.prank(owner);
             bytes memory signature = Utils.getPermitBatchTransferSignature(
-                permit, ownerPrivateKey, DOMAIN_SEPARATOR, address(accountExtension)
+                permit, ownerPrivateKey, permit2.DOMAIN_SEPARATOR(), address(accountExtension)
             );
 
             ActionData memory assetDataOut;

@@ -38,7 +38,7 @@ abstract contract AccountV4_Fuzz_Test is Fuzz_Test {
         // Deploy Account.
         accountSpotLogic = new AccountV4Extension(address(factory), address(accountsGuard), address(0));
         vm.prank(users.owner);
-        factory.setNewAccountInfo(address(registry), address(accountSpotLogic), Constants.upgradeRoot3To4And4To3, "");
+        factory.setNewAccountInfo(address(registry), address(accountSpotLogic), Constants.ROOT, "");
 
         vm.prank(users.accountOwner);
         address payable proxyAddress = payable(factory.createAccount(1001, 4, address(0)));

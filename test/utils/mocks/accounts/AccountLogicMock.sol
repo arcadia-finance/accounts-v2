@@ -46,7 +46,7 @@ contract AccountLogicMock is AccountStorageV2 {
     // The contract address of the Arcadia Accounts Factory.
     address public immutable FACTORY;
     // Uniswap Permit2 contract
-    IPermit2 internal immutable permit2 = IPermit2(0x000000000022D473030F116dDEE9F6B43aC78BA3);
+    IPermit2 internal immutable PERMIT_2 = IPermit2(0x000000000022D473030F116dDEE9F6B43aC78BA3);
 
     // Storage slot for the Account logic, a struct to avoid storage conflict when dealing with upgradeable contracts.
     struct AddressSlot {
@@ -787,7 +787,7 @@ contract AccountLogicMock is AccountStorageV2 {
             }
         }
 
-        permit2.permitTransferFrom(permit, transferDetails, owner, signature);
+        PERMIT_2.permitTransferFrom(permit, transferDetails, owner, signature);
     }
 
     /**

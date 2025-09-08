@@ -25,6 +25,7 @@ contract Constructor_SlipstreamAM_Fuzz_Test is SlipstreamAM_Fuzz_Test {
     //////////////////////////////////////////////////////////////*/
     function testFuzz_Success_deployment(address registry_) public {
         vm.startPrank(users.owner);
+        /// forge-lint: disable-next-line(mixed-case-variable)
         SlipstreamAMExtension slipstreamAM_ = new SlipstreamAMExtension(registry_, address(slipstreamPositionManager));
         vm.stopPrank();
 

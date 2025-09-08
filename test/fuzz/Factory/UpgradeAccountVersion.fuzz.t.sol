@@ -30,7 +30,7 @@ contract UpgradeAccountVersion_Factory_Fuzz_Test is Factory_Fuzz_Test {
         // Set a Mocked Account Logic contract in the Factory.
         vm.startPrank(users.owner);
         accountLogicMock = new AccountLogicMock(address(factory));
-        factory.setNewAccountInfo(address(registry), address(accountLogicMock), Constants.upgradeRoot3To4And4To3, "");
+        factory.setNewAccountInfo(address(registry), address(accountLogicMock), Constants.ROOT, "");
         vm.stopPrank();
     }
 
@@ -73,7 +73,7 @@ contract UpgradeAccountVersion_Factory_Fuzz_Test is Factory_Fuzz_Test {
 
     function testFuzz_Success_upgradeAccountVersion() public {
         bytes32[] memory proofs = new bytes32[](1);
-        proofs[0] = Constants.upgradeProof4To3;
+        proofs[0] = Constants.PROOF_4_TO_3;
 
         // When: "users.accountOwner" Upgrade the account to AccountLogicMockLogic.
         vm.startPrank(users.accountOwner);

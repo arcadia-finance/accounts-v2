@@ -82,7 +82,7 @@ contract AddAsset_ERC20PrimaryAM_Fuzz_Test is ERC20PrimaryAM_Fuzz_Test {
         assertTrue(erc20AM.isAllowed(address(mockERC20.token4), 0));
         bytes32 assetKey = bytes32(abi.encodePacked(uint96(0), address(mockERC20.token4)));
         (uint64 assetUnit, bytes32 oracles) = erc20AM.assetToInformation(assetKey);
-        assertEq(assetUnit, 10 ** Constants.tokenDecimals);
+        assertEq(assetUnit, 10 ** Constants.TOKEN_DECIMALS);
         assertEq(oracles, oraclesToken4ToUsd);
 
         assertTrue(registry.inRegistry(address(mockERC20.token4)));

@@ -25,6 +25,7 @@ abstract contract AbstractPrimaryAM_Fuzz_Test is Fuzz_Test {
                              VARIABLES
     /////////////////////////////////////////////////////////////// */
 
+    /// forge-lint: disable-next-item(pascal-case-struct)
     struct PrimaryAMAssetState {
         address creditor;
         address asset;
@@ -64,6 +65,7 @@ abstract contract AbstractPrimaryAM_Fuzz_Test is Fuzz_Test {
         oracleModule.setRate(oracleId, rate);
     }
 
+    /// forge-lint: disable-next-item(mixed-case-function)
     function setPrimaryAMAssetState(PrimaryAMAssetState memory assetState) internal {
         assetModule.setExposure(
             assetState.creditor,

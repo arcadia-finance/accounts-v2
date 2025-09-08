@@ -65,7 +65,7 @@ contract UpgradeAccount_AccountV3_Fuzz_Test is AccountV3_Fuzz_Test {
         // Set a Mocked V2 Account Logic contract in the Factory.
         vm.startPrank(users.owner);
         accountLogicMock = new AccountLogicMock(address(factory));
-        factory.setNewAccountInfo(address(registry), address(accountLogicMock), Constants.upgradeRoot3To4And4To3, "");
+        factory.setNewAccountInfo(address(registry), address(accountLogicMock), Constants.ROOT, "");
         vm.stopPrank();
     }
 
@@ -159,7 +159,7 @@ contract UpgradeAccount_AccountV3_Fuzz_Test is AccountV3_Fuzz_Test {
         vm.startPrank(users.owner);
         RegistryL2Extension registry2 = new RegistryL2Extension(address(factory), address(sequencerUptimeOracle));
         vm.assume(newImplementation != address(registry2));
-        factory.setNewAccountInfo(address(registry2), newImplementation, Constants.upgradeRoot3To4And4To3, data);
+        factory.setNewAccountInfo(address(registry2), newImplementation, Constants.ROOT, data);
         vm.stopPrank();
 
         vm.startPrank(address(factory));
@@ -216,7 +216,7 @@ contract UpgradeAccount_AccountV3_Fuzz_Test is AccountV3_Fuzz_Test {
         Checks memory checkBefore = createCompareStruct();
 
         bytes32[] memory proofs = new bytes32[](1);
-        proofs[0] = Constants.upgradeProof4To3;
+        proofs[0] = Constants.PROOF_4_TO_3;
 
         vm.warp(time);
 

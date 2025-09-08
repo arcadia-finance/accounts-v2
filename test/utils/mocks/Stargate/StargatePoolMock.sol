@@ -29,12 +29,12 @@ contract StargatePoolMock is ERC20Mock {
         convertRate = convertRate_;
     }
 
-    /// forge-lint: disable-next-item(mixed-case-function)
+    /// forge-lint: disable-next-item(mixed-case-function,mixed-case-variable)
     function amountLPtoLD(uint256 _amountLP) external view returns (uint256) {
         return amountSDtoLD(_amountLPtoSD(_amountLP));
     }
 
-    /// forge-lint: disable-next-item(mixed-case-function)
+    /// forge-lint: disable-next-item(mixed-case-function,mixed-case-variable)
     function _amountLPtoSD(uint256 _amountLP) internal view returns (uint256) {
         require(totalSupply > 0, "Stargate: cant convert LPtoSD when totalSupply == 0");
         return _amountLP * totalLiquidity / totalSupply;

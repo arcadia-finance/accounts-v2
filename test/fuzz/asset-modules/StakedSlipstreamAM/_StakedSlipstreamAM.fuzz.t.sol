@@ -43,6 +43,7 @@ abstract contract StakedSlipstreamAM_Fuzz_Test is Fuzz_Test, SlipstreamFixture {
                             TEST CONTRACTS
     /////////////////////////////////////////////////////////////// */
 
+    /// forge-lint: disable-next-line(mixed-case-variable)
     StakedSlipstreamAMExtension internal stakedSlipstreamAM;
 
     /* ///////////////////////////////////////////////////////////////
@@ -67,6 +68,8 @@ abstract contract StakedSlipstreamAM_Fuzz_Test is Fuzz_Test, SlipstreamFixture {
     /*////////////////////////////////////////////////////////////////
                         HELPER FUNCTIONS
     ////////////////////////////////////////////////////////////////*/
+
+    /// forge-lint: disable-next-item(mixed-case-function)
     function deployStakedSlipstreamAM() internal {
         // Deploy StakedSlipstreamAM.
         vm.startPrank(users.owner);

@@ -4,6 +4,7 @@
  */
 pragma solidity ^0.8.0;
 
+/// forge-lint: disable-next-item(mixed-case-function,mixed-case-variable)
 interface IWrappedStakedSlipstream {
     function AERO() external view returns (address);
     function CL_FACTORY() external view returns (address);

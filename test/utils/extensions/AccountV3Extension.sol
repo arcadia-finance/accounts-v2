@@ -6,6 +6,7 @@ pragma solidity ^0.8.0;
 
 import { AccountV3 } from "../../../src/accounts/AccountV3.sol";
 
+/// forge-lint: disable-next-item(mixed-case-function)
 contract AccountV3Extension is AccountV3 {
     constructor(address factory, address accountsGuard, address merklDistributor)
         AccountV3(factory, accountsGuard, merklDistributor)

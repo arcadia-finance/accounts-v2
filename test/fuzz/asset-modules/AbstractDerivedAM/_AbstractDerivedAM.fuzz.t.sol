@@ -16,6 +16,7 @@ abstract contract AbstractDerivedAM_Fuzz_Test is Fuzz_Test {
                             VARIABLES
     /////////////////////////////////////////////////////////////// */
 
+    /// forge-lint: disable-start(pascal-case-struct)
     struct DerivedAMProtocolState {
         uint112 lastUsdExposureProtocol;
         uint112 maxUsdExposureProtocol;
@@ -32,6 +33,7 @@ abstract contract AbstractDerivedAM_Fuzz_Test is Fuzz_Test {
         uint256 exposureAssetToUnderlyingAsset;
         uint112 lastExposureAssetToUnderlyingAsset;
     }
+    /// forge-lint: disable-end(pascal-case-struct)
 
     struct UnderlyingAssetModuleState {
         uint112 exposureAssetLast;
@@ -42,8 +44,10 @@ abstract contract AbstractDerivedAM_Fuzz_Test is Fuzz_Test {
                             TEST CONTRACTS
     /////////////////////////////////////////////////////////////// */
 
+    /// forge-lint: disable-start(mixed-case-variable)
     DerivedAMMock internal derivedAM;
     PrimaryAMMock internal primaryAM;
+    /// forge-lint: disable-end(mixed-case-variable)
 
     /* ///////////////////////////////////////////////////////////////
                               SETUP
@@ -71,12 +75,15 @@ abstract contract AbstractDerivedAM_Fuzz_Test is Fuzz_Test {
     /* ///////////////////////////////////////////////////////////////
                           HELPER FUNCTIONS
     /////////////////////////////////////////////////////////////// */
+
+    /// forge-lint: disable-next-item(mixed-case-function)
     function setDerivedAMProtocolState(DerivedAMProtocolState memory protocolState, address creditor) internal {
         derivedAM.setUsdExposureProtocol(
             creditor, protocolState.maxUsdExposureProtocol, protocolState.lastUsdExposureProtocol
         );
     }
 
+    /// forge-lint: disable-next-item(mixed-case-function)
     function setDerivedAMAssetState(DerivedAMAssetState memory assetState) internal {
         address[] memory underlyingAssets = new address[](1);
         underlyingAssets[0] = assetState.underlyingAsset;
@@ -98,6 +105,7 @@ abstract contract AbstractDerivedAM_Fuzz_Test is Fuzz_Test {
         );
     }
 
+    /// forge-lint: disable-next-item(mixed-case-variable)
     function setUnderlyingAssetModuleState(
         DerivedAMAssetState memory assetState,
         UnderlyingAssetModuleState memory underlyingPMState
@@ -114,6 +122,7 @@ abstract contract AbstractDerivedAM_Fuzz_Test is Fuzz_Test {
         primaryAM.setUsdValue(underlyingPMState.usdValue);
     }
 
+    /// forge-lint: disable-next-item(mixed-case-variable)
     function givenValidState(
         DerivedAMProtocolState memory protocolState,
         DerivedAMAssetState memory assetState,
@@ -134,6 +143,7 @@ abstract contract AbstractDerivedAM_Fuzz_Test is Fuzz_Test {
         return (protocolState, assetState, underlyingPMState);
     }
 
+    /// forge-lint: disable-next-item(mixed-case-variable)
     function givenNonRevertingWithdrawal(
         DerivedAMProtocolState memory protocolState,
         DerivedAMAssetState memory assetState,
@@ -200,6 +210,7 @@ abstract contract AbstractDerivedAM_Fuzz_Test is Fuzz_Test {
         return (protocolState, assetState, underlyingPMState, exposureUpperAssetToAsset, deltaExposureUpperAssetToAsset);
     }
 
+    /// forge-lint: disable-next-item(mixed-case-variable)
     function givenNonRevertingDeposit(
         DerivedAMProtocolState memory protocolState,
         DerivedAMAssetState memory assetState,

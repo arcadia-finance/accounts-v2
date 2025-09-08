@@ -32,7 +32,7 @@ contract Deposits_DoubleERC20_Gas_Test is Gas_Test {
     function testGas_Deposit_ERC20_Double() public {
         vm.pauseGasMetering();
         (address[] memory assets, uint256[] memory ids, uint256[] memory amounts, AccountV3 account) =
-            prepare_deposit_double_erc20(newAccount);
+            prepareDepositDoubleErc20(newAccount);
         vm.resumeGasMetering();
         vm.prank(users.accountOwner);
         account.deposit(assets, ids, amounts);
@@ -41,7 +41,7 @@ contract Deposits_DoubleERC20_Gas_Test is Gas_Test {
     function testGas_Value_ERC20_Double() public {
         vm.pauseGasMetering();
         (address[] memory assets, uint256[] memory ids, uint256[] memory amounts, AccountV3 account) =
-            prepare_deposit_double_erc20(newAccount);
+            prepareDepositDoubleErc20(newAccount);
         vm.prank(users.accountOwner);
         account.deposit(assets, ids, amounts);
         vm.resumeGasMetering();
@@ -52,7 +52,7 @@ contract Deposits_DoubleERC20_Gas_Test is Gas_Test {
     function testGas_GenerateAssetData_ERC20_Double() public {
         vm.pauseGasMetering();
         (address[] memory assets, uint256[] memory ids, uint256[] memory amounts, AccountV3 account) =
-            prepare_deposit_double_erc20(newAccount);
+            prepareDepositDoubleErc20(newAccount);
         vm.prank(users.accountOwner);
         account.deposit(assets, ids, amounts);
         vm.resumeGasMetering();
@@ -63,7 +63,7 @@ contract Deposits_DoubleERC20_Gas_Test is Gas_Test {
     function testGas_Withdraw_ERC20_Double() public {
         vm.pauseGasMetering();
         (address[] memory assets, uint256[] memory ids, uint256[] memory amounts, AccountV3 account) =
-            prepare_deposit_double_erc20(newAccount);
+            prepareDepositDoubleErc20(newAccount);
         vm.prank(users.accountOwner);
         account.deposit(assets, ids, amounts);
         vm.resumeGasMetering();

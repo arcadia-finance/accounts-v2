@@ -10,6 +10,7 @@ import { AssetModule } from "../../../../src/asset-modules/abstracts/AbstractAM.
 /**
  * @notice Fuzz tests for the function "_processDeposit" of contract "AbstractDerivedAM".
  */
+/// forge-lint: disable-next-item(mixed-case-variable)
 contract ProcessDeposit_AbstractDerivedAM_Fuzz_Test is AbstractDerivedAM_Fuzz_Test {
     /* ///////////////////////////////////////////////////////////////
                               SETUP
@@ -166,9 +167,9 @@ contract ProcessDeposit_AbstractDerivedAM_Fuzz_Test is AbstractDerivedAM_Fuzz_Te
         assertEq(usdExposureAsset, underlyingPMState.usdValue);
 
         // And: "lastExposureAssetToUnderlyingAsset" is updated.
-        bytes32 UnderlyingAssetKey = derivedAM.getKeyFromAsset(assetState.underlyingAsset, assetState.underlyingAssetId);
+        bytes32 underlyingAssetKey = derivedAM.getKeyFromAsset(assetState.underlyingAsset, assetState.underlyingAssetId);
         assertEq(
-            derivedAM.getExposureAssetToUnderlyingAssetsLast(assetState.creditor, assetKey, UnderlyingAssetKey),
+            derivedAM.getExposureAssetToUnderlyingAssetsLast(assetState.creditor, assetKey, underlyingAssetKey),
             assetState.exposureAssetToUnderlyingAsset
         );
 
@@ -243,9 +244,9 @@ contract ProcessDeposit_AbstractDerivedAM_Fuzz_Test is AbstractDerivedAM_Fuzz_Te
         assertEq(usdExposureAsset, underlyingPMState.usdValue);
 
         // And: "lastExposureAssetToUnderlyingAsset" is updated.
-        bytes32 UnderlyingAssetKey = derivedAM.getKeyFromAsset(assetState.underlyingAsset, assetState.underlyingAssetId);
+        bytes32 underlyingAssetKey = derivedAM.getKeyFromAsset(assetState.underlyingAsset, assetState.underlyingAssetId);
         assertEq(
-            derivedAM.getExposureAssetToUnderlyingAssetsLast(assetState.creditor, assetKey, UnderlyingAssetKey),
+            derivedAM.getExposureAssetToUnderlyingAssetsLast(assetState.creditor, assetKey, underlyingAssetKey),
             assetState.exposureAssetToUnderlyingAsset
         );
 
@@ -315,9 +316,9 @@ contract ProcessDeposit_AbstractDerivedAM_Fuzz_Test is AbstractDerivedAM_Fuzz_Te
         assertEq(usdExposureAsset, underlyingPMState.usdValue);
 
         // And: "lastExposureAssetToUnderlyingAsset" is updated.
-        bytes32 UnderlyingAssetKey = derivedAM.getKeyFromAsset(assetState.underlyingAsset, assetState.underlyingAssetId);
+        bytes32 underlyingAssetKey = derivedAM.getKeyFromAsset(assetState.underlyingAsset, assetState.underlyingAssetId);
         assertEq(
-            derivedAM.getExposureAssetToUnderlyingAssetsLast(assetState.creditor, assetKey, UnderlyingAssetKey),
+            derivedAM.getExposureAssetToUnderlyingAssetsLast(assetState.creditor, assetKey, underlyingAssetKey),
             assetState.exposureAssetToUnderlyingAsset
         );
 

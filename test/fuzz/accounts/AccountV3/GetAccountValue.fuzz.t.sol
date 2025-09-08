@@ -30,7 +30,7 @@ contract GetAccountValue_AccountV3_Fuzz_Test is AccountV3_Fuzz_Test {
         spotValue = uint112(bound(spotValue, 0, type(uint112).max - 1));
 
         // Set Spot Value of assets (value of stable1 is 1:1 the amount of stable1 tokens).
-        depositERC20InAccount(accountExtension, mockERC20.stable1, spotValue);
+        depositErc20InAccount(accountExtension, mockERC20.stable1, spotValue);
 
         uint256 actualValue = accountExtension.getAccountValue(address(mockERC20.stable1));
 

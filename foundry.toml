@@ -38,7 +38,9 @@ exclude_lints = [
     "asm-keccak256"
 ]
 ignore = [
-    "test/**/*"
+    "**/merkl/**/*",
+    "**/RemoveMerklOperator.fuzz.t.sol",
+    "**/SetMerklOperators.fuzz.t.sol",
 ]
 
 [profile.dev]

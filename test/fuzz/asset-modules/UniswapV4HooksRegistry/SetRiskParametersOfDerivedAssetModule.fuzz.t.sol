@@ -17,6 +17,7 @@ contract SetRiskParametersOfDerivedAM_UniswapV4HooksRegistry_Fuzz_Test is Uniswa
                              VARIABLES
     /////////////////////////////////////////////////////////////// */
 
+    /// forge-lint: disable-next-line(mixed-case-variable)
     DerivedAMMock internal derivedAM;
 
     /* ///////////////////////////////////////////////////////////////

@@ -11,7 +11,7 @@ import { AccountV4Extension } from "../../../utils/extensions/AccountV4Extension
 import { ActionData } from "../../../../src/interfaces/IActionBase.sol";
 import { ActionMultiCall } from "../../../../src/actions/MultiCall.sol";
 import { Constants } from "../../../utils/Constants.sol";
-import { IPermit2 } from "../../../utils/Interfaces.sol";
+import { IPermit2 } from "../../../utils/interfaces/IPermit2.sol";
 import { MultiActionMock } from "../../.././utils/mocks/actions/MultiActionMock.sol";
 import { Permit2Fixture } from "../../../utils/fixtures/permit2/Permit2Fixture.f.sol";
 import { SignatureVerification } from "../../../../lib/v4-periphery/lib/permit2/src/libraries/SignatureVerification.sol";
@@ -334,9 +334,9 @@ contract FlashAction_AccountV4_Fuzz_Test is AccountV4_Fuzz_Test, Permit2Fixture 
         vm.assume(time > 2 days);
         vm.assume(time > 2 days);
 
-        uint256 token1AmountForAction = 1000 * 10 ** Constants.tokenDecimals;
-        uint256 token2AmountForAction = 1000 * 10 ** Constants.tokenDecimals;
-        uint256 stable1AmountForAction = 500 * 10 ** Constants.stableDecimals;
+        uint256 token1AmountForAction = 1000 * 10 ** Constants.TOKEN_DECIMALS;
+        uint256 token2AmountForAction = 1000 * 10 ** Constants.TOKEN_DECIMALS;
+        uint256 stable1AmountForAction = 500 * 10 ** Constants.STABLE_DECIMALS;
         uint256 token1ToToken2Ratio = rates.token1ToUsd / rates.token2ToUsd;
 
         ActionData[] memory actionDatas = new ActionData[](3);
@@ -497,8 +497,8 @@ contract FlashAction_AccountV4_Fuzz_Test is AccountV4_Fuzz_Test, Permit2Fixture 
         accountSpot.setAssetManager(assetManager, true);
         vm.stopPrank();
 
-        uint256 token1AmountForAction = 1000 * 10 ** Constants.tokenDecimals;
-        uint256 token2AmountForAction = 1000 * 10 ** Constants.tokenDecimals;
+        uint256 token1AmountForAction = 1000 * 10 ** Constants.TOKEN_DECIMALS;
+        uint256 token2AmountForAction = 1000 * 10 ** Constants.TOKEN_DECIMALS;
         uint256 token1ToToken2Ratio = rates.token1ToUsd / rates.token2ToUsd;
 
         bytes memory callData;
@@ -622,12 +622,11 @@ contract FlashAction_AccountV4_Fuzz_Test is AccountV4_Fuzz_Test, Permit2Fixture 
             IPermit2.PermitBatchTransferFrom memory permit =
                 Utils.defaultERC20PermitMultiple(tokens, amounts, nonce, deadline);
 
-            bytes32 DOMAIN_SEPARATOR = permit2.DOMAIN_SEPARATOR();
-
             // Get signature
             vm.prank(owner);
-            bytes memory signature =
-                Utils.getPermitBatchTransferSignature(permit, ownerPrivateKey, DOMAIN_SEPARATOR, address(accountSpot));
+            bytes memory signature = Utils.getPermitBatchTransferSignature(
+                permit, ownerPrivateKey, permit2.DOMAIN_SEPARATOR(), address(accountSpot)
+            );
 
             ActionData memory assetDataOut;
             ActionData memory transferFromOwner;

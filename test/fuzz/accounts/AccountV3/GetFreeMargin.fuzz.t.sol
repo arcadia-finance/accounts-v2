@@ -48,7 +48,7 @@ contract GetFreeMargin_AccountV3_Fuzz_Test is AccountV3_Fuzz_Test {
         collateralValue = uint112(bound(collateralValue, 0, type(uint112).max - 1));
 
         // Set Liquidation Value of assets (Liquidation value of token1 is 1:1 the amount of token1 tokens).
-        depositERC20InAccount(accountExtension, mockERC20.stable1, collateralValue);
+        depositErc20InAccount(accountExtension, mockERC20.stable1, collateralValue);
 
         assertEq(collateralValue, accountExtension.getFreeMargin());
     } */
@@ -75,7 +75,7 @@ contract GetFreeMargin_AccountV3_Fuzz_Test is AccountV3_Fuzz_Test {
         creditorStable1.setOpenPosition(address(accountExtension), openDebt);
 
         // Set Liquidation Value of assets (Liquidation value of token1 is 1:1 the amount of token1 tokens).
-        depositERC20InAccount(accountExtension, mockERC20.stable1, collateralValue);
+        depositErc20InAccount(accountExtension, mockERC20.stable1, collateralValue);
 
         assertEq(collateralValue - openDebt - minimumMargin, accountExtension.getFreeMargin());
     }
@@ -102,7 +102,7 @@ contract GetFreeMargin_AccountV3_Fuzz_Test is AccountV3_Fuzz_Test {
         creditorStable1.setOpenPosition(address(accountExtension), openDebt);
 
         // Set Liquidation Value of assets (Liquidation value of token1 is 1:1 the amount of token1 tokens).
-        depositERC20InAccount(accountExtension, mockERC20.stable1, collateralValue);
+        depositErc20InAccount(accountExtension, mockERC20.stable1, collateralValue);
 
         assertEq(0, accountExtension.getFreeMargin());
     }

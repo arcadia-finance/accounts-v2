@@ -7,8 +7,6 @@ pragma solidity ^0.8.0;
 import { FactoryGuardian } from "../../../src/guardians/FactoryGuardian.sol";
 
 contract FactoryGuardianExtension is FactoryGuardian {
-    constructor() FactoryGuardian() { }
-
     function setPauseTimestamp(uint96 pauseTimestamp_) public {
         pauseTimestamp = pauseTimestamp_;
     }

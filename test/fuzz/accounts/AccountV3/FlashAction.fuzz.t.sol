@@ -12,7 +12,7 @@ import { AccountV3Extension } from "../../../utils/extensions/AccountV3Extension
 import { ActionData } from "../../../../src/interfaces/IActionBase.sol";
 import { ActionMultiCall } from "../../../../src/actions/MultiCall.sol";
 import { Constants } from "../../../utils/Constants.sol";
-import { IPermit2 } from "../../../utils/Interfaces.sol";
+import { IPermit2 } from "../../../utils/interfaces/IPermit2.sol";
 import { MultiActionMock } from "../../../utils/mocks/actions/MultiActionMock.sol";
 import { Permit2Fixture } from "../../../utils/fixtures/permit2/Permit2Fixture.f.sol";
 import { SignatureVerification } from "../../../../lib/v4-periphery/lib/permit2/src/libraries/SignatureVerification.sol";
@@ -127,7 +127,7 @@ contract FlashAction_AccountV3_Fuzz_Test is AccountV3_Fuzz_Test, Permit2Fixture 
         uint256[] memory assetAmounts = new uint256[](arrLength);
         uint256[] memory assetTypes = new uint256[](arrLength);
 
-        (assetAddresses, assetIds, assetAmounts, assetTypes) = generateERC721DepositList(arrLength);
+        (assetAddresses, assetIds, assetAmounts, assetTypes) = generateErc721DepositList(arrLength);
 
         bytes[] memory data = new bytes[](0);
         address[] memory to = new address[](0);
@@ -157,6 +157,7 @@ contract FlashAction_AccountV3_Fuzz_Test is AccountV3_Fuzz_Test, Permit2Fixture 
         uint256 id = 10;
         for (uint256 i; i < lengthStack; ++i) {
             vm.prank(users.accountOwner);
+            /// forge-lint: disable-next-line(erc20-unchecked-transfer)
             mockERC721.nft1.transferFrom(users.accountOwner, address(action), id);
             ++id;
         }
@@ -190,8 +191,8 @@ contract FlashAction_AccountV3_Fuzz_Test is AccountV3_Fuzz_Test, Permit2Fixture 
         stdstore.target(address(factory)).sig(factory.isAccount.selector).with_key(address(accountNotInitialised))
             .checked_write(true);
 
-        uint256 token1AmountForAction = 1000 * 10 ** Constants.tokenDecimals;
-        uint256 token2AmountForAction = 1000 * 10 ** Constants.tokenDecimals;
+        uint256 token1AmountForAction = 1000 * 10 ** Constants.TOKEN_DECIMALS;
+        uint256 token2AmountForAction = 1000 * 10 ** Constants.TOKEN_DECIMALS;
         uint256 token1ToToken2Ratio = rates.token1ToUsd / rates.token2ToUsd;
 
         vm.assume(
@@ -260,7 +261,7 @@ contract FlashAction_AccountV3_Fuzz_Test is AccountV3_Fuzz_Test, Permit2Fixture 
             abi.encode(assetDataOut, transferFromOwner, tokenPermissions, signatureStack, actionTargetData);
 
         // Deposit token1 in account first
-        depositERC20InAccount(
+        depositErc20InAccount(
             mockERC20.token1, token1AmountForAction, users.accountOwner, address(accountNotInitialised)
         );
 
@@ -565,9 +566,9 @@ contract FlashAction_AccountV3_Fuzz_Test is AccountV3_Fuzz_Test, Permit2Fixture 
         stdstore.target(address(factory)).sig(factory.isAccount.selector).with_key(address(accountNotInitialised))
             .checked_write(true);
 
-        uint256 token1AmountForAction = 1000 * 10 ** Constants.tokenDecimals;
-        uint256 token2AmountForAction = 1000 * 10 ** Constants.tokenDecimals;
-        uint256 stable1AmountForAction = 500 * 10 ** Constants.stableDecimals;
+        uint256 token1AmountForAction = 1000 * 10 ** Constants.TOKEN_DECIMALS;
+        uint256 token2AmountForAction = 1000 * 10 ** Constants.TOKEN_DECIMALS;
+        uint256 stable1AmountForAction = 500 * 10 ** Constants.STABLE_DECIMALS;
         uint256 token1ToToken2Ratio = rates.token1ToUsd / rates.token2ToUsd;
 
         vm.assume(
@@ -576,7 +577,7 @@ contract FlashAction_AccountV3_Fuzz_Test is AccountV3_Fuzz_Test, Permit2Fixture 
 
         // We increase the price of token 2 in order to avoid to end up with unhealthy state of account
         vm.startPrank(users.transmitter);
-        mockOracles.token2ToUsd.transmit(int256(1000 * 10 ** Constants.tokenOracleDecimals));
+        mockOracles.token2ToUsd.transmit(int256(1000 * 10 ** Constants.TOKEN_ORACLE_DECIMALS));
         vm.stopPrank();
 
         ActionData[] memory actionDatas = new ActionData[](3);
@@ -677,7 +678,7 @@ contract FlashAction_AccountV3_Fuzz_Test is AccountV3_Fuzz_Test, Permit2Fixture 
         }
 
         // Deposit token1 in account first
-        depositERC20InAccount(
+        depositErc20InAccount(
             mockERC20.token1, token1AmountForAction, users.accountOwner, address(accountNotInitialised)
         );
 
@@ -703,7 +704,7 @@ contract FlashAction_AccountV3_Fuzz_Test is AccountV3_Fuzz_Test, Permit2Fixture 
         mockOracles.stable1ToUsd.transmit(int256(rates.stable1ToUsd));
         mockOracles.nft1ToToken1.transmit(int256(rates.nft1ToToken1));
         // We increase the price of token 2 in order to avoid to end up with unhealthy state of account
-        mockOracles.token2ToUsd.transmit(int256(1000 * 10 ** Constants.tokenOracleDecimals));
+        mockOracles.token2ToUsd.transmit(int256(1000 * 10 ** Constants.TOKEN_ORACLE_DECIMALS));
         vm.stopPrank();
 
         // Call flashAction() on Account
@@ -772,8 +773,8 @@ contract FlashAction_AccountV3_Fuzz_Test is AccountV3_Fuzz_Test, Permit2Fixture 
         stdstore.target(address(factory)).sig(factory.isAccount.selector).with_key(address(accountNotInitialised))
             .checked_write(true);
 
-        uint256 token1AmountForAction = 1000 * 10 ** Constants.tokenDecimals;
-        uint256 token2AmountForAction = 1000 * 10 ** Constants.tokenDecimals;
+        uint256 token1AmountForAction = 1000 * 10 ** Constants.TOKEN_DECIMALS;
+        uint256 token2AmountForAction = 1000 * 10 ** Constants.TOKEN_DECIMALS;
         uint256 token1ToToken2Ratio = rates.token1ToUsd / rates.token2ToUsd;
 
         vm.assume(
@@ -847,13 +848,13 @@ contract FlashAction_AccountV3_Fuzz_Test is AccountV3_Fuzz_Test, Permit2Fixture 
         vm.warp(time);
 
         // Deposit token1 in account first
-        depositERC20InAccount(
+        depositErc20InAccount(
             mockERC20.token1, token1AmountForAction, users.accountOwner, address(accountNotInitialised)
         );
 
         vm.startPrank(users.transmitter);
         // We increase the price of token 2 in order to avoid to end up with unhealthy state of account
-        mockOracles.token2ToUsd.transmit(int256(1000 * 10 ** Constants.tokenOracleDecimals));
+        mockOracles.token2ToUsd.transmit(int256(1000 * 10 ** Constants.TOKEN_ORACLE_DECIMALS));
         // We transmit price to token 1 oracle in order to have the oracle active
         mockOracles.token1ToUsd.transmit(int256(rates.token1ToUsd));
         vm.stopPrank();
@@ -928,12 +929,10 @@ contract FlashAction_AccountV3_Fuzz_Test is AccountV3_Fuzz_Test, Permit2Fixture 
             IPermit2.PermitBatchTransferFrom memory permit =
                 Utils.defaultERC20PermitMultiple(tokens, amounts, nonce, deadline);
 
-            bytes32 DOMAIN_SEPARATOR = permit2.DOMAIN_SEPARATOR();
-
             // Get signature
             vm.prank(owner);
             bytes memory signature = Utils.getPermitBatchTransferSignature(
-                permit, ownerPrivateKey, DOMAIN_SEPARATOR, address(accountNotInitialised)
+                permit, ownerPrivateKey, permit2.DOMAIN_SEPARATOR(), address(accountNotInitialised)
             );
 
             ActionData memory assetDataOut;

@@ -6,6 +6,7 @@ pragma solidity ^0.8.0;
 
 import { IERC20 } from "../../../../src/interfaces/IERC20.sol";
 
+/// forge-lint: disable-next-item(erc20-unchecked-transfer)
 contract MultiActionMock {
     function swapAssets(address tokenIn, address tokenOut, uint256 amountIn, uint256 amountOut) public {
         IERC20(tokenIn).transferFrom(msg.sender, address(this), amountIn);

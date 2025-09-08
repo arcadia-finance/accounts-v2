@@ -40,7 +40,7 @@ contract SyncFee_UniswapV2AM_Fuzz_Test is UniswapV2AM_Fuzz_Test {
         assertTrue(!uniswapV2AM.feeOn());
         //And: feeTo on the UniswapV2 factory is not the zero-address (fees are on)
         vm.assume(feeTo != address(0));
-        vm.prank(haydenAdams);
+        vm.prank(HAYDEN_ADAMS);
         uniswapV2Factory.setFeeTo(feeTo);
 
         //When: a random address calls syncFee()
@@ -54,7 +54,7 @@ contract SyncFee_UniswapV2AM_Fuzz_Test is UniswapV2AM_Fuzz_Test {
     function testFuzz_Success_syncFee_FeeOnToFeeOn(address sender, address feeTo) public {
         //Given: feeTo on the UniswapV2 factory is not the zero-address (fees are on)
         vm.assume(feeTo != address(0));
-        vm.prank(haydenAdams);
+        vm.prank(HAYDEN_ADAMS);
         uniswapV2Factory.setFeeTo(feeTo);
         //And: feeOn is true
         uniswapV2AM.syncFee();
@@ -71,12 +71,12 @@ contract SyncFee_UniswapV2AM_Fuzz_Test is UniswapV2AM_Fuzz_Test {
     function testFuzz_Success_syncFee_FeeOnToFeeOff(address sender, address feeTo) public {
         //Given: feeOn is true
         vm.assume(feeTo != address(0));
-        vm.prank(haydenAdams);
+        vm.prank(HAYDEN_ADAMS);
         uniswapV2Factory.setFeeTo(feeTo);
         uniswapV2AM.syncFee();
         assertTrue(uniswapV2AM.feeOn());
         //And: feeTo on the UniswapV2 factory is the zero-address (fees are on)
-        vm.prank(haydenAdams);
+        vm.prank(HAYDEN_ADAMS);
         uniswapV2Factory.setFeeTo(address(0));
 
         //When: a random address calls syncFee()

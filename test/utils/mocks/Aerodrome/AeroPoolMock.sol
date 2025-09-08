@@ -19,6 +19,7 @@ import { ReentrancyGuard } from "../../mocks/openzeppelin-0.8/ReentrancyGuard.so
 /// @title Pool
 /// @author velodrome.finance, @figs999, @pegahcarter
 /// @notice Protocol token pool, either stable or volatile
+/// forge-lint: disable-next-item(all)
 contract Pool is IPool, ERC20Permit, ReentrancyGuard {
     using SafeERC20 for IERC20;
 

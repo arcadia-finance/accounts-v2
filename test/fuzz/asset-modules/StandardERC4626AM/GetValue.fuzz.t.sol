@@ -13,6 +13,7 @@ import { Constants } from "../../../utils/Constants.sol";
 /**
  * @notice Fuzz tests for the function "getValue" of contract "StandardERC4626AM".
  */
+/// forge-lint: disable-next-item(divide-before-multiply)
 contract GetValue_StandardERC4626AM_Fuzz_Test is StandardERC4626AM_Fuzz_Test {
     using stdStorage for StdStorage;
     /* ///////////////////////////////////////////////////////////////
@@ -44,7 +45,7 @@ contract GetValue_StandardERC4626AM_Fuzz_Test is StandardERC4626AM_Fuzz_Test {
 
         vm.assume(
             shares * totalAssets / totalSupply
-                > type(uint256).max / (Constants.WAD * rateToken1ToUsd_ / 10 ** Constants.tokenOracleDecimals)
+                > type(uint256).max / (Constants.WAD * rateToken1ToUsd_ / 10 ** Constants.TOKEN_ORACLE_DECIMALS)
         );
 
         vm.prank(users.transmitter);
@@ -85,12 +86,12 @@ contract GetValue_StandardERC4626AM_Fuzz_Test is StandardERC4626AM_Fuzz_Test {
         if (rateToken1ToUsd_ != 0) {
             vm.assume(
                 shares * totalAssets / totalSupply
-                    <= type(uint256).max / (Constants.WAD * rateToken1ToUsd_ / 10 ** Constants.tokenOracleDecimals)
+                    <= type(uint256).max / (Constants.WAD * rateToken1ToUsd_ / 10 ** Constants.TOKEN_ORACLE_DECIMALS)
             );
         }
 
-        uint256 expectedValueInUsd = (Constants.WAD * rateToken1ToUsd_ / 10 ** Constants.tokenOracleDecimals)
-            * (shares * totalAssets / totalSupply) / 10 ** Constants.tokenDecimals;
+        uint256 expectedValueInUsd = (Constants.WAD * rateToken1ToUsd_ / 10 ** Constants.TOKEN_ORACLE_DECIMALS)
+            * (shares * totalAssets / totalSupply) / 10 ** Constants.TOKEN_DECIMALS;
 
         vm.prank(users.transmitter);
         mockOracles.token1ToUsd.transmit(int256(rateToken1ToUsd_));

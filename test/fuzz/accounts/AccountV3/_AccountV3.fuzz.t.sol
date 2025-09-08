@@ -77,7 +77,7 @@ abstract contract AccountV3_Fuzz_Test is Fuzz_Test {
         vm.stopPrank();
     }
 
-    function depositERC20InAccount(ERC20Mock token, uint256 amount, address sender, address accountExtension_)
+    function depositErc20InAccount(ERC20Mock token, uint256 amount, address sender, address accountExtension_)
         public
         returns (address[] memory assetAddresses, uint256[] memory assetIds, uint256[] memory assetAmounts)
     {
@@ -99,7 +99,7 @@ abstract contract AccountV3_Fuzz_Test is Fuzz_Test {
         vm.stopPrank();
     }
 
-    function generateERC721DepositList(uint8 length)
+    function generateErc721DepositList(uint8 length)
         public
         returns (
             address[] memory assetAddresses,

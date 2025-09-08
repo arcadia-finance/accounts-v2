@@ -4,10 +4,9 @@
  */
 pragma solidity ^0.8.0;
 
-import { StargateBase_Fork_Test } from "./StargateBase.fork.t.sol";
-
-import { IPool } from "../../../../src/asset-modules/Stargate-Finance/interfaces/IPool.sol";
 import { ERC20 } from "../../../../lib/solmate/src/tokens/ERC20.sol";
+import { IPool } from "../../../../src/asset-modules/Stargate-Finance/interfaces/IPool.sol";
+import { StargateBase_Fork_Test } from "./StargateBase.fork.t.sol";
 
 /**
  * @notice Fork tests for "StargateAssetModule - USDBC Pool".
@@ -55,8 +54,8 @@ contract StargateAM_USDBC_Fork_Test is StargateBase_Fork_Test {
         vm.startPrank(users.accountOwner);
         deal(address(USDBC), users.accountOwner, initBalance);
 
-        USDBC.approve(address(router), initBalance);
-        router.addLiquidity(poolId, initBalance, users.accountOwner);
+        USDBC.approve(address(ROUTER), initBalance);
+        ROUTER.addLiquidity(poolId, initBalance, users.accountOwner);
         assert(ERC20(address(pool)).balanceOf(users.accountOwner) > 0);
 
         // And : The user stakes the LP token via the StargateAssetModule
@@ -102,24 +101,24 @@ contract StargateAM_USDBC_Fork_Test is StargateBase_Fork_Test {
         uint256 lpBalance1 = stakeInAssetModuleAndDepositInAccount(user1, arcadiaAccount1, USDBC, amount1, pid, pool);
         uint256 lpBalance2 = stakeInAssetModuleAndDepositInAccount(user2, arcadiaAccount2, USDBC, amount2, pid, pool);
 
-        (uint256 amBalanceInLpStaking,) = lpStakingTime.userInfo(pid, address(stakedStargateAM));
+        (uint256 amBalanceInLpStaking,) = LP_STAKING_TIME.userInfo(pid, address(stakedStargateAM));
         assert(lpBalance1 + lpBalance2 == amBalanceInLpStaking);
 
         // And : We let 30 days pass to accumulate rewards.
         vm.warp(block.timestamp + 30 days);
 
         // And: There are enough rewards in the contract.
-        deal(address(lpStakingTime.eToken()), address(lpStakingTime), 1e36, true);
+        deal(address(LP_STAKING_TIME.eToken()), address(LP_STAKING_TIME), 1e36, true);
 
         // And : User1 withdraws 1/2 position.
         vm.prank(arcadiaAccount1);
         stakedStargateAM.decreaseLiquidity(1, uint128(lpBalance1 / 2));
-        assert(lpStakingTime.eToken().balanceOf(arcadiaAccount1) > 0);
+        assert(LP_STAKING_TIME.eToken().balanceOf(arcadiaAccount1) > 0);
 
         // And : User2 withdraws fully
         vm.prank(arcadiaAccount2);
         stakedStargateAM.burn(2);
-        assert(lpStakingTime.eToken().balanceOf(arcadiaAccount2) > 0);
+        assert(LP_STAKING_TIME.eToken().balanceOf(arcadiaAccount2) > 0);
 
         // And : User2 decides to stake again via the AM.
         lpBalance2 = stakeInAssetModuleAndDepositInAccount(user2, arcadiaAccount2, USDBC, amount2, pid, pool);
@@ -131,7 +130,7 @@ contract StargateAM_USDBC_Fork_Test is StargateBase_Fork_Test {
         vm.prank(arcadiaAccount2);
         stakedStargateAM.burn(3);
 
-        (amBalanceInLpStaking,) = lpStakingTime.userInfo(pid, address(stakedStargateAM));
+        (amBalanceInLpStaking,) = LP_STAKING_TIME.userInfo(pid, address(stakedStargateAM));
 
         (, uint128 totalStaked,) = stakedStargateAM.assetState(address(pool));
 
@@ -141,8 +140,8 @@ contract StargateAM_USDBC_Fork_Test is StargateBase_Fork_Test {
         stakedStargateAM.burn(1);
 
         // Then : Values should be correct
-        uint256 rewardsAccount1 = lpStakingTime.eToken().balanceOf(arcadiaAccount1);
-        uint256 rewardsAccount2 = lpStakingTime.eToken().balanceOf(arcadiaAccount2);
+        uint256 rewardsAccount1 = LP_STAKING_TIME.eToken().balanceOf(arcadiaAccount1);
+        uint256 rewardsAccount2 = LP_STAKING_TIME.eToken().balanceOf(arcadiaAccount2);
         assert(rewardsAccount1 > rewardsAccount2);
 
         (, remainingBalanceAccount1,,) = stakedStargateAM.positionState(1);
@@ -167,8 +166,8 @@ contract StargateAM_USDBC_Fork_Test is StargateBase_Fork_Test {
         vm.startPrank(users.accountOwner);
         deal(address(USDBC), users.accountOwner, initBalance);
 
-        USDBC.approve(address(router), initBalance);
-        router.addLiquidity(poolId, initBalance, users.accountOwner);
+        USDBC.approve(address(ROUTER), initBalance);
+        ROUTER.addLiquidity(poolId, initBalance, users.accountOwner);
         assert(ERC20(address(pool)).balanceOf(users.accountOwner) > 0);
 
         // And : The user stakes the LP token via the StargateAssetModule
@@ -180,15 +179,15 @@ contract StargateAM_USDBC_Fork_Test is StargateBase_Fork_Test {
         vm.warp(block.timestamp + 30 days);
 
         // And: There are enough rewards in the contract.
-        deal(address(lpStakingTime.eToken()), address(lpStakingTime), 1e36, true);
+        deal(address(LP_STAKING_TIME.eToken()), address(LP_STAKING_TIME), 1e36, true);
 
-        assert(lpStakingTime.eToken().balanceOf(users.accountOwner) == 0);
+        assert(LP_STAKING_TIME.eToken().balanceOf(users.accountOwner) == 0);
 
         // When : We claim rewards for the position
         stakedStargateAM.claimReward(tokenId);
 
         // Then : Reward should have been received
-        assert(lpStakingTime.eToken().balanceOf(users.accountOwner) > 0);
+        assert(LP_STAKING_TIME.eToken().balanceOf(users.accountOwner) > 0);
 
         vm.stopPrank();
     }

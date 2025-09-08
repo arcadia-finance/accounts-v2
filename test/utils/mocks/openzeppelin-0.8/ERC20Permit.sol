@@ -19,12 +19,12 @@ import { Counters } from "./Counters.sol";
  *
  * _Available since v3.4._
  */
+/// forge-lint: disable-next-item(all)
 abstract contract ERC20Permit is ERC20, EIP712 {
     using Counters for Counters.Counter;
 
     mapping(address => Counters.Counter) private _nonces;
 
-    // solhint-disable-next-line var-name-mixedcase
     bytes32 private constant _PERMIT_TYPEHASH =
         keccak256("Permit(address owner,address spender,uint256 value,uint256 nonce,uint256 deadline)");
     /**
@@ -33,7 +33,6 @@ abstract contract ERC20Permit is ERC20, EIP712 {
      * to reserve a slot.
      * @custom:oz-renamed-from _PERMIT_TYPEHASH
      */
-    // solhint-disable-next-line var-name-mixedcase
     bytes32 private _PERMIT_TYPEHASH_DEPRECATED_SLOT;
 
     /**
@@ -72,7 +71,6 @@ abstract contract ERC20Permit is ERC20, EIP712 {
     /**
      * @dev See {IERC20Permit-DOMAIN_SEPARATOR}.
      */
-    // solhint-disable-next-line func-name-mixedcase
     function DOMAIN_SEPARATOR() external view returns (bytes32) {
         return _domainSeparatorV4();
     }
