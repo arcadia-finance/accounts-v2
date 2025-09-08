@@ -30,9 +30,9 @@ interface ICLPool {
             bool initialized
         );
 
-    function feeGrowthGlobal0X128() external view returns (uint256 feeGrowthGlobal0X128);
+    function feeGrowthGlobal0X128() external view returns (uint256 feeGrowthGlobal0X128_);
 
-    function feeGrowthGlobal1X128() external view returns (uint256 feeGrowthGlobal1X128);
+    function feeGrowthGlobal1X128() external view returns (uint256 feeGrowthGlobal1X128_);
 
     function token0() external returns (address);
 

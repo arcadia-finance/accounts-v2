@@ -23,7 +23,7 @@ interface INonfungiblePositionManager {
             uint128 tokensOwed1
         );
 
-    function factory() external returns (address factory);
+    function factory() external returns (address factory_);
 
-    function totalSupply() external view returns (uint256 totalSupply);
+    function totalSupply() external view returns (uint256 totalSupply_);
 }
