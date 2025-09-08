@@ -24,6 +24,7 @@ remappings = [
 ]
 fs_permissions = [{ access = "read", path = "./out"}, { access = "write", path = "./script/out"}]
 unchecked_cheatcode_artifacts = true
+ignored_warnings_from = ["lib/slipstream/contracts/libraries/EnumerableSet.sol"]
 
 [fmt]
 bracket_spacing = true

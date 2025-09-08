@@ -5,17 +5,11 @@
 pragma solidity ^0.8.0;
 
 import { Base_Test } from "../../../Base.t.sol";
-
+import { Constants } from "../../../utils/Constants.sol";
 import { UniswapV3AMExtension } from "../../extensions/UniswapV3AMExtension.sol";
 import { Utils } from "../../Utils.sol";
 
 contract UniswapV3AMFixture is Base_Test {
-    /*//////////////////////////////////////////////////////////////////////////
-                                  CONSTANTS
-    //////////////////////////////////////////////////////////////////////////*/
-
-    bytes32 internal constant POOL_INIT_CODE_HASH = 0xe34f199b19b2b4f47f68442619d555527d244f78a3297ea89325f843f87b8b54;
-
     /*//////////////////////////////////////////////////////////////////////////
                                      VARIABLES
     //////////////////////////////////////////////////////////////////////////*/
@@ -40,7 +34,7 @@ contract UniswapV3AMFixture is Base_Test {
 
         // Overwrite constant in bytecode of NonfungiblePositionManager.
         // -> Replace the code hash of UniswapV3Pool.sol with the code hash of UniswapV3PoolExtension.sol
-        bytecode = Utils.veryBadBytesReplacer(bytecode, POOL_INIT_CODE_HASH, poolExtensionInitCodeHash);
+        bytecode = Utils.veryBadBytesReplacer(bytecode, Constants.POOL_INIT_CODE_HASH, poolExtensionInitCodeHash);
 
         // Deploy UniswapV3PoolExtension with modified bytecode.
         vm.prank(users.owner);
