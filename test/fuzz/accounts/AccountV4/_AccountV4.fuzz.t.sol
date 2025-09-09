@@ -5,10 +5,10 @@
 pragma solidity ^0.8.0;
 
 import { AccountV4Extension } from "../../../utils/extensions/AccountV4Extension.sol";
-import { ActionMultiCall } from "../../../../src/actions/MultiCall.sol";
+import { ActionTargetMock } from "../../../utils/mocks/action-targets/ActionTargetMock.sol";
 import { Constants } from "../../../utils/Constants.sol";
 import { Fuzz_Test } from "../../Fuzz.t.sol";
-import { MultiActionMock } from "../../../utils/mocks/actions/MultiActionMock.sol";
+import { RouterMock } from "../../../utils/mocks/action-targets/RouterMock.sol";
 
 /**
  * @notice Common logic needed by all "AccountV4" fuzz tests.
@@ -25,8 +25,8 @@ abstract contract AccountV4_Fuzz_Test is Fuzz_Test {
     AccountV4Extension internal accountSpot;
     AccountV4Extension internal accountSpotLogic;
 
-    MultiActionMock internal multiActionMock;
-    ActionMultiCall internal action;
+    RouterMock internal routerMock;
+    ActionTargetMock internal actionTarget;
 
     /* ///////////////////////////////////////////////////////////////
                               SETUP

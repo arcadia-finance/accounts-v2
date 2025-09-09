@@ -8,13 +8,13 @@ import { AccountErrors } from "../../../../src/libraries/Errors.sol";
 import { AccountsGuard } from "../../../../src/accounts/helpers/AccountsGuard.sol";
 import { AccountV3 } from "../../../../src/accounts/AccountV3.sol";
 import { AccountV3_Fuzz_Test } from "./_AccountV3.fuzz.t.sol";
-import { ActionMultiCall } from "../../../../src/actions/MultiCall.sol";
+import { ActionTargetMock } from "../../../utils/mocks/action-targets/ActionTargetMock.sol";
 import { ActionData } from "../../../../src/interfaces/IActionBase.sol";
 import { AssetModule } from "../../../../src/asset-modules/abstracts/AbstractAM.sol";
 import { Constants } from "../../../utils/Constants.sol";
 import { CreditorMock } from "../../../utils/mocks/creditors/CreditorMock.sol";
 import { IPermit2 } from "../../../utils/interfaces/IPermit2.sol";
-import { MultiActionMock } from "../../.././utils/mocks/actions/MultiActionMock.sol";
+import { RouterMock } from "../../.././utils/mocks/action-targets/RouterMock.sol";
 import { Permit2Fixture } from "../../../utils/fixtures/permit2/Permit2Fixture.f.sol";
 import { SignatureVerification } from "../../../../lib/v4-periphery/lib/permit2/src/libraries/SignatureVerification.sol";
 import { StdStorage, stdStorage } from "../../../../lib/forge-std/src/Test.sol";
@@ -40,8 +40,8 @@ contract FlashActionByCreditor_AccountV3_Fuzz_Test is AccountV3_Fuzz_Test, Permi
         Permit2Fixture.setUp();
 
         // Deploy multicall contract and actions
-        action = new ActionMultiCall();
-        multiActionMock = new MultiActionMock();
+        actionTarget = new ActionTargetMock();
+        routerMock = new RouterMock();
 
         ActionData memory actionData;
         address[] memory to;
@@ -72,7 +72,7 @@ contract FlashActionByCreditor_AccountV3_Fuzz_Test is AccountV3_Fuzz_Test, Permi
 
         vm.prank(sender);
         vm.expectRevert(AccountErrors.OnlyCreditor.selector);
-        accountExtension.flashActionByCreditor(callbackData, address(action), new bytes(0));
+        accountExtension.flashActionByCreditor(callbackData, address(actionTarget), new bytes(0));
     }
 
     function testFuzz_Revert_flashActionByCreditor_NonApprovedCreditorByOwner(
@@ -93,7 +93,7 @@ contract FlashActionByCreditor_AccountV3_Fuzz_Test is AccountV3_Fuzz_Test, Permi
 
         vm.prank(approvedCreditor);
         vm.expectRevert(AccountErrors.OnlyCreditor.selector);
-        accountExtension.flashActionByCreditor(callbackData, address(action), new bytes(0));
+        accountExtension.flashActionByCreditor(callbackData, address(actionTarget), new bytes(0));
     }
 
     function testFuzz_Revert_flashActionByCreditor_Reentered(
@@ -160,7 +160,7 @@ contract FlashActionByCreditor_AccountV3_Fuzz_Test is AccountV3_Fuzz_Test, Permi
         // Then: Transaction should revert with ExposureNotInLimits.
         vm.prank(address(creditorToken1));
         vm.expectRevert(AssetModule.ExposureNotInLimits.selector);
-        accountExtension.flashActionByCreditor(callbackData, address(action), emptyActionData);
+        accountExtension.flashActionByCreditor(callbackData, address(actionTarget), emptyActionData);
     }
 
     function testFuzz_Revert_flashAction_permit2_InvalidSignatureLength(
@@ -224,7 +224,7 @@ contract FlashActionByCreditor_AccountV3_Fuzz_Test is AccountV3_Fuzz_Test, Permi
         // Call flashAction() on Account
         vm.prank(address(creditorToken1));
         vm.expectRevert(SignatureVerification.InvalidSignatureLength.selector);
-        accountExtension.flashActionByCreditor("", address(action), callData);
+        accountExtension.flashActionByCreditor("", address(actionTarget), callData);
     }
 
     function testFuzz_Revert_flashAction_permit2_InvalidSignature(
@@ -297,7 +297,7 @@ contract FlashActionByCreditor_AccountV3_Fuzz_Test is AccountV3_Fuzz_Test, Permi
         // Call flashAction() on Account
         vm.prank(address(creditorToken1));
         vm.expectRevert(SignatureVerification.InvalidSignature.selector);
-        accountExtension.flashActionByCreditor("", address(action), callData);
+        accountExtension.flashActionByCreditor("", address(actionTarget), callData);
     }
 
     function testFuzz_Revert_flashAction_permit2_InvalidSigner(
@@ -372,7 +372,7 @@ contract FlashActionByCreditor_AccountV3_Fuzz_Test is AccountV3_Fuzz_Test, Permi
         // Call flashAction() on Account
         vm.prank(address(creditorToken1));
         vm.expectRevert(SignatureVerification.InvalidSigner.selector);
-        accountExtension.flashActionByCreditor("", address(action), callData);
+        accountExtension.flashActionByCreditor("", address(actionTarget), callData);
     }
 
     function testFuzz_Revert_flashActionByCreditor_NewCreditor_InvalidAccountVersion(
@@ -414,7 +414,7 @@ contract FlashActionByCreditor_AccountV3_Fuzz_Test is AccountV3_Fuzz_Test, Permi
         // Then: Transaction should revert with InvalidAccountVersion.
         vm.prank(address(creditorToken1));
         vm.expectRevert(AccountErrors.InvalidAccountVersion.selector);
-        accountExtension.flashActionByCreditor(callbackData, address(action), emptyActionData);
+        accountExtension.flashActionByCreditor(callbackData, address(actionTarget), emptyActionData);
     }
 
     function testFuzz_Revert_flashActionByCreditor_NewCreditor_OpenPosition(
@@ -451,7 +451,7 @@ contract FlashActionByCreditor_AccountV3_Fuzz_Test is AccountV3_Fuzz_Test, Permi
         // Then: Transaction should revert with OpenPositionNonZero.
         vm.prank(address(creditorToken1));
         vm.expectRevert(CreditorMock.OpenPositionNonZero.selector);
-        accountExtension.flashActionByCreditor(callbackData, address(action), emptyActionData);
+        accountExtension.flashActionByCreditor(callbackData, address(actionTarget), emptyActionData);
     }
 
     function testFuzz_Revert_flashActionByCreditor_Creditor_Unhealthy(
@@ -484,7 +484,7 @@ contract FlashActionByCreditor_AccountV3_Fuzz_Test is AccountV3_Fuzz_Test, Permi
         // Then: Transaction should revert with AccountUnhealthy.
         vm.prank(address(creditorStable1));
         vm.expectRevert(AccountErrors.AccountUnhealthy.selector);
-        accountExtension.flashActionByCreditor(callbackData, address(action), emptyActionData);
+        accountExtension.flashActionByCreditor(callbackData, address(actionTarget), emptyActionData);
     }
 
     function testFuzz_Revert_flashActionByCreditor_NewCreditor_Unhealthy(
@@ -522,7 +522,7 @@ contract FlashActionByCreditor_AccountV3_Fuzz_Test is AccountV3_Fuzz_Test, Permi
         // Then: Transaction should revert with AccountUnhealthy.
         vm.prank(address(creditorStable1));
         vm.expectRevert(AccountErrors.AccountUnhealthy.selector);
-        accountExtension.flashActionByCreditor(callbackData, address(action), emptyActionData);
+        accountExtension.flashActionByCreditor(callbackData, address(actionTarget), emptyActionData);
     }
 
     function testFuzz_Success_flashActionByCreditor_Creditor(
@@ -553,7 +553,8 @@ contract FlashActionByCreditor_AccountV3_Fuzz_Test is AccountV3_Fuzz_Test, Permi
 
         // When: The Creditor calls flashAction.
         vm.prank(address(creditorStable1));
-        uint256 accountVersion = accountExtension.flashActionByCreditor(callbackData, address(action), emptyActionData);
+        uint256 accountVersion =
+            accountExtension.flashActionByCreditor(callbackData, address(actionTarget), emptyActionData);
 
         // Then: The Account version is returned.
         assertEq(accountVersion, 3);
@@ -592,7 +593,8 @@ contract FlashActionByCreditor_AccountV3_Fuzz_Test is AccountV3_Fuzz_Test, Permi
 
         // When: The Creditor calls flashAction.
         vm.prank(address(creditorStable1));
-        uint256 accountVersion = accountExtension.flashActionByCreditor(callbackData, address(action), emptyActionData);
+        uint256 accountVersion =
+            accountExtension.flashActionByCreditor(callbackData, address(actionTarget), emptyActionData);
 
         // Then: The Account version is returned.
         assertEq(accountVersion, 3);
@@ -646,7 +648,8 @@ contract FlashActionByCreditor_AccountV3_Fuzz_Test is AccountV3_Fuzz_Test, Permi
 
         // When: The Creditor calls flashAction.
         vm.prank(address(creditorStable1));
-        uint256 accountVersion = accountExtension.flashActionByCreditor(callbackData, address(action), emptyActionData);
+        uint256 accountVersion =
+            accountExtension.flashActionByCreditor(callbackData, address(actionTarget), emptyActionData);
 
         // Then: The Account version is returned.
         assertEq(accountVersion, 3);
@@ -698,7 +701,7 @@ contract FlashActionByCreditor_AccountV3_Fuzz_Test is AccountV3_Fuzz_Test, Permi
             address[] memory to = new address[](3);
 
             data[0] = abi.encodeWithSignature(
-                "approve(address,uint256)", address(multiActionMock), token1AmountForAction + uint256(debtAmount)
+                "approve(address,uint256)", address(routerMock), token1AmountForAction + uint256(debtAmount)
             );
             data[1] = abi.encodeWithSignature(
                 "swapAssets(address,address,uint256,uint256)",
@@ -716,13 +719,13 @@ contract FlashActionByCreditor_AccountV3_Fuzz_Test is AccountV3_Fuzz_Test, Permi
             // exposure token 2 does not exceed maxExposure.
             vm.assume(token2AmountForAction + debtAmount * token1ToToken2Ratio <= type(uint112).max);
             vm.prank(users.tokenCreator);
-            mockERC20.token2.mint(address(multiActionMock), token2AmountForAction + debtAmount * token1ToToken2Ratio);
+            mockERC20.token2.mint(address(routerMock), token2AmountForAction + debtAmount * token1ToToken2Ratio);
 
             vm.prank(users.tokenCreator);
-            mockERC20.token1.mint(address(action), debtAmount);
+            mockERC20.token1.mint(address(actionTarget), debtAmount);
 
             to[0] = address(mockERC20.token1);
-            to[1] = address(multiActionMock);
+            to[1] = address(routerMock);
             to[2] = address(mockERC20.token2);
 
             actionDatas[0] = ActionData({
@@ -783,7 +786,7 @@ contract FlashActionByCreditor_AccountV3_Fuzz_Test is AccountV3_Fuzz_Test, Permi
         vm.expectEmit(address(accountExtension));
         emit AccountV3.Transfers(
             address(accountExtension),
-            address(action),
+            address(actionTarget),
             actionDatas[0].assets,
             actionDatas[0].assetIds,
             actionDatas[0].assetAmounts,
@@ -791,7 +794,7 @@ contract FlashActionByCreditor_AccountV3_Fuzz_Test is AccountV3_Fuzz_Test, Permi
         );
         vm.expectEmit(address(accountExtension));
         emit AccountV3.Transfers(
-            address(action),
+            address(actionTarget),
             address(accountExtension),
             actionDatas[1].assets,
             actionDatas[1].assetIds,
@@ -799,12 +802,12 @@ contract FlashActionByCreditor_AccountV3_Fuzz_Test is AccountV3_Fuzz_Test, Permi
             actionDatas[1].assetTypes
         );
         vm.prank(address(creditorToken1));
-        uint256 version = accountExtension.flashActionByCreditor(callbackData, address(action), callData);
+        uint256 version = accountExtension.flashActionByCreditor(callbackData, address(actionTarget), callData);
 
         // Assert that the Account now has a balance of TOKEN2
         assert(mockERC20.token2.balanceOf(address(accountExtension)) > 0);
 
-        // Then: The action is successful
+        // Then: The actionTarget is successful
         assertEq(version, 3);
 
         // And: lastActionTimestamp is updated.
@@ -885,8 +888,8 @@ contract FlashActionByCreditor_AccountV3_Fuzz_Test is AccountV3_Fuzz_Test, Permi
         // Check state pre function call
         assertEq(mockERC20.token1.balanceOf(owner), token1Amount);
         assertEq(mockERC20.stable1.balanceOf(owner), stable1Amount);
-        assertEq(mockERC20.token1.balanceOf(address(action)), 0);
-        assertEq(mockERC20.stable1.balanceOf(address(action)), 0);
+        assertEq(mockERC20.token1.balanceOf(address(actionTarget)), 0);
+        assertEq(mockERC20.stable1.balanceOf(address(actionTarget)), 0);
 
         // Call flashActionByCreditor() on Account
         address[] memory assets = new address[](2);
@@ -896,14 +899,14 @@ contract FlashActionByCreditor_AccountV3_Fuzz_Test is AccountV3_Fuzz_Test, Permi
         types[0] = 1;
         types[1] = 1;
         vm.expectEmit(address(accountExtension));
-        emit AccountV3.Transfers(address(owner), address(action), assets, new uint256[](2), amounts, types);
+        emit AccountV3.Transfers(address(owner), address(actionTarget), assets, new uint256[](2), amounts, types);
         vm.prank(address(creditorToken1));
-        accountExtension.flashActionByCreditor("", address(action), callData);
+        accountExtension.flashActionByCreditor("", address(actionTarget), callData);
 
         // Check state after function call
         assertEq(mockERC20.token1.balanceOf(owner), 0);
         assertEq(mockERC20.stable1.balanceOf(owner), 0);
-        assertEq(mockERC20.token1.balanceOf(address(action)), token1Amount);
-        assertEq(mockERC20.stable1.balanceOf(address(action)), stable1Amount);
+        assertEq(mockERC20.token1.balanceOf(address(actionTarget)), token1Amount);
+        assertEq(mockERC20.stable1.balanceOf(address(actionTarget)), stable1Amount);
     }
 }

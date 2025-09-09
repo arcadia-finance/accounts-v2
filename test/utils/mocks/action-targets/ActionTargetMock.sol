@@ -4,20 +4,20 @@
  */
 pragma solidity ^0.8.30;
 
-import { IERC20 } from "../interfaces/IERC20.sol";
-import { IERC1155 } from "../interfaces/IERC1155.sol";
-import { ERC721TokenReceiver } from "../../lib/solmate/src/tokens/ERC721.sol";
-import { IActionBase, ActionData } from "../interfaces/IActionBase.sol";
+import { ActionData, IActionBase } from "../../../../src/interfaces/IActionBase.sol";
+import { ERC721TokenReceiver } from "../../../../lib/solmate/src/tokens/ERC721.sol";
+import { IERC20 } from "../../../../src/interfaces/IERC20.sol";
+import { IERC1155 } from "../../../../src/interfaces/IERC1155.sol";
 
 /**
- * @title Generic Multicall action
+ * @title Mocked Action Target
  * @author Pragma Labs
  * @notice Calls any external contract with arbitrary data.
  * @dev Only calls are used, no delegatecalls.
  * @dev This address will approve random addresses. Do not store any funds on this address!
  */
 /// forge-lint: disable-next-item(all)
-contract ActionMultiCall is IActionBase, ERC721TokenReceiver {
+contract ActionTargetMock is IActionBase, ERC721TokenReceiver {
     /* //////////////////////////////////////////////////////////////
                                 STORAGE
     ////////////////////////////////////////////////////////////// */
