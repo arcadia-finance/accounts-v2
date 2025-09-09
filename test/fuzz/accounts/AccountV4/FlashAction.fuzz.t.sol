@@ -12,8 +12,8 @@ import { ActionData } from "../../../../src/interfaces/IActionBase.sol";
 import { ActionTargetMock } from "../../../utils/mocks/action-targets/ActionTargetMock.sol";
 import { Constants } from "../../../utils/Constants.sol";
 import { IPermit2 } from "../../../utils/interfaces/IPermit2.sol";
-import { RouterMock } from "../../.././utils/mocks/action-targets/RouterMock.sol";
 import { Permit2Fixture } from "../../../utils/fixtures/permit2/Permit2Fixture.f.sol";
+import { RouterMock } from "../../.././utils/mocks/action-targets/RouterMock.sol";
 import { SignatureVerification } from "../../../../lib/v4-periphery/lib/permit2/src/libraries/SignatureVerification.sol";
 import { Utils } from "../../../utils/Utils.sol";
 
