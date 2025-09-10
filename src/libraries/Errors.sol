@@ -34,6 +34,7 @@ library AccountErrors {
 }
 
 library FactoryErrors {
+    error AccountCreationFailed();
     error AccountVersionBlocked();
     error FactoryMismatch();
     error InvalidAccountVersion();

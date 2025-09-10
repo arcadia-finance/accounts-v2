@@ -12,6 +12,8 @@ import { Factory } from "../../../src/Factory.sol";
 import { Factory_Fuzz_Test } from "./_Factory.fuzz.t.sol";
 import { FactoryErrors } from "../../../src/libraries/Errors.sol";
 import { GuardianErrors } from "../../../src/libraries/Errors.sol";
+import { RevertingProxy } from "../../utils/mocks/proxy/RevertingProxy.sol";
+import { Utils } from "../../utils/Utils.sol";
 
 /**
  * @notice Fuzz tests for the function "createAccount" of contract "Factory".
@@ -90,24 +92,65 @@ contract CreateAccount_Factory_Fuzz_Test is Factory_Fuzz_Test {
         }
     }
 
-    function testFuzz_Success_createAccount_DeployAccountWithNoCreditor(uint32 salt) public {
+    function testFuzz_Revert_createAccount_RevertingProxy(address sender, uint32 salt) public {
         // We assume that salt > 0 as we already deployed an Account with all inputs to 0
         vm.assume(salt > 0);
+        vm.assume(sender != address(0));
+
+        // Get bytecode of Reverting Proxy, need to compile it first.
+        new RevertingProxy(address(0));
+        bytes memory revertingProxyByteCode = vm.getCode("RevertingProxy.sol");
+
+        // Get bytecode deployed factory.
+        bytes memory factoryByteCode = address(factory).code;
+
+        // Override factory bytecode.
+        bytes memory proxyByteCode =
+            hex"608060405260405161017c38038061017c8339810160408190526100229161008d565b7f360894a13ba1a3210667c828492db98dca3e2076cc3735a920a3ca505d382bbc80546001600160a01b0319166001600160a01b0383169081179091556040517fbc7cd75a20ee27fd9adebab32041f755214dbc6bffa90cc0225b39da2e5c2d3b905f90a2506100ba565b5f6020828403121561009d575f80fd5b81516001600160a01b03811681146100b3575f80fd5b9392505050565b60b6806100c65f395ff3fe608060405236603c57603a7f360894a13ba1a3210667c828492db98dca3e2076cc3735a920a3ca505d382bbc5b546001600160a01b03166063565b005b603a7f360894a13ba1a3210667c828492db98dca3e2076cc3735a920a3ca505d382bbc602c565b365f80375f80365f845af43d5f803e808015607c573d5ff35b3d5ffdfea2646970667358221220eeb8a2fa918a2057b66e1d3fa3930647dc7a4e56c99898cd9e280beec9d9ba9f64736f6c63430008160033000000000000000000000000";
+        factoryByteCode = Utils.veryBadBytesReplacerNoReverts(factoryByteCode, proxyByteCode, revertingProxyByteCode);
+
+        // Etch overridden bytecode of deployed factory.
+        vm.etch(address(factory), factoryByteCode);
+
+        vm.broadcast(sender);
+        vm.expectRevert(FactoryErrors.AccountCreationFailed.selector);
+        factory.createAccount(salt, 0, address(0));
+    }
+
+    function testFuzz_Revert_createAccount_ContractCollision(address sender, uint32 salt) public {
+        // We assume that salt > 0 as we already deployed an Account with all inputs to 0
+        vm.assume(salt > 0);
+        vm.assume(sender != address(0));
+
+        vm.broadcast(sender);
+        factory.createAccount(salt, 0, address(0));
+
+        vm.broadcast(sender);
+        vm.expectRevert(FactoryErrors.AccountCreationFailed.selector);
+        factory.createAccount(salt, 0, address(0));
+    }
+
+    function testFuzz_Success_createAccount_DeployAccountWithNoCreditor(address sender, uint32 salt) public {
+        // We assume that salt > 0 as we already deployed an Account with all inputs to 0
+        vm.assume(salt > 0);
+        vm.assume(sender != address(0));
+
         uint256 amountBefore = factory.allAccountsLength();
 
         vm.expectEmit();
-        emit ERC721.Transfer(address(0), address(this), amountBefore + 1);
+        emit ERC721.Transfer(address(0), sender, amountBefore + 1);
         vm.expectEmit(false, true, true, true);
         emit Factory.AccountUpgraded(address(0), 3);
 
         // Here we create an Account with no specific creditor
+        vm.broadcast(sender);
         address actualDeployed = factory.createAccount(salt, 0, address(0));
 
         assertEq(amountBefore + 1, factory.allAccountsLength());
         assertEq(actualDeployed, factory.allAccounts(factory.allAccountsLength() - 1));
         assertEq(factory.accountIndex(actualDeployed), (factory.allAccountsLength()));
         assertEq(AccountV3(actualDeployed).creditor(), address(0));
-        assertEq(AccountV3(actualDeployed).owner(), address(this));
+        assertEq(AccountV3(actualDeployed).owner(), sender);
     }
 
     function testFuzz_Success_createAccount_DeployAccountWithCreditor(uint32 salt) public {
@@ -142,7 +185,7 @@ contract CreateAccount_Factory_Fuzz_Test is Factory_Fuzz_Test {
         assertEq(AccountV3(actualDeployed).owner(), address(sender));
     }
 
-    function testFuzz_Success_createAccount_CreationCannotBeFrontRunnedWithIdenticalSalt(
+    function testFuzz_Success_createAccount_CreationCannotBeFrontRanWithIdenticalSalt(
         uint32 salt,
         address sender0,
         address sender1
