@@ -7,6 +7,7 @@ pragma solidity ^0.8.0;
 import { Base_Test } from "../../../Base.t.sol";
 
 import { AccountsGuardExtension } from "../../extensions/AccountsGuardExtension.sol";
+import { AccountPlaceholder } from "../../../../src/accounts/AccountPlaceholder.sol";
 import { AccountV3 } from "../../../../src/accounts/AccountV3.sol";
 import { ArcadiaOracle } from "../../mocks/oracles/ArcadiaOracle.sol";
 import { BitPackingLib } from "../../../../src/libraries/BitPackingLib.sol";
@@ -33,8 +34,11 @@ contract ArcadiaAccountsFixture is Base_Test {
         erc20AM = new ERC20PrimaryAMExtension(address(registry));
 
         accountsGuard = new AccountsGuardExtension(users.owner, address(factory));
+        AccountPlaceholder accountPlaceholder = new AccountPlaceholder(address(factory), address(accountsGuard), 1);
+        factory.setNewAccountInfo(address(registry), address(accountPlaceholder), Constants.ROOT, "");
+        accountPlaceholder = new AccountPlaceholder(address(factory), address(accountsGuard), 2);
+        factory.setNewAccountInfo(address(registry), address(accountPlaceholder), Constants.ROOT, "");
         accountLogic = new AccountV3(address(factory), address(accountsGuard), merklDistributor);
-        factory.setLatestAccountVersion(2);
         factory.setNewAccountInfo(address(registry), address(accountLogic), Constants.ROOT, "");
 
         // Set the Guardians.

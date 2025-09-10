@@ -10,7 +10,7 @@ import { AccountV4_Fuzz_Test } from "./_AccountV4.fuzz.t.sol";
 /**
  * @notice Fuzz tests for the function "transferOwnership" of contract "AccountV4".
  */
-contract TransferOwnership_AccountV3_Fuzz_Test is AccountV4_Fuzz_Test {
+contract TransferOwnership_AccountV4_Fuzz_Test is AccountV4_Fuzz_Test {
     /* ///////////////////////////////////////////////////////////////
                               SETUP
     /////////////////////////////////////////////////////////////// */

@@ -193,6 +193,38 @@ library Utils {
         revert();
     }
 
+    function veryBadBytesReplacerNoReverts(bytes memory bytecode, bytes memory target, bytes memory replacement)
+        internal
+        pure
+        returns (bytes memory result)
+    {
+        uint256 lengthTarget = target.length;
+        uint256 lengthBytecode = bytecode.length - lengthTarget + 1;
+        uint256 i;
+        for (i; i < lengthBytecode;) {
+            uint256 j = 0;
+            for (j; j < lengthTarget;) {
+                if (bytecode[i + j] == target[j]) {
+                    if (j == lengthTarget - 1) {
+                        // Target found, replace with replacement, and return result.
+                        return result = replaceBytes(bytecode, replacement, i);
+                    }
+                } else {
+                    break;
+                }
+                unchecked {
+                    ++j;
+                }
+            }
+
+            unchecked {
+                ++i;
+            }
+        }
+        // If no match found, return original bytecode.
+        return bytecode;
+    }
+
     function veryBadBytesReplacer(
         bytes memory bytecode,
         bytes memory target,

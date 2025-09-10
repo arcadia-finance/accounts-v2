@@ -5,6 +5,7 @@
 pragma solidity ^0.8.0;
 
 import { AccountErrors } from "../../../../src/libraries/Errors.sol";
+import { AccountsGuard } from "../../../../src/accounts/helpers/AccountsGuard.sol";
 import { AccountV3 } from "../../../../src/accounts/AccountV3.sol";
 import { AccountV3_Fuzz_Test } from "./_AccountV3.fuzz.t.sol";
 import { AccountV3Extension } from "../../../utils/extensions/AccountV3Extension.sol";
@@ -44,13 +45,21 @@ contract Initialize_AccountV3_Fuzz_Test is AccountV3_Fuzz_Test {
     ) public {
         vm.assume(notFactory != address(factory));
 
-        vm.startPrank(notFactory);
+        vm.prank(notFactory);
         vm.expectRevert(AccountErrors.OnlyFactory.selector);
         accountNotInitialised.initialize(owner_, registry_, creditor_);
-        vm.stopPrank();
     }
 
-    function testFuzz_Revert_initialize_Invalidregistry(address owner_, address creditor_) public {
+    function testFuzz_Revert_initialize_Reentered(address owner_, address registry_, address creditor_) public {
+        // Reentrancy guard is in locked state.
+        accountsGuard.setAccount(address(1));
+
+        vm.prank(address(factory));
+        vm.expectRevert(AccountsGuard.Reentered.selector);
+        accountNotInitialised.initialize(owner_, registry_, creditor_);
+    }
+
+    function testFuzz_Revert_initialize_InvalidRegistry(address owner_, address creditor_) public {
         vm.prank(address(factory));
         vm.expectRevert(AccountErrors.InvalidRegistry.selector);
         accountNotInitialised.initialize(owner_, address(0), creditor_);

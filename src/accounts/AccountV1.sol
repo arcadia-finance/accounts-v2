@@ -53,7 +53,7 @@ contract AccountV1 is AccountStorageV1, IAccount {
     bytes32 internal constant IMPLEMENTATION_SLOT = 0x360894a13ba1a3210667c828492db98dca3e2076cc3735a920a3ca505d382bbc;
     // The contract address of the Arcadia Accounts Factory.
     address public immutable FACTORY;
-    // Uniswap Permit2 contract
+    // Uniswap Permit2 contract.
     IPermit2 internal immutable PERMIT2 = IPermit2(0x000000000022D473030F116dDEE9F6B43aC78BA3);
 
     // Storage slot for the Account implementation, a struct to avoid storage conflict when dealing with upgradeable contracts.
