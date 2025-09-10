@@ -48,7 +48,7 @@ contract AccountV4 is AccountStorageV1, IAccount {
     IAccountsGuard public immutable ACCOUNTS_GUARD;
     // The contract address of the Merkl Distributor.
     IDistributor public immutable MERKL_DISTRIBUTOR;
-    // Uniswap Permit2 contract
+    // Uniswap Permit2 contract.
     IPermit2 internal immutable PERMIT2 = IPermit2(0x000000000022D473030F116dDEE9F6B43aC78BA3);
 
     // Storage slot for the Account implementation, a struct to avoid storage conflict when dealing with upgradeable contracts.

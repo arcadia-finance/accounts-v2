@@ -43,7 +43,7 @@ contract UpgradeAccount_AccountV4_Fuzz_Test is AccountV4_Fuzz_Test {
         // Should revert if not called by the Factory.
         vm.startPrank(nonFactory);
         vm.expectRevert(AccountErrors.OnlyFactory.selector);
-        account.upgradeAccount(newImplementation, newRegistry, newVersion, data);
+        accountSpot.upgradeAccount(newImplementation, newRegistry, newVersion, data);
         vm.stopPrank();
     }
 
