@@ -72,6 +72,7 @@ contract SetNewAccountInfo_Factory_Fuzz_Test is Factory_Fuzz_Test {
         vm.assume(logic != address(account));
         vm.assume(logic != address(sequencerUptimeOracle));
         vm.assume(logic != address(accountVarVersion));
+        vm.assume(logic != address(0));
         vm.assume(newAssetAddress != address(0));
 
         vm.startPrank(users.owner);

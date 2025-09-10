@@ -67,6 +67,8 @@ contract Initialize_AccountV4_Fuzz_Test is AccountV4_Fuzz_Test {
     }
 
     function testFuzz_Success_initialize(address owner_, address registry_, address creditor_) public {
+        vm.assume(registry_ != address(0));
+
         vm.prank(address(factory));
         account_.initialize(owner_, registry_, creditor_);
 
