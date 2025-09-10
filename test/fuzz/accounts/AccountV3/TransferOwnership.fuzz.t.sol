@@ -5,6 +5,7 @@
 pragma solidity ^0.8.0;
 
 import { AccountErrors } from "../../../../src/libraries/Errors.sol";
+import { AccountsGuard } from "../../../../src/accounts/helpers/AccountsGuard.sol";
 import { AccountV3_Fuzz_Test } from "./_AccountV3.fuzz.t.sol";
 
 /**
@@ -32,6 +33,15 @@ contract TransferOwnership_AccountV3_Fuzz_Test is AccountV3_Fuzz_Test {
         accountExtension.transferOwnership(to);
 
         assertEq(users.accountOwner, accountExtension.owner());
+    }
+
+    function testFuzz_Revert_initialize_Reentered(address to) public {
+        // Reentrancy guard is in locked state.
+        accountsGuard.setAccount(address(1));
+
+        vm.prank(address(factory));
+        vm.expectRevert(AccountsGuard.Reentered.selector);
+        accountExtension.transferOwnership(to);
     }
 
     function testFuzz_Revert_transferOwnership_AuctionOngoing(address to) public {

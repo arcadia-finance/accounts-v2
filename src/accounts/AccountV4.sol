@@ -252,7 +252,7 @@ contract AccountV4 is AccountStorageV1, IAccount {
      * Cool-down period is triggered after any account action, that might be disadvantageous for a new Owner.
      * This prevents the old Owner from frontrunning a transferFrom().
      */
-    function transferOwnership(address newOwner) external onlyFactory {
+    function transferOwnership(address newOwner) external onlyFactory nonReentrant(WITHOUT_PAUSE_CHECK) {
         if (block.timestamp <= lastActionTimestamp + COOL_DOWN_PERIOD) revert AccountErrors.CoolDownPeriodNotPassed();
 
         // The Factory will check that the new owner is not address(0).
