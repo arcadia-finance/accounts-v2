@@ -9,11 +9,11 @@ import { AccountV4 } from "../../../../src/accounts/AccountV4.sol";
 import { AccountV4_Fuzz_Test } from "./_AccountV4.fuzz.t.sol";
 import { AccountV4Extension } from "../../../utils/extensions/AccountV4Extension.sol";
 import { ActionData } from "../../../../src/interfaces/IActionBase.sol";
-import { ActionMultiCall } from "../../../../src/actions/MultiCall.sol";
+import { ActionTargetMock } from "../../../utils/mocks/action-targets/ActionTargetMock.sol";
 import { Constants } from "../../../utils/Constants.sol";
 import { IPermit2 } from "../../../utils/interfaces/IPermit2.sol";
-import { MultiActionMock } from "../../.././utils/mocks/actions/MultiActionMock.sol";
 import { Permit2Fixture } from "../../../utils/fixtures/permit2/Permit2Fixture.f.sol";
+import { RouterMock } from "../../.././utils/mocks/action-targets/RouterMock.sol";
 import { SignatureVerification } from "../../../../lib/v4-periphery/lib/permit2/src/libraries/SignatureVerification.sol";
 import { Utils } from "../../../utils/Utils.sol";
 
@@ -30,8 +30,8 @@ contract FlashAction_AccountV4_Fuzz_Test is AccountV4_Fuzz_Test, Permit2Fixture 
         Permit2Fixture.setUp();
 
         // Deploy multicall contract and actions
-        action = new ActionMultiCall();
-        multiActionMock = new MultiActionMock();
+        actionTarget = new ActionTargetMock();
+        routerMock = new RouterMock();
     }
 
     /*//////////////////////////////////////////////////////////////
@@ -50,7 +50,7 @@ contract FlashAction_AccountV4_Fuzz_Test is AccountV4_Fuzz_Test, Permit2Fixture 
 
         vm.startPrank(sender);
         vm.expectRevert("A: Only Asset Manager");
-        accountSpot.flashAction(address(action), new bytes(0));
+        accountSpot.flashAction(address(actionTarget), new bytes(0));
         vm.stopPrank();
     }
 
@@ -76,7 +76,7 @@ contract FlashAction_AccountV4_Fuzz_Test is AccountV4_Fuzz_Test, Permit2Fixture 
 
         vm.startPrank(assetManager);
         vm.expectRevert("A: Only Asset Manager");
-        proxy.flashAction(address(action), new bytes(0));
+        proxy.flashAction(address(actionTarget), new bytes(0));
         vm.stopPrank();
     }
 
@@ -141,7 +141,7 @@ contract FlashAction_AccountV4_Fuzz_Test is AccountV4_Fuzz_Test, Permit2Fixture 
         // Call flashAction() on Account
         vm.prank(users.accountOwner);
         vm.expectRevert(SignatureVerification.InvalidSignatureLength.selector);
-        accountSpot.flashAction(address(action), callData);
+        accountSpot.flashAction(address(actionTarget), callData);
     }
 
     function testFuzz_Revert_flashAction_permit2_InvalidSignature(
@@ -202,7 +202,7 @@ contract FlashAction_AccountV4_Fuzz_Test is AccountV4_Fuzz_Test, Permit2Fixture 
 
         vm.prank(users.accountOwner);
         vm.expectRevert(SignatureVerification.InvalidSignature.selector);
-        accountSpot.flashAction(address(action), callData);
+        accountSpot.flashAction(address(actionTarget), callData);
     }
 
     function testFuzz_Revert_flashAction_permit2_InvalidSigner(
@@ -265,7 +265,7 @@ contract FlashAction_AccountV4_Fuzz_Test is AccountV4_Fuzz_Test, Permit2Fixture 
 
         vm.prank(users.accountOwner);
         vm.expectRevert(SignatureVerification.InvalidSigner.selector);
-        accountSpot.flashAction(address(action), callData);
+        accountSpot.flashAction(address(actionTarget), callData);
     }
 
     function testFuzz_Revert_flashAction_permit2_maliciousSpender(
@@ -321,8 +321,10 @@ contract FlashAction_AccountV4_Fuzz_Test is AccountV4_Fuzz_Test, Permit2Fixture 
         );
 
         IPermit2.SignatureTransferDetails[] memory transferDetails = new IPermit2.SignatureTransferDetails[](2);
-        transferDetails[0] = IPermit2.SignatureTransferDetails({ to: address(action), requestedAmount: token1Amount });
-        transferDetails[1] = IPermit2.SignatureTransferDetails({ to: address(action), requestedAmount: stable1Amount });
+        transferDetails[0] =
+            IPermit2.SignatureTransferDetails({ to: address(actionTarget), requestedAmount: token1Amount });
+        transferDetails[1] =
+            IPermit2.SignatureTransferDetails({ to: address(actionTarget), requestedAmount: stable1Amount });
 
         vm.prank(maliciousActor);
         // The following call should revert as the caller is not the spender.
@@ -345,8 +347,7 @@ contract FlashAction_AccountV4_Fuzz_Test is AccountV4_Fuzz_Test, Permit2Fixture 
             bytes[] memory data = new bytes[](5);
             address[] memory to = new address[](5);
 
-            data[0] =
-                abi.encodeWithSignature("approve(address,uint256)", address(multiActionMock), token1AmountForAction);
+            data[0] = abi.encodeWithSignature("approve(address,uint256)", address(routerMock), token1AmountForAction);
             data[1] = abi.encodeWithSignature(
                 "swapAssets(address,address,uint256,uint256)",
                 address(mockERC20.token1),
@@ -361,10 +362,10 @@ contract FlashAction_AccountV4_Fuzz_Test is AccountV4_Fuzz_Test, Permit2Fixture 
             data[4] = abi.encodeWithSignature("approve(address,uint256)", address(accountSpot), 1);
 
             vm.prank(users.tokenCreator);
-            mockERC20.token2.mint(address(multiActionMock), token2AmountForAction * token1ToToken2Ratio);
+            mockERC20.token2.mint(address(routerMock), token2AmountForAction * token1ToToken2Ratio);
 
             to[0] = address(mockERC20.token1);
-            to[1] = address(multiActionMock);
+            to[1] = address(routerMock);
             to[2] = address(mockERC20.token2);
             to[3] = address(mockERC20.stable1);
             to[4] = address(mockERC721.nft1);
@@ -389,9 +390,9 @@ contract FlashAction_AccountV4_Fuzz_Test is AccountV4_Fuzz_Test, Permit2Fixture 
             });
 
             actionDatas[1].assets[0] = address(mockERC20.token2);
-            // Add stable 1 that will be sent owner owner wallet to action contract
+            // Add stable 1 that will be sent owner owner wallet to actionTarget contract
             actionDatas[1].assets[1] = address(mockERC20.stable1);
-            // Add nft1 that will be sent owner owner wallet to action contract
+            // Add nft1 that will be sent owner owner wallet to actionTarget contract
             actionDatas[1].assets[2] = address(mockERC721.nft1);
             actionDatas[1].assetTypes[0] = 1;
             actionDatas[1].assetTypes[1] = 1;
@@ -432,7 +433,7 @@ contract FlashAction_AccountV4_Fuzz_Test is AccountV4_Fuzz_Test, Permit2Fixture 
         vm.startPrank(users.accountOwner);
         deal(address(mockERC20.stable1), users.accountOwner, stable1AmountForAction);
         mockERC721.nft1.mint(users.accountOwner, 1);
-        // Approve the "stable1" and "nft1" tokens that will need to be transferred owner owner to action contract
+        // Approve the "stable1" and "nft1" tokens that will need to be transferred owner owner to actionTarget contract
         mockERC20.stable1.approve(address(accountSpot), stable1AmountForAction);
         mockERC721.nft1.approve(address(accountSpot), 1);
         vm.stopPrank();
@@ -450,7 +451,7 @@ contract FlashAction_AccountV4_Fuzz_Test is AccountV4_Fuzz_Test, Permit2Fixture 
         vm.expectEmit(address(accountSpot));
         emit AccountV4.Transfers(
             address(accountSpot),
-            address(action),
+            address(actionTarget),
             actionDatas[0].assets,
             actionDatas[0].assetIds,
             actionDatas[0].assetAmounts,
@@ -459,7 +460,7 @@ contract FlashAction_AccountV4_Fuzz_Test is AccountV4_Fuzz_Test, Permit2Fixture 
         vm.expectEmit(address(accountSpot));
         emit AccountV4.Transfers(
             users.accountOwner,
-            address(action),
+            address(actionTarget),
             actionDatas[2].assets,
             actionDatas[2].assetIds,
             actionDatas[2].assetAmounts,
@@ -467,14 +468,14 @@ contract FlashAction_AccountV4_Fuzz_Test is AccountV4_Fuzz_Test, Permit2Fixture 
         );
         vm.expectEmit(address(accountSpot));
         emit AccountV4.Transfers(
-            address(action),
+            address(actionTarget),
             address(accountSpot),
             actionDatas[1].assets,
             actionDatas[1].assetIds,
             actionDatas[1].assetAmounts,
             actionDatas[1].assetTypes
         );
-        accountSpot.flashAction(address(action), callData);
+        accountSpot.flashAction(address(actionTarget), callData);
 
         // Assert that the Account now has a balance of TOKEN2 and STABLE1
         assertGt(mockERC20.token2.balanceOf(address(accountSpot)), 0);
@@ -506,8 +507,7 @@ contract FlashAction_AccountV4_Fuzz_Test is AccountV4_Fuzz_Test, Permit2Fixture 
             bytes[] memory data = new bytes[](3);
             address[] memory to = new address[](3);
 
-            data[0] =
-                abi.encodeWithSignature("approve(address,uint256)", address(multiActionMock), token1AmountForAction);
+            data[0] = abi.encodeWithSignature("approve(address,uint256)", address(routerMock), token1AmountForAction);
             data[1] = abi.encodeWithSignature(
                 "swapAssets(address,address,uint256,uint256)",
                 address(mockERC20.token1),
@@ -519,10 +519,10 @@ contract FlashAction_AccountV4_Fuzz_Test is AccountV4_Fuzz_Test, Permit2Fixture 
                 "approve(address,uint256)", address(accountSpot), token2AmountForAction * token1ToToken2Ratio
             );
 
-            mockERC20.token2.mint(address(multiActionMock), token2AmountForAction * token1ToToken2Ratio);
+            mockERC20.token2.mint(address(routerMock), token2AmountForAction * token1ToToken2Ratio);
 
             to[0] = address(mockERC20.token1);
-            to[1] = address(multiActionMock);
+            to[1] = address(routerMock);
             to[2] = address(mockERC20.token2);
 
             ActionData memory assetDataOut = ActionData({
@@ -567,7 +567,7 @@ contract FlashAction_AccountV4_Fuzz_Test is AccountV4_Fuzz_Test, Permit2Fixture 
         assertEq(mockERC20.token2.balanceOf(address(accountSpot)), 0);
 
         // Call flashAction() on Account
-        accountSpot.flashAction(address(action), callData);
+        accountSpot.flashAction(address(actionTarget), callData);
 
         // Assert that the Account now has a balance of TOKEN2
         assertGt(mockERC20.token2.balanceOf(address(accountSpot)), 0);
@@ -641,8 +641,8 @@ contract FlashAction_AccountV4_Fuzz_Test is AccountV4_Fuzz_Test, Permit2Fixture 
         // Check state pre function call
         assertEq(mockERC20.token1.balanceOf(owner), token1Amount);
         assertEq(mockERC20.stable1.balanceOf(owner), stable1Amount);
-        assertEq(mockERC20.token1.balanceOf(address(action)), 0);
-        assertEq(mockERC20.stable1.balanceOf(address(action)), 0);
+        assertEq(mockERC20.token1.balanceOf(address(actionTarget)), 0);
+        assertEq(mockERC20.stable1.balanceOf(address(actionTarget)), 0);
 
         // Call flashAction() on Account
         address[] memory assets = new address[](2);
@@ -652,15 +652,15 @@ contract FlashAction_AccountV4_Fuzz_Test is AccountV4_Fuzz_Test, Permit2Fixture 
         types[0] = 1;
         types[1] = 1;
         vm.expectEmit(address(accountSpot));
-        emit AccountV4.Transfers(address(owner), address(action), assets, new uint256[](2), amounts, types);
+        emit AccountV4.Transfers(address(owner), address(actionTarget), assets, new uint256[](2), amounts, types);
         vm.prank(owner);
-        accountSpot.flashAction(address(action), callData);
+        accountSpot.flashAction(address(actionTarget), callData);
 
         // Check state after function call
         assertEq(mockERC20.token1.balanceOf(owner), 0);
         assertEq(mockERC20.stable1.balanceOf(owner), 0);
-        assertEq(mockERC20.token1.balanceOf(address(action)), token1Amount);
-        assertEq(mockERC20.stable1.balanceOf(address(action)), stable1Amount);
+        assertEq(mockERC20.token1.balanceOf(address(actionTarget)), token1Amount);
+        assertEq(mockERC20.stable1.balanceOf(address(actionTarget)), stable1Amount);
     }
 
     function testFuzz_Success_flashAction_NativeEth(uint112 amount) public {
@@ -681,7 +681,7 @@ contract FlashAction_AccountV4_Fuzz_Test is AccountV4_Fuzz_Test, Permit2Fixture 
 
         // When: Native ETH is deposited into spot Account.
         vm.prank(users.accountOwner);
-        accountSpot.flashAction{ value: amount }(address(action), callData);
+        accountSpot.flashAction{ value: amount }(address(actionTarget), callData);
 
         // Then : It should return the correct balance.
         assertEq(address(accountSpot).balance, amount);

@@ -5,10 +5,10 @@
 pragma solidity ^0.8.0;
 
 import { AccountV3Extension } from "../../../utils/extensions/AccountV3Extension.sol";
-import { ActionMultiCall } from "../../../../src/actions/MultiCall.sol";
+import { ActionTargetMock } from "../../../utils/mocks/action-targets/ActionTargetMock.sol";
 import { ERC20Mock } from "../../../utils/mocks/tokens/ERC20Mock.sol";
 import { Fuzz_Test } from "../../Fuzz.t.sol";
-import { MultiActionMock } from "../../../utils/mocks/actions/MultiActionMock.sol";
+import { RouterMock } from "../../../utils/mocks/action-targets/RouterMock.sol";
 import { StdStorage, stdStorage } from "../../../../lib/forge-std/src/Test.sol";
 
 /**
@@ -25,8 +25,8 @@ abstract contract AccountV3_Fuzz_Test is Fuzz_Test {
     /////////////////////////////////////////////////////////////// */
 
     AccountV3Extension internal accountExtension;
-    MultiActionMock internal multiActionMock;
-    ActionMultiCall internal action;
+    RouterMock internal routerMock;
+    ActionTargetMock internal actionTarget;
 
     /* ///////////////////////////////////////////////////////////////
                               SETUP
