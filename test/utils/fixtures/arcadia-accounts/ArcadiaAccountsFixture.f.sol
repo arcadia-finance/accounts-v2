@@ -28,16 +28,27 @@ contract ArcadiaAccountsFixture is Base_Test {
 
         // Deploy the base test contracts.
         vm.startPrank(users.owner);
-        factory = new FactoryExtension();
+        factory = FactoryExtension(0xDa14Fdd72345c4d2511357214c5B89A919768e59);
+        bytes memory args = abi.encode();
+        deployCodeTo("FactoryExtension.sol", args, address(factory));
+
         registry = new RegistryL2Extension(address(factory), address(sequencerUptimeOracle));
         chainlinkOM = new ChainlinkOMExtension(address(registry));
         erc20AM = new ERC20PrimaryAMExtension(address(registry));
 
         accountsGuard = new AccountsGuardExtension(users.owner, address(factory));
-        AccountPlaceholder accountPlaceholder = new AccountPlaceholder(address(factory), address(accountsGuard), 1);
+
+        // Placeholder for Account Implementation V1.
+        AccountPlaceholder accountPlaceholder = AccountPlaceholder(0xbea2B6d45ACaF62385877D835970a0788719cAe1);
+        args = abi.encode(address(factory), address(accountsGuard), 1);
+        deployCodeTo("AccountPlaceholder.sol", args, address(accountPlaceholder));
         factory.setNewAccountInfo(address(registry), address(accountPlaceholder), Constants.ROOT, "");
+
+        // Placeholder for Account Implementation V2.
         accountPlaceholder = new AccountPlaceholder(address(factory), address(accountsGuard), 2);
         factory.setNewAccountInfo(address(registry), address(accountPlaceholder), Constants.ROOT, "");
+
+        // Account Implementation V3.
         accountLogic = new AccountV3(address(factory), address(accountsGuard), merklDistributor);
         factory.setNewAccountInfo(address(registry), address(accountLogic), Constants.ROOT, "");
 

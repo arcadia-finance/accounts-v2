@@ -46,7 +46,10 @@ contract AddAssetModule_UniswapV4HooksRegistry_Fuzz_Test is UniswapV4HooksRegist
         vm.stopPrank();
     }
 
-    function testFuzz_addAssetModule(address assetModule) public {
+    function testFuzz_Success_addAssetModule(address assetModule) public {
+        // Given: Asset Module is not the default Uniswap v4 Asset Module.
+        vm.assume(assetModule != address(uniswapV4AM));
+
         // When: Calling addAssetModule
         // Then: It should emit an event
         vm.prank(users.owner);
