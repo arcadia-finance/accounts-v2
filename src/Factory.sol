@@ -339,6 +339,7 @@ contract Factory is IFactory, ERC721, FactoryGuardian {
      * @param userSalt A salt, provided by the user, to generate the Account address.
      * @param accountVersion The Account version.
      * @return account The contract address of the Proxy of the new Account.
+     * @dev Does not verify if the account version exists or is blocked.
      */
     function getAccountAddress(address user, uint32 userSalt, uint256 accountVersion)
         external
