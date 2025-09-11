@@ -4,6 +4,7 @@
  */
 pragma solidity ^0.8.30;
 
+import { CreateProxyLib } from "./libraries/CreateProxyLib.sol";
 import { ERC721, ERC721TokenReceiver } from "../lib/solmate/src/tokens/ERC721.sol";
 import { FactoryErrors } from "./libraries/Errors.sol";
 import { FactoryGuardian } from "./guardians/FactoryGuardian.sol";
@@ -21,13 +22,6 @@ import { Strings } from "./libraries/Strings.sol";
  */
 contract Factory is IFactory, ERC721, FactoryGuardian {
     using Strings for uint256;
-
-    /* //////////////////////////////////////////////////////////////
-                                CONSTANTS
-    ////////////////////////////////////////////////////////////// */
-
-    bytes internal constant PROXY_BYTECODE =
-        hex"608060405260405161017c38038061017c8339810160408190526100229161008d565b7f360894a13ba1a3210667c828492db98dca3e2076cc3735a920a3ca505d382bbc80546001600160a01b0319166001600160a01b0383169081179091556040517fbc7cd75a20ee27fd9adebab32041f755214dbc6bffa90cc0225b39da2e5c2d3b905f90a2506100ba565b5f6020828403121561009d575f80fd5b81516001600160a01b03811681146100b3575f80fd5b9392505050565b60b6806100c65f395ff3fe608060405236603c57603a7f360894a13ba1a3210667c828492db98dca3e2076cc3735a920a3ca505d382bbc5b546001600160a01b03166063565b005b603a7f360894a13ba1a3210667c828492db98dca3e2076cc3735a920a3ca505d382bbc602c565b365f80375f80365f845af43d5f803e808015607c573d5ff35b3d5ffdfea2646970667358221220eeb8a2fa918a2057b66e1d3fa3930647dc7a4e56c99898cd9e280beec9d9ba9f64736f6c63430008160033000000000000000000000000";
 
     /* //////////////////////////////////////////////////////////////
                                 STORAGE
@@ -82,17 +76,17 @@ contract Factory is IFactory, ERC721, FactoryGuardian {
 
     /**
      * @notice Function to create a new Account.
-     * @param salt A salt to be used to generate the hash.
+     * @param userSalt A salt, provided by the user, to generate the Account address.
      * @param accountVersion The Account version.
      * @param creditor The contract address of the creditor.
-     * @return account The contract address of the proxy contract of the newly deployed Account.
+     * @return account The contract address of the Proxy of the newly deployed Account.
      * @dev If accountVersion == 0, the newest version will be used.
      * @dev createAccount() uses the CREATE2 opcode, which can lead to address collision vulnerabilities,
      * as described in: https://eips.ethereum.org/EIPS/eip-3607.
      * To decrease the probability of finding an address collision, the number of possible account addresses is limited to 2**64.
      * We use a salt with 64 bits, the 32 right most bits of the address of the tx.origin, and 32 bits provided by the user.
      */
-    function createAccount(uint32 salt, uint256 accountVersion, address creditor)
+    function createAccount(uint32 userSalt, uint256 accountVersion, address creditor)
         external
         whenCreateNotPaused
         returns (address account)
@@ -103,15 +97,10 @@ contract Factory is IFactory, ERC721, FactoryGuardian {
         if (accountVersionBlocked[accountVersion]) revert FactoryErrors.AccountVersionBlocked();
 
         // Hash tx.origin with the user provided salt to avoid front-running Account deployment with an identical salt.
-        // We use tx.origin instead of msg.sender so that deployments through a third party contract are not vulnerable to front-running.
+        // We use tx.origin instead of msg.sender so that deployments through third party contracts are not vulnerable to front-running.
         // 64 bit salt: 32 bits from tx.origin and 32 bits provided by the user.
-        uint256 salt_ = uint256(keccak256(abi.encodePacked(salt, uint32(uint160(tx.origin)))));
-        bytes memory runtimeBytecode =
-            abi.encodePacked(PROXY_BYTECODE, versionInformation[accountVersion].implementation);
-        assembly {
-            account := create2(0, add(runtimeBytecode, 0x20), mload(runtimeBytecode), salt_)
-        }
-        if (account == address(0)) revert FactoryErrors.AccountCreationFailed();
+        uint256 salt = uint256(keccak256(abi.encodePacked(userSalt, uint32(uint160(tx.origin)))));
+        account = CreateProxyLib.createProxy(salt, versionInformation[accountVersion].implementation);
 
         allAccounts.push(account);
         accountIndex[account] = allAccounts.length;
@@ -342,6 +331,24 @@ contract Factory is IFactory, ERC721, FactoryGuardian {
      */
     function allAccountsLength() external view returns (uint256 numberOfAccounts) {
         numberOfAccounts = allAccounts.length;
+    }
+
+    /**
+     * @notice Computes the address of a new Account.
+     * @param user The address of the user (tx.origin) creating the Account.
+     * @param userSalt A salt, provided by the user, to generate the Account address.
+     * @param accountVersion The Account version.
+     * @return account The contract address of the Proxy of the new Account.
+     */
+    function getAccountAddress(address user, uint32 userSalt, uint256 accountVersion)
+        external
+        view
+        returns (address account)
+    {
+        accountVersion = accountVersion == 0 ? latestAccountVersion : accountVersion;
+
+        uint256 salt = uint256(keccak256(abi.encodePacked(userSalt, uint32(uint160(user)))));
+        account = CreateProxyLib.getProxyAddress(salt, versionInformation[accountVersion].implementation);
     }
 
     /*///////////////////////////////////////////////////////////////
