@@ -17,6 +17,7 @@ library AerodromeGauges {
     address internal constant CL1_USDS_USDC = 0xe2a2B1D8AA4bD8A05e517Ccf61E96A727831B63e;
     address internal constant CL1_USDZ_USDC = 0xE2F3C8c699A1bf30A12118B287B5208e7C6ddFEF;
     address internal constant CL1_WEETH_WETH = 0xfCfEE5f453728BaA5ffDA151f25A0e53B8C5A01C;
+    address internal constant CL1_WETH_USDC = 0x45C6e6A47a711B14D8357D5243F46704904578e3;
     address internal constant CL1_WETH_WRSETH = 0xEc33F9cbE64c7Bc9b262Efaaa56b7872e8889AaE;
     address internal constant CL1_WETH_WSTETH = 0x2A1f7bf46bd975b5004b61c6040597E1B6117040;
     address internal constant CL1_WSTETH_WRSETH = 0x4197186D3D65f694018Ae4B80355225Ce1dD64AD;
