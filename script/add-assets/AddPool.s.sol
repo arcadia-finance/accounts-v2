@@ -18,7 +18,7 @@ contract AddPool is Base_Script {
         addToBatch(
             SAFE,
             address(stakedSlipstreamAM),
-            abi.encodeCall(stakedSlipstreamAM.addGauge, (AerodromeGauges.CL2000_USDC_AERO))
+            abi.encodeCall(stakedSlipstreamAM.addGauge, (AerodromeGauges.CL1_WETH_USDC))
         );
 
         // Create and write away batched transaction data to be signed with Safe.
