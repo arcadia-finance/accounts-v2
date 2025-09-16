@@ -21,6 +21,7 @@ import { WrappedAerodromeAM } from "../src/asset-modules/Aerodrome-Finance/Wrapp
 
 abstract contract Base_Script is Test, SafeTransactionBuilder {
     uint256 internal deployer = vm.envUint("PRIVATE_KEY_DEPLOYER");
+    uint256 internal manager;
 
     /// forge-lint: disable-start(mixed-case-variable)
     bool[] internal BA_TO_QA_SINGLE = new bool[](1);
