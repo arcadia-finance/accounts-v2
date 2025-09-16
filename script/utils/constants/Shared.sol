@@ -33,7 +33,7 @@ library AssetModules {
 }
 
 library EOAs {
-    address constant DEPLOYER_ARCADIA = 0x1537655CC69326479b717Bd26f2790878f407e0d;
+    address constant DEPLOYER_ARCADIA = 0x0f518becFC14125F23b8422849f6393D59627ddB;
     address constant MANAGER = 0x29E923A6DE8761FdBE2a57618a978F1C3cEE6bdF;
 }
 
