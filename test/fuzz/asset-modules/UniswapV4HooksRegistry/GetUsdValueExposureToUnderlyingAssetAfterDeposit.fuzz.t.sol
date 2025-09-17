@@ -31,7 +31,7 @@ contract GetUsdValueExposureToUnderlyingAssetAfterDeposit_UniswapV4HooksRegistry
         UniswapV4HooksRegistry_Fuzz_Test.setUp();
 
         vm.startPrank(users.owner);
-        primaryAM = new PrimaryAMMock(address(registry), 0);
+        primaryAM = new PrimaryAMMock(users.owner, address(registry), 0);
         registry.addAssetModule(address(primaryAM));
         vm.stopPrank();
     }

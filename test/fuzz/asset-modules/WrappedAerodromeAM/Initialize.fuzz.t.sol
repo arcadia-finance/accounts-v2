@@ -30,7 +30,7 @@ contract Initialize_WrappedAerodromeAM_Fuzz_Test is WrappedAerodromeAM_Fuzz_Test
 
         // And : Asset Module is deployed.
         vm.prank(users.owner);
-        WrappedAerodromeAM assetModule = new WrappedAerodromeAM(address(registry));
+        WrappedAerodromeAM assetModule = new WrappedAerodromeAM(users.owner, address(registry));
 
         // When : Calling initialize().
         // Then : It should revert.
@@ -42,7 +42,7 @@ contract Initialize_WrappedAerodromeAM_Fuzz_Test is WrappedAerodromeAM_Fuzz_Test
     function testFuzz_success_initialize() public {
         // Given : Asset Module is deployed.
         vm.prank(users.owner);
-        WrappedAerodromeAM assetModule = new WrappedAerodromeAM(address(registry));
+        WrappedAerodromeAM assetModule = new WrappedAerodromeAM(users.owner, address(registry));
 
         // And : Asset Module is added to the Registry.
         vm.prank(users.owner);

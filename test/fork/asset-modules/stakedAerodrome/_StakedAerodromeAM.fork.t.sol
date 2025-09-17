@@ -75,11 +75,11 @@ contract StakedAerodromeAM_Fork_Test is Fork_Test {
         erc20AM.addAsset(AERO, oracleSequence);
 
         // Deploy Aerodrome Volatile and Stable pools.
-        aerodromePoolAM = new AerodromePoolAM(address(registry), address(AERO_FACTORY));
+        aerodromePoolAM = new AerodromePoolAM(users.owner, address(registry), address(AERO_FACTORY));
         registry.addAssetModule(address(aerodromePoolAM));
 
         // Deploy StakedAerodromeAM.
-        stakedAerodromeAM = new StakedAerodromeAMExtension(address(registry), AERO_VOTER, AERO);
+        stakedAerodromeAM = new StakedAerodromeAMExtension(users.owner, address(registry), AERO_VOTER, AERO);
         registry.addAssetModule(address(stakedAerodromeAM));
         stakedAerodromeAM.initialize();
 

@@ -27,10 +27,11 @@ contract ERC20PrimaryAM is PrimaryAM {
     ////////////////////////////////////////////////////////////// */
 
     /**
+     * @param owner_ The address of the Owner.
      * @param registry_ The contract address of the Registry.
      * @dev The ASSET_TYPE, necessary for the deposit and withdraw logic in the Accounts, is "1" for ERC20 tokens.
      */
-    constructor(address registry_) PrimaryAM(registry_, 1) { }
+    constructor(address owner_, address registry_) PrimaryAM(owner_, registry_, 1) { }
 
     /*///////////////////////////////////////////////////////////////
                         ASSET MANAGEMENT

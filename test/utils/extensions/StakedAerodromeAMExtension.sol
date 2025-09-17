@@ -8,8 +8,8 @@ import { AssetValueAndRiskFactors } from "../../../src/libraries/AssetValuationL
 import { StakedAerodromeAM } from "../../../src/asset-modules/Aerodrome-Finance/StakedAerodromeAM.sol";
 
 contract StakedAerodromeAMExtension is StakedAerodromeAM {
-    constructor(address registry, address aerodromeVoter, address rewardToken)
-        StakedAerodromeAM(registry, aerodromeVoter, rewardToken)
+    constructor(address owner_, address registry, address aerodromeVoter, address rewardToken)
+        StakedAerodromeAM(owner_, registry, aerodromeVoter, rewardToken)
     { }
 
     function stakeAndClaim(address asset, uint256 amount) public {

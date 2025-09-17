@@ -126,9 +126,10 @@ contract RegistryL1 is IRegistry, RegistryGuardian {
     ////////////////////////////////////////////////////////////// */
 
     /**
+     * @param owner_ The address of the Owner.
      * @param factory The contract address of the Arcadia Accounts Factory.
      */
-    constructor(address factory) {
+    constructor(address owner_, address factory) RegistryGuardian(owner_) {
         FACTORY = factory;
     }
 

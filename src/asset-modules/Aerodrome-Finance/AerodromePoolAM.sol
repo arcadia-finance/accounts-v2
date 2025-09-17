@@ -56,11 +56,12 @@ contract AerodromePoolAM is DerivedAM {
     ////////////////////////////////////////////////////////////// */
 
     /**
+     * @param owner_ The address of the Owner.
      * @param registry_ The address of the Registry.
      * @param aerodromeFactory The contract address of the pool factory of Aerodrome Finance.
      * @dev The ASSET_TYPE, necessary for the deposit and withdraw logic in the Accounts, is "1" for ERC20 tokens.
      */
-    constructor(address registry_, address aerodromeFactory) DerivedAM(registry_, 1) {
+    constructor(address owner_, address registry_, address aerodromeFactory) DerivedAM(owner_, registry_, 1) {
         AERO_FACTORY = IAeroFactory(aerodromeFactory);
     }
 

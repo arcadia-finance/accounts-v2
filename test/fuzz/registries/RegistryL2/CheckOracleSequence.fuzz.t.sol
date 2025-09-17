@@ -21,7 +21,7 @@ contract CheckOracleSequence_RegistryL2_Fuzz_Test is RegistryL2_Fuzz_Test {
     function setUp() public override {
         RegistryL2_Fuzz_Test.setUp();
 
-        oracleModule = new OracleModuleMock(address(registry));
+        oracleModule = new OracleModuleMock(users.owner, address(registry));
     }
 
     /*//////////////////////////////////////////////////////////////

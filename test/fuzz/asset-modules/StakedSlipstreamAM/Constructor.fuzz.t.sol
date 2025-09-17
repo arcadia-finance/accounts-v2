@@ -25,7 +25,7 @@ contract Constructor_StakedSlipstreamAM_Fuzz_Test is StakedSlipstreamAM_Fuzz_Tes
 
     function testFuzz_success_constructor() public {
         stakedSlipstreamAM = new StakedSlipstreamAMExtension(
-            address(registry), address(slipstreamPositionManager), address(voter), address(AERO)
+            users.owner, address(registry), address(slipstreamPositionManager), address(voter), address(AERO)
         );
 
         assertEq(stakedSlipstreamAM.REGISTRY(), address(registry));

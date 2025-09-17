@@ -63,7 +63,7 @@ abstract contract AerodromePoolAM_Fuzz_Test is Fuzz_Test, AerodromeFixture {
 
         // Deploy the Aerodrome AssetModule.
         vm.startPrank(users.owner);
-        aeroPoolAM = new AerodromePoolAMExtension(address(registry), address(aeroPoolFactory));
+        aeroPoolAM = new AerodromePoolAMExtension(users.owner, address(registry), address(aeroPoolFactory));
         registry.addAssetModule(address(aeroPoolAM));
         vm.stopPrank();
     }

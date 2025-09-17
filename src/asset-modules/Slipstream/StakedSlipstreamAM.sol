@@ -101,16 +101,20 @@ contract StakedSlipstreamAM is DerivedAM, ERC721, ReentrancyGuard {
     ////////////////////////////////////////////////////////////// */
 
     /**
+     * @param owner_ The address of the Owner.
      * @param registry The contract address of the Arcadia Registry.
      * @param nonFungiblePositionManager The contract address of the protocols NonFungiblePositionManager.
      * @param aerodromeVoter The contract address of the Aerodrome Finance Voter contract.
      * @param rewardToken The contract address of the Reward Token.
      * @dev The ASSET_TYPE, necessary for the deposit and withdraw logic in the Accounts, is "2" for Slipstream Liquidity Positions (ERC721).
      */
-    constructor(address registry, address nonFungiblePositionManager, address aerodromeVoter, address rewardToken)
-        DerivedAM(registry, 2)
-        ERC721("Arcadia Staked Slipstream Positions", "aSSLIPP")
-    {
+    constructor(
+        address owner_,
+        address registry,
+        address nonFungiblePositionManager,
+        address aerodromeVoter,
+        address rewardToken
+    ) DerivedAM(owner_, registry, 2) ERC721("Arcadia Staked Slipstream Positions", "aSSLIPP") {
         AERO_VOTER = IAeroVoter(aerodromeVoter);
         REWARD_TOKEN = ERC20(rewardToken);
         NON_FUNGIBLE_POSITION_MANAGER = INonfungiblePositionManager(nonFungiblePositionManager);

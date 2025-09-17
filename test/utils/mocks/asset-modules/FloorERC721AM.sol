@@ -42,10 +42,11 @@ contract FloorERC721AM is PrimaryAM {
     ////////////////////////////////////////////////////////////// */
 
     /**
+     * @param owner_ The address of the Owner.
      * @param registry_ The address of the Registry.
      * @dev The ASSET_TYPE, necessary for the deposit and withdraw logic in the Accounts, is "2" for ERC721 tokens.
      */
-    constructor(address registry_) PrimaryAM(registry_, 2) { }
+    constructor(address owner_, address registry_) PrimaryAM(owner_, registry_, 2) { }
 
     /*///////////////////////////////////////////////////////////////
                         ASSET MANAGEMENT

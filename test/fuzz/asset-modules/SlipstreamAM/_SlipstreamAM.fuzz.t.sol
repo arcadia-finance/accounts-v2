@@ -87,7 +87,7 @@ abstract contract SlipstreamAM_Fuzz_Test is Fuzz_Test, SlipstreamFixture {
     function deploySlipstreamAM(address nonfungiblePositionManager_) internal {
         // Deploy SlipstreamAM.
         vm.startPrank(users.owner);
-        slipstreamAM = new SlipstreamAMExtension(address(registry), nonfungiblePositionManager_);
+        slipstreamAM = new SlipstreamAMExtension(users.owner, address(registry), nonfungiblePositionManager_);
 
         vm.label({ account: address(slipstreamAM), newLabel: "Slipstream Asset Module" });
 

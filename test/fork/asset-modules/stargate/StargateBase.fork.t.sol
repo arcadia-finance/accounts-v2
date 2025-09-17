@@ -56,11 +56,11 @@ contract StargateBase_Fork_Test is Fork_Test {
 
         vm.startPrank(users.owner);
         // Deploy StargateAssetModule.
-        stargateAssetModule = new StargateAM(address(registry), address(SG_FACTORY));
+        stargateAssetModule = new StargateAM(users.owner, address(registry), address(SG_FACTORY));
         registry.addAssetModule(address(stargateAssetModule));
 
         // Deploy StakedStargateAssetModule.
-        stakedStargateAM = new StakedStargateAM(address(registry), address(LP_STAKING_TIME));
+        stakedStargateAM = new StakedStargateAM(users.owner, address(registry), address(LP_STAKING_TIME));
         registry.addAssetModule(address(stakedStargateAM));
         stakedStargateAM.initialize();
 

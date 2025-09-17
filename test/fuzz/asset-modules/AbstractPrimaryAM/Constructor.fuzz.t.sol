@@ -27,7 +27,7 @@ contract Constructor_AbstractPrimaryAM_Fuzz_Test is AbstractPrimaryAM_Fuzz_Test 
         vm.assume(assetType_ > 0);
 
         vm.startPrank(users.owner);
-        PrimaryAMMock assetModule_ = new PrimaryAMMock(registry_, assetType_);
+        PrimaryAMMock assetModule_ = new PrimaryAMMock(users.owner, registry_, assetType_);
         vm.stopPrank();
 
         assertEq(assetModule_.REGISTRY(), registry_);

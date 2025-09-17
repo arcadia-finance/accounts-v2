@@ -23,7 +23,7 @@ contract Constructor_ChainlinkOM_Fuzz_Test is ChainlinkOM_Fuzz_Test {
     //////////////////////////////////////////////////////////////*/
     function testFuzz_Success_deployment(address registry_) public {
         vm.startPrank(users.owner);
-        ChainlinkOMExtension oracleModule_ = new ChainlinkOMExtension(registry_);
+        ChainlinkOMExtension oracleModule_ = new ChainlinkOMExtension(users.owner, registry_);
         vm.stopPrank();
 
         assertEq(oracleModule_.REGISTRY(), registry_);

@@ -38,7 +38,7 @@ abstract contract StargateAM_Fuzz_Test is Fuzz_Test {
 
         // Deploy the Stargate AssetModule.
         vm.startPrank(users.owner);
-        stargateAssetModule = new StargateAMExtension(address(registry), address(sgFactoryMock));
+        stargateAssetModule = new StargateAMExtension(users.owner, address(registry), address(sgFactoryMock));
         registry.addAssetModule(address(stargateAssetModule));
         vm.stopPrank();
     }

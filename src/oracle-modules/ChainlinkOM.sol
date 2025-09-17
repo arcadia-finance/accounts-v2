@@ -47,9 +47,10 @@ contract ChainlinkOM is OracleModule {
     ////////////////////////////////////////////////////////////// */
 
     /**
+     * @param owner_ The address of the Owner.
      * @param registry_ The contract address of the Registry.
      */
-    constructor(address registry_) OracleModule(registry_) { }
+    constructor(address owner_, address registry_) OracleModule(owner_, registry_) { }
 
     /*///////////////////////////////////////////////////////////////
                           ORACLE MANAGEMENT

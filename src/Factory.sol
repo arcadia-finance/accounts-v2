@@ -68,7 +68,10 @@ contract Factory is IFactory, ERC721, FactoryGuardian {
                                 CONSTRUCTOR
     ////////////////////////////////////////////////////////////// */
 
-    constructor() ERC721("Arcadia Account", "ARCADIA") { }
+    /**
+     * @param owner_ The address of the Owner.
+     */
+    constructor(address owner_) ERC721("Arcadia Account", "ARCADIA") FactoryGuardian(owner_) { }
 
     /*///////////////////////////////////////////////////////////////
                           ACCOUNT MANAGEMENT

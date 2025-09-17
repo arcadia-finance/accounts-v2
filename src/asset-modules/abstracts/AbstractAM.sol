@@ -59,6 +59,7 @@ abstract contract AssetModule is Owned, IAssetModule {
     ////////////////////////////////////////////////////////////// */
 
     /**
+     * @param owner_ The address of the Owner.
      * @param registry_ The contract address of the Registry.
      * @param assetType_ Identifier for the token standard of the asset.
      * 0 = Unknown asset.
@@ -66,7 +67,7 @@ abstract contract AssetModule is Owned, IAssetModule {
      * 2 = ERC721.
      * 3 = ERC1155.
      */
-    constructor(address registry_, uint256 assetType_) Owned(msg.sender) {
+    constructor(address owner_, address registry_, uint256 assetType_) Owned(owner_) {
         REGISTRY = registry_;
         ASSET_TYPE = assetType_;
     }

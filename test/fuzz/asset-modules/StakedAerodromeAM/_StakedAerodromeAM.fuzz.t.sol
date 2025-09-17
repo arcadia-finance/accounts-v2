@@ -47,11 +47,11 @@ abstract contract StakedAerodromeAM_Fuzz_Test is Fuzz_Test, AbstractStakingAM_Fu
 
         // Deploy Aerodrome AM.
         vm.startPrank(users.owner);
-        aerodromePoolAM = new AerodromePoolAM(address(registry), address(aeroPoolFactory));
+        aerodromePoolAM = new AerodromePoolAM(users.owner, address(registry), address(aeroPoolFactory));
         registry.addAssetModule(address(aerodromePoolAM));
 
         // Deploy StakedAerodromeAM.
-        stakedAerodromeAM = new StakedAerodromeAMExtension(address(registry), address(voter), AERO);
+        stakedAerodromeAM = new StakedAerodromeAMExtension(users.owner, address(registry), address(voter), AERO);
         registry.addAssetModule(address(stakedAerodromeAM));
         stakedAerodromeAM.initialize();
         vm.stopPrank();

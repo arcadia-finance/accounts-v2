@@ -8,7 +8,9 @@ import { AerodromePoolAM } from "../../../src/asset-modules/Aerodrome-Finance/Ae
 import { AssetValueAndRiskFactors } from "../../../src/libraries/AssetValuationLib.sol";
 
 contract AerodromePoolAMExtension is AerodromePoolAM {
-    constructor(address registry, address aerodromeFactory) AerodromePoolAM(registry, aerodromeFactory) { }
+    constructor(address owner_, address registry, address aerodromeFactory)
+        AerodromePoolAM(owner_, registry, aerodromeFactory)
+    { }
 
     function getAssetFromKey(bytes32 key) public pure returns (address asset, uint256 assetId) {
         (asset, assetId) = _getAssetFromKey(key);

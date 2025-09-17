@@ -76,8 +76,8 @@ abstract contract Fuzz_Test is Base_Test, ArcadiaAccountsFixture {
 
         // Deploy mocked Asset Modules.
         vm.startPrank(users.owner);
-        floorERC721AM = new FloorERC721AMExtension(address(registry));
-        floorERC1155AM = new FloorERC1155AMExtension(address(registry));
+        floorERC721AM = new FloorERC721AMExtension(users.owner, address(registry));
+        floorERC1155AM = new FloorERC1155AMExtension(users.owner, address(registry));
         registry.addAssetModule(address(floorERC721AM));
         registry.addAssetModule(address(floorERC1155AM));
         vm.stopPrank();
@@ -382,7 +382,7 @@ abstract contract Fuzz_Test is Base_Test, ArcadiaAccountsFixture {
     /// forge-lint: disable-next-item(mixed-case-function)
     function deployNativeTokenAM() internal {
         vm.startPrank(users.owner);
-        nativeTokenAM = new NativeTokenAMExtension(address(registry), 18);
+        nativeTokenAM = new NativeTokenAMExtension(users.owner, address(registry), 18);
         registry.addAssetModule(address(nativeTokenAM));
         vm.stopPrank();
     }

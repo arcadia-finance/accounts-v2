@@ -8,8 +8,8 @@ import { ERC20 } from "../../../../lib/solmate/src/tokens/ERC20.sol";
 import { StakingAMExtension } from "../../extensions/StakingAMExtension.sol";
 
 contract StakingAMMock is StakingAMExtension {
-    constructor(address registry, string memory name_, string memory symbol_, address rewardToken)
-        StakingAMExtension(registry, name_, symbol_)
+    constructor(address owner_, address registry, string memory name_, string memory symbol_, address rewardToken)
+        StakingAMExtension(owner_, registry, name_, symbol_)
     {
         REWARD_TOKEN = ERC20(rewardToken);
     }

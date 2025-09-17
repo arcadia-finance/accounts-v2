@@ -15,7 +15,9 @@ contract DerivedAMMock is DerivedAMExtension {
     bool internal returnRateUnderlyingAssetToUsd;
     uint256 internal rateUnderlyingAssetToUsd;
 
-    constructor(address registry_, uint256 assetType_) DerivedAMExtension(registry_, assetType_) { }
+    constructor(address owner_, address registry_, uint256 assetType_)
+        DerivedAMExtension(owner_, registry_, assetType_)
+    { }
 
     function isAllowed(address asset, uint256) public view override returns (bool) { }
 

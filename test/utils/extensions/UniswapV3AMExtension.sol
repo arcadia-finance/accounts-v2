@@ -8,8 +8,8 @@ import { AssetValueAndRiskFactors } from "../../../src/libraries/AssetValuationL
 import { UniswapV3AM } from "../../../src/asset-modules/UniswapV3/UniswapV3AM.sol";
 
 contract UniswapV3AMExtension is UniswapV3AM {
-    constructor(address registry_, address nonfungiblePositionManager)
-        UniswapV3AM(registry_, nonfungiblePositionManager)
+    constructor(address owner_, address registry_, address nonfungiblePositionManager)
+        UniswapV3AM(owner_, registry_, nonfungiblePositionManager)
     { }
 
     function getAssetExposureLast(address creditor, bytes32 assetKey)

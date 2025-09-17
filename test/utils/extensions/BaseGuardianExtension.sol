@@ -7,6 +7,8 @@ pragma solidity ^0.8.0;
 import { BaseGuardian } from "../../../src/guardians/BaseGuardian.sol";
 
 contract BaseGuardianExtension is BaseGuardian {
+    constructor(address owner_) BaseGuardian(owner_) { }
+
     function pause() external override { }
 
     function unpause() external override { }

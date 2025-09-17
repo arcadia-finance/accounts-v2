@@ -52,7 +52,7 @@ contract UniswapV3AM_Fork_Test is Fork_Test {
 
         // Deploy uniV3AM_.
         vm.startPrank(users.owner);
-        uniV3AM_ = new UniswapV3AM(address(registry), address(NONFUNGIBLE_POSITION_MANAGER));
+        uniV3AM_ = new UniswapV3AM(users.owner, address(registry), address(NONFUNGIBLE_POSITION_MANAGER));
         registry.addAssetModule(address(uniV3AM_));
         uniV3AM_.setProtocol();
         vm.stopPrank();

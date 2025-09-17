@@ -8,9 +8,13 @@ import { AssetValueAndRiskFactors } from "../../../src/libraries/AssetValuationL
 import { StakedSlipstreamAM } from "../../../src/asset-modules/Slipstream/StakedSlipstreamAM.sol";
 
 contract StakedSlipstreamAMExtension is StakedSlipstreamAM {
-    constructor(address registry_, address nonfungiblePositionManager, address aerodromeVoter, address rewardToken)
-        StakedSlipstreamAM(registry_, nonfungiblePositionManager, aerodromeVoter, rewardToken)
-    { }
+    constructor(
+        address owner_,
+        address registry_,
+        address nonfungiblePositionManager,
+        address aerodromeVoter,
+        address rewardToken
+    ) StakedSlipstreamAM(owner_, registry_, nonfungiblePositionManager, aerodromeVoter, rewardToken) { }
 
     /// forge-lint: disable-next-item(mixed-case-function,mixed-case-variable)
     function getCLFactory() public view returns (address cLFactory) {

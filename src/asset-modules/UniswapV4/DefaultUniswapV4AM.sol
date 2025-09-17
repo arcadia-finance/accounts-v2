@@ -68,11 +68,12 @@ contract DefaultUniswapV4AM is DerivedAM {
     ////////////////////////////////////////////////////////////// */
 
     /**
+     * @param owner_ The address of the Owner.
      * @param registry_ The contract address of the Registry.
      * @param positionManager The contract address of the uniswapV4 PositionManager.
      * @dev The ASSET_TYPE, necessary for the deposit and withdraw logic in the Accounts, is "2" for Uniswap V4 Liquidity Positions (ERC721).
      */
-    constructor(address registry_, address positionManager) DerivedAM(registry_, 2) {
+    constructor(address owner_, address registry_, address positionManager) DerivedAM(owner_, registry_, 2) {
         POSITION_MANAGER = IPositionManager(positionManager);
         POOL_MANAGER = IPoolManager(POSITION_MANAGER.poolManager());
     }

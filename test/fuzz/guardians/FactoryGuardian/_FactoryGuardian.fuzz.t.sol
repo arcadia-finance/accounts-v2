@@ -31,7 +31,7 @@ abstract contract FactoryGuardian_Fuzz_Test is Fuzz_Test {
         Fuzz_Test.setUp();
 
         vm.startPrank(users.owner);
-        factoryGuardian = new FactoryGuardianExtension();
+        factoryGuardian = new FactoryGuardianExtension(users.owner);
         factoryGuardian.changeGuardian(users.guardian);
         vm.stopPrank();
 

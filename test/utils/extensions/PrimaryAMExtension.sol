@@ -7,7 +7,7 @@ pragma solidity ^0.8.0;
 import { PrimaryAM } from "../../../src/asset-modules/abstracts/AbstractPrimaryAM.sol";
 
 abstract contract PrimaryAMExtension is PrimaryAM {
-    constructor(address registry_, uint256 assetType_) PrimaryAM(registry_, assetType_) { }
+    constructor(address owner_, address registry_, uint256 assetType_) PrimaryAM(owner_, registry_, assetType_) { }
 
     function setExposure(
         address creditor,

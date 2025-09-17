@@ -28,10 +28,11 @@ contract FloorERC1155AM is PrimaryAM {
     ////////////////////////////////////////////////////////////// */
 
     /**
+     * @param owner_ The address of the Owner.
      * @param registry_ The address of the Registry.
      * @dev The ASSET_TYPE, necessary for the deposit and withdraw logic in the Accounts, is "3" for ERC1155 tokens.
      */
-    constructor(address registry_) PrimaryAM(registry_, 3) { }
+    constructor(address owner_, address registry_) PrimaryAM(owner_, registry_, 3) { }
 
     /*///////////////////////////////////////////////////////////////
                         ASSET MANAGEMENT

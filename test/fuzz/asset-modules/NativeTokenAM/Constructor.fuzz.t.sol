@@ -28,7 +28,7 @@ contract Constructor_NativeTokenAM_Fuzz_Test is NativeTokenAM_Fuzz_Test {
 
         vm.prank(users.owner);
         vm.expectRevert(NativeTokenAM.Max18Decimals.selector);
-        new NativeTokenAMExtension(registry_, decimals_);
+        new NativeTokenAMExtension(users.owner, registry_, decimals_);
     }
 
     function testFuzz_Success_deployment(address registry_, uint256 decimals_) public {
@@ -36,7 +36,7 @@ contract Constructor_NativeTokenAM_Fuzz_Test is NativeTokenAM_Fuzz_Test {
 
         vm.prank(users.owner);
         /// forge-lint: disable-next-line(mixed-case-variable)
-        NativeTokenAMExtension nativeTokenAM_ = new NativeTokenAMExtension(registry_, decimals_);
+        NativeTokenAMExtension nativeTokenAM_ = new NativeTokenAMExtension(users.owner, registry_, decimals_);
 
         assertEq(nativeTokenAM_.REGISTRY(), registry_);
         assertEq(nativeTokenAM_.ASSET_UNIT(), 10 ** decimals_);

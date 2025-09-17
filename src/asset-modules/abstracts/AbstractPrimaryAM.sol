@@ -69,6 +69,7 @@ abstract contract PrimaryAM is AssetModule {
     ////////////////////////////////////////////////////////////// */
 
     /**
+     * @param owner_ The address of the Owner.
      * @param registry_ The address of the Registry.
      * @param assetType_ Identifier for the type of asset, necessary for the deposit and withdraw logic in the Accounts.
      * 0 = ERC20
@@ -76,7 +77,7 @@ abstract contract PrimaryAM is AssetModule {
      * 2 = ERC1155
      * ...
      */
-    constructor(address registry_, uint256 assetType_) AssetModule(registry_, assetType_) { }
+    constructor(address owner_, address registry_, uint256 assetType_) AssetModule(owner_, registry_, assetType_) { }
 
     /*///////////////////////////////////////////////////////////////
                         ASSET INFORMATION

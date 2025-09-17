@@ -38,7 +38,8 @@ contract SetProtocol_UniswapV4HooksRegistry_Fuzz_Test is UniswapV4HooksRegistry_
 
     function testFuzz_Revert_setProtocol_ProtocolNotAddedToReg() public {
         vm.startPrank(users.owner);
-        v4HooksRegistry = new UniswapV4HooksRegistryExtension(address(registry), address(positionManagerV4));
+        v4HooksRegistry =
+            new UniswapV4HooksRegistryExtension(users.owner, address(registry), address(positionManagerV4));
 
         vm.expectRevert(RegistryErrors.OnlyAssetModule.selector);
         v4HooksRegistry.setProtocol();
@@ -66,7 +67,7 @@ contract SetProtocol_UniswapV4HooksRegistry_Fuzz_Test is UniswapV4HooksRegistry_
         bytes memory bytecode = abi.encodePacked(vm.getCode("PositionManagerExtension.sol"), args);
         address positionManagerV4_ = Utils.deployBytecode(bytecode);
 
-        v4HooksRegistry = new UniswapV4HooksRegistryExtension(address(registry), positionManagerV4_);
+        v4HooksRegistry = new UniswapV4HooksRegistryExtension(users.owner, address(registry), positionManagerV4_);
 
         registry.addAssetModule(address(v4HooksRegistry));
         vm.stopPrank();

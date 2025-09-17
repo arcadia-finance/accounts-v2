@@ -33,11 +33,12 @@ contract NativeTokenAM is PrimaryAM {
     ////////////////////////////////////////////////////////////// */
 
     /**
+     * @param owner_ The address of the Owner.
      * @param registry_ The contract address of the Registry.
      * @param decimals The number of decimals of the native asset.
      * @dev The ASSET_TYPE, necessary for the deposit and withdraw logic in the Accounts, is "4" for the native token.
      */
-    constructor(address registry_, uint256 decimals) PrimaryAM(registry_, 4) {
+    constructor(address owner_, address registry_, uint256 decimals) PrimaryAM(owner_, registry_, 4) {
         if (decimals > 18) revert Max18Decimals();
         ASSET_UNIT = uint64(10 ** decimals);
     }

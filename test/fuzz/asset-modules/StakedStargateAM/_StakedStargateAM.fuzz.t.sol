@@ -52,7 +52,7 @@ abstract contract StakedStargateAM_Fuzz_Test is StargateAM_Fuzz_Test {
         erc20AM.addAsset(address(lpStakingTimeMock.eToken()), BitPackingLib.pack(BA_TO_QA_SINGLE, oracleStgToUsdArr));
 
         // Deploy the Staked Stargate AssetModule.
-        stakedStargateAM = new StakedStargateAMExtension(address(registry), address(lpStakingTimeMock));
+        stakedStargateAM = new StakedStargateAMExtension(users.owner, address(registry), address(lpStakingTimeMock));
         registry.addAssetModule(address(stakedStargateAM));
         stakedStargateAM.initialize();
         vm.stopPrank();
