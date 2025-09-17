@@ -4,7 +4,9 @@ pragma solidity ^0.8.0;
 import { AssetModuleExtension } from "../../extensions/AssetModuleExtension.sol";
 
 contract AssetModuleMock is AssetModuleExtension {
-    constructor(address registry_, uint256 assetType_) AssetModuleExtension(registry_, assetType_) { }
+    constructor(address owner_, address registry_, uint256 assetType_)
+        AssetModuleExtension(owner_, registry_, assetType_)
+    { }
 
     bool internal isAllowed_;
 

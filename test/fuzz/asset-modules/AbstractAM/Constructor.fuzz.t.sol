@@ -27,7 +27,7 @@ contract Constructor_AbstractAM_Fuzz_Test is AbstractAM_Fuzz_Test {
         vm.assume(assetType_ > 0);
 
         vm.startPrank(users.owner);
-        AssetModuleMock assetModule_ = new AssetModuleMock(registry_, assetType_);
+        AssetModuleMock assetModule_ = new AssetModuleMock(users.owner, registry_, assetType_);
         vm.stopPrank();
 
         assertEq(assetModule_.REGISTRY(), registry_);

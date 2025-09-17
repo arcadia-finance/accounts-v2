@@ -8,8 +8,8 @@ import { AssetValueAndRiskFactors } from "../../../src/libraries/AssetValuationL
 import { SlipstreamAM } from "../../../src/asset-modules/Slipstream/SlipstreamAM.sol";
 
 contract SlipstreamAMExtension is SlipstreamAM {
-    constructor(address registry_, address nonfungiblePositionManager)
-        SlipstreamAM(registry_, nonfungiblePositionManager)
+    constructor(address owner_, address registry_, address nonfungiblePositionManager)
+        SlipstreamAM(owner_, registry_, nonfungiblePositionManager)
     { }
 
     function getAssetExposureLast(address creditor, bytes32 assetKey)

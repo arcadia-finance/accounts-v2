@@ -38,10 +38,10 @@ abstract contract RegistryL2_Fuzz_Test is Fuzz_Test {
         Fuzz_Test.setUp();
 
         vm.startPrank(users.owner);
-        primaryAM = new PrimaryAMMock(address(registry), 0);
+        primaryAM = new PrimaryAMMock(users.owner, address(registry), 0);
         registry.addAssetModule(address(primaryAM));
 
-        derivedAM = new DerivedAMMock(address(registry), 0);
+        derivedAM = new DerivedAMMock(users.owner, address(registry), 0);
         registry.addAssetModule(address(derivedAM));
         vm.stopPrank();
     }

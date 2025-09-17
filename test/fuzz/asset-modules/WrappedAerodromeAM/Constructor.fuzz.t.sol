@@ -25,7 +25,7 @@ contract Constructor_WrappedAerodromeAM_Fuzz_Test is WrappedAerodromeAM_Fuzz_Tes
     //////////////////////////////////////////////////////////////*/
     function testFuzz_Success_deployment(address registry_) public {
         vm.prank(users.owner);
-        WrappedAerodromeAM assetModule_ = new WrappedAerodromeAM(registry_);
+        WrappedAerodromeAM assetModule_ = new WrappedAerodromeAM(users.owner, registry_);
 
         assertEq(assetModule_.REGISTRY(), registry_);
         assertEq(assetModule_.name(), "Arcadia Wrapped Aerodrome Positions");

@@ -10,7 +10,9 @@ import { PoolId } from "../../../lib/v4-periphery/lib/v4-core/src/types/PoolId.s
 import { PositionInfo } from "../../../lib/v4-periphery/src/libraries/PositionInfoLibrary.sol";
 
 contract DefaultUniswapV4AMExtension is DefaultUniswapV4AM {
-    constructor(address registry_, address positionManager) DefaultUniswapV4AM(registry_, positionManager) { }
+    constructor(address owner_, address registry_, address positionManager)
+        DefaultUniswapV4AM(owner_, registry_, positionManager)
+    { }
 
     function getAssetExposureLast(address creditor, bytes32 assetKey)
         external

@@ -49,7 +49,7 @@ abstract contract AbstractStakingAM_Fuzz_Test is Fuzz_Test {
 
         vm.startPrank(users.owner);
         rewardToken = new ERC20Mock("RewardToken", "RWT", 18);
-        stakingAM = new StakingAMMock(address(registry), "StakingAMTest", "SMT", address(rewardToken));
+        stakingAM = new StakingAMMock(users.owner, address(registry), "StakingAMTest", "SMT", address(rewardToken));
         vm.stopPrank();
     }
 

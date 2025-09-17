@@ -145,10 +145,11 @@ contract RegistryL2 is IRegistry, RegistryGuardian {
     ////////////////////////////////////////////////////////////// */
 
     /**
+     * @param owner_ The address of the Owner.
      * @param factory The contract address of the Arcadia Accounts Factory.
      * @param sequencerUptimeOracle_ The contract address of the sequencer uptime oracle.
      */
-    constructor(address factory, address sequencerUptimeOracle_) {
+    constructor(address owner_, address factory, address sequencerUptimeOracle_) RegistryGuardian(owner_) {
         FACTORY = factory;
         sequencerUptimeOracle = sequencerUptimeOracle_;
 

@@ -29,7 +29,7 @@ contract UniswapV3AMFixture is Base_Test {
         bytes32 poolExtensionInitCodeHash = keccak256(bytecode);
 
         // Get the bytecode of UniswapV3AMExtension.
-        args = abi.encode(address(registry), nonfungiblePositionManager_);
+        args = abi.encode(users.owner, address(registry), nonfungiblePositionManager_);
         bytecode = abi.encodePacked(vm.getCode("UniswapV3AMExtension.sol:UniswapV3AMExtension"), args);
 
         // Overwrite constant in bytecode of NonfungiblePositionManager.

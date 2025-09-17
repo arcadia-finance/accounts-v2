@@ -141,7 +141,7 @@ contract Withdraw_AccountV3_Fuzz_Test is AccountV3_Fuzz_Test {
         vm.assume(assetType > 3);
 
         vm.startPrank(users.owner);
-        AssetModuleMock assetModule = new AssetModuleMock(address(registry), assetType);
+        AssetModuleMock assetModule = new AssetModuleMock(users.owner, address(registry), assetType);
         registry.addAssetModule(address(assetModule));
         vm.stopPrank();
         registry.setAssetInformation(address(mockERC20.token1), assetType, address(assetModule));

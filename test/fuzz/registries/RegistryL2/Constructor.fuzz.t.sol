@@ -29,12 +29,13 @@ contract Constructor_RegistryL2_Fuzz_Test is RegistryL2_Fuzz_Test {
 
         vm.prank(users.owner);
         vm.expectRevert(RegistryErrors.OracleReverting.selector);
-        new RegistryL2Extension(address(factory), address(sequencerUptimeOracle));
+        new RegistryL2Extension(users.owner, address(factory), address(sequencerUptimeOracle));
     }
 
     function testFuzz_Success_deployment() public {
         vm.prank(users.owner);
-        RegistryL2Extension registry = new RegistryL2Extension(address(factory), address(sequencerUptimeOracle));
+        RegistryL2Extension registry =
+            new RegistryL2Extension(users.owner, address(factory), address(sequencerUptimeOracle));
 
         assertEq(registry.FACTORY(), address(factory));
         assertEq(registry.getSequencerUptimeOracle(), address(sequencerUptimeOracle));

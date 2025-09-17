@@ -44,11 +44,14 @@ contract StakedStargateAM is StakingAM {
     ////////////////////////////////////////////////////////////// */
 
     /**
+     * @param owner_ The address of the Owner.
      * @param registry The address of the Registry.
      * @param lpStakingTime The address of the Stargate LP staking contract.
      * @dev The ASSET_TYPE, necessary for the deposit and withdraw logic in the Accounts, is "2" for ERC721 tokens.
      */
-    constructor(address registry, address lpStakingTime) StakingAM(registry, "Arcadia Stargate Positions", "aSGP") {
+    constructor(address owner_, address registry, address lpStakingTime)
+        StakingAM(owner_, registry, "Arcadia Stargate Positions", "aSGP")
+    {
         LP_STAKING_TIME = ILpStakingTime(lpStakingTime);
         REWARD_TOKEN = ERC20(address(LP_STAKING_TIME.eToken()));
     }

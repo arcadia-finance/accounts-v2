@@ -98,7 +98,8 @@ abstract contract DefaultUniswapV4AM_Fuzz_Test is Fuzz_Test, UniswapV4Fixture {
 
         // Deploy Asset-Module and HooksRegistry
         vm.startPrank(users.owner);
-        v4HooksRegistry = new UniswapV4HooksRegistryExtension(address(registry), address(positionManagerV4));
+        v4HooksRegistry =
+            new UniswapV4HooksRegistryExtension(users.owner, address(registry), address(positionManagerV4));
         registry.addAssetModule(address(v4HooksRegistry));
         v4HooksRegistry.setProtocol();
         vm.stopPrank();
@@ -106,7 +107,7 @@ abstract contract DefaultUniswapV4AM_Fuzz_Test is Fuzz_Test, UniswapV4Fixture {
         uniswapV4AM = DefaultUniswapV4AMExtension(v4HooksRegistry.DEFAULT_UNISWAP_V4_AM());
 
         // Set Extension contract for uniswapV4AM.
-        bytes memory args = abi.encode(address(v4HooksRegistry), address(positionManagerV4));
+        bytes memory args = abi.encode(users.owner, address(v4HooksRegistry), address(positionManagerV4));
         vm.startPrank(address(v4HooksRegistry));
         deployCodeTo("DefaultUniswapV4AMExtension.sol", args, address(uniswapV4AM));
         vm.stopPrank();

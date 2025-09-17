@@ -45,11 +45,11 @@ abstract contract WrappedAerodromeAM_Fuzz_Test is Fuzz_Test, AerodromeFixture {
 
         // Deploy Aerodrome AM.
         vm.startPrank(users.owner);
-        aerodromePoolAM = new AerodromePoolAM(address(registry), address(aeroPoolFactory));
+        aerodromePoolAM = new AerodromePoolAM(users.owner, address(registry), address(aeroPoolFactory));
         registry.addAssetModule(address(aerodromePoolAM));
 
         // Deploy WrappedAerodromeAM.
-        wrappedAerodromeAM = new WrappedAerodromeAMExtension(address(registry));
+        wrappedAerodromeAM = new WrappedAerodromeAMExtension(users.owner, address(registry));
         registry.addAssetModule(address(wrappedAerodromeAM));
         wrappedAerodromeAM.initialize();
         vm.stopPrank();

@@ -28,7 +28,7 @@ contract SetRiskParametersOfDerivedAM_UniswapV4HooksRegistry_Fuzz_Test is Uniswa
         UniswapV4HooksRegistry_Fuzz_Test.setUp();
 
         vm.startPrank(users.owner);
-        derivedAM = new DerivedAMMock(address(registry), 0);
+        derivedAM = new DerivedAMMock(users.owner, address(registry), 0);
         registry.addAssetModule(address(derivedAM));
         vm.stopPrank();
     }

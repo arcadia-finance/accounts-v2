@@ -8,7 +8,7 @@ import { AssetValueAndRiskFactors } from "../../../src/libraries/AssetValuationL
 import { DerivedAM } from "../../../src/asset-modules/abstracts/AbstractDerivedAM.sol";
 
 abstract contract DerivedAMExtension is DerivedAM {
-    constructor(address registry_, uint256 assetType_) DerivedAM(registry_, assetType_) { }
+    constructor(address owner_, address registry_, uint256 assetType_) DerivedAM(owner_, registry_, assetType_) { }
 
     function getAssetExposureLast(address creditor, bytes32 assetKey)
         external

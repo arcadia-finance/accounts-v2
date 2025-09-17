@@ -73,8 +73,9 @@ abstract contract StakedSlipstreamAM_Fuzz_Test is Fuzz_Test, SlipstreamFixture {
     function deployStakedSlipstreamAM() internal {
         // Deploy StakedSlipstreamAM.
         vm.startPrank(users.owner);
-        stakedSlipstreamAM =
-            new StakedSlipstreamAMExtension(address(registry), address(slipstreamPositionManager), address(voter), AERO);
+        stakedSlipstreamAM = new StakedSlipstreamAMExtension(
+            users.owner, address(registry), address(slipstreamPositionManager), address(voter), AERO
+        );
 
         // Add the Asset Module to the Registry.
         registry.addAssetModule(address(stakedSlipstreamAM));

@@ -30,6 +30,6 @@ abstract contract BaseGuardian_Fuzz_Test is Fuzz_Test {
         Fuzz_Test.setUp();
 
         vm.prank(users.owner);
-        baseGuardian = new BaseGuardianExtension();
+        baseGuardian = new BaseGuardianExtension(users.owner);
     }
 }

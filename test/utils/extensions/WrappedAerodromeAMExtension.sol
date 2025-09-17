@@ -8,7 +8,7 @@ import { AssetValueAndRiskFactors } from "../../../src/libraries/AssetValuationL
 import { WrappedAerodromeAM } from "../../../src/asset-modules/Aerodrome-Finance/WrappedAerodromeAM.sol";
 
 contract WrappedAerodromeAMExtension is WrappedAerodromeAM {
-    constructor(address registry) WrappedAerodromeAM(registry) { }
+    constructor(address owner_, address registry) WrappedAerodromeAM(owner_, registry) { }
 
     function getKeyFromAsset(address asset, uint256 assetId) public view returns (bytes32 key) {
         key = _getKeyFromAsset(asset, assetId);

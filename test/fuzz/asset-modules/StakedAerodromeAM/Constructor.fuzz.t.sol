@@ -23,7 +23,7 @@ contract Constructor_StakedAerodromeAM_Fuzz_Test is StakedAerodromeAM_Fuzz_Test 
                             FUZZ TESTS
     ///////////////////////////////////////////////////////////////*/
     function testFuzz_success_constructor() public {
-        StakedAerodromeAM assetModule = new StakedAerodromeAM(address(registry), address(voter), AERO);
+        StakedAerodromeAM assetModule = new StakedAerodromeAM(users.owner, address(registry), address(voter), AERO);
 
         assertEq(address(assetModule.REWARD_TOKEN()), AERO);
         assertEq(assetModule.ASSET_TYPE(), 2);

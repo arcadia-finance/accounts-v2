@@ -46,13 +46,14 @@ contract StakedAerodromeAM is StakingAM {
     ////////////////////////////////////////////////////////////// */
 
     /**
+     * @param owner_ The address of the Owner.
      * @param registry The address of the Registry.
      * @param aerodromeVoter The address of the Aerodrome Finance Voter contract.
      * @param rewardToken The contract address of the Reward Token.
      * @dev The ASSET_TYPE, necessary for the deposit and withdraw logic in the Accounts, is "2" for ERC721 tokens.
      */
-    constructor(address registry, address aerodromeVoter, address rewardToken)
-        StakingAM(registry, "Arcadia Staked Aerodrome Positions", "aSAEROP")
+    constructor(address owner_, address registry, address aerodromeVoter, address rewardToken)
+        StakingAM(owner_, registry, "Arcadia Staked Aerodrome Positions", "aSAEROP")
     {
         REWARD_TOKEN = ERC20(rewardToken);
         AERO_VOTER = IAeroVoter(aerodromeVoter);

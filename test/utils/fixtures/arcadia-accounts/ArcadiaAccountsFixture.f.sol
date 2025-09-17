@@ -4,12 +4,11 @@
  */
 pragma solidity ^0.8.0;
 
-import { Base_Test } from "../../../Base.t.sol";
-
 import { AccountsGuardExtension } from "../../extensions/AccountsGuardExtension.sol";
 import { AccountPlaceholder } from "../../../../src/accounts/AccountPlaceholder.sol";
 import { AccountV3 } from "../../../../src/accounts/AccountV3.sol";
 import { ArcadiaOracle } from "../../mocks/oracles/ArcadiaOracle.sol";
+import { Base_Test } from "../../../Base.t.sol";
 import { BitPackingLib } from "../../../../src/libraries/BitPackingLib.sol";
 import { ChainlinkOMExtension } from "../../extensions/ChainlinkOMExtension.sol";
 import { Constants } from "../../Constants.sol";
@@ -29,12 +28,12 @@ contract ArcadiaAccountsFixture is Base_Test {
         // Deploy the base test contracts.
         vm.startPrank(users.owner);
         factory = FactoryExtension(0xDa14Fdd72345c4d2511357214c5B89A919768e59);
-        bytes memory args = abi.encode();
+        bytes memory args = abi.encode(users.owner);
         deployCodeTo("FactoryExtension.sol", args, address(factory));
 
-        registry = new RegistryL2Extension(address(factory), address(sequencerUptimeOracle));
+        registry = new RegistryL2Extension(users.owner, address(factory), address(sequencerUptimeOracle));
         chainlinkOM = new ChainlinkOMExtension(address(registry));
-        erc20AM = new ERC20PrimaryAMExtension(address(registry));
+        erc20AM = new ERC20PrimaryAMExtension(users.owner, address(registry));
 
         accountsGuard = new AccountsGuardExtension(users.owner, address(factory));
 

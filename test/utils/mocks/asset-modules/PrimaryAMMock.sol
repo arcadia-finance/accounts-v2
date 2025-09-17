@@ -8,7 +8,9 @@ contract PrimaryAMMock is PrimaryAMExtension {
     bool useRealUsdValue;
     uint256 usdExposureToUnderlyingAsset = 1;
 
-    constructor(address registry_, uint256 assetType_) PrimaryAMExtension(registry_, assetType_) { }
+    constructor(address owner_, address registry_, uint256 assetType_)
+        PrimaryAMExtension(owner_, registry_, assetType_)
+    { }
 
     function isAllowed(address asset, uint256) public view override returns (bool) {
         return inAssetModule[asset];

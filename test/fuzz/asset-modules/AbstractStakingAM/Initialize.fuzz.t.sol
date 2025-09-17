@@ -26,7 +26,8 @@ contract Initialize_AbstractStakingAM_Fuzz_Test is AbstractStakingAM_Fuzz_Test {
 
     function testFuzz_Revert_initialize_NotOwner(address _unprivilegedAddress) public {
         vm.prank(users.owner);
-        StakingAMMock assetModule = new StakingAMMock(address(registry), "StakingAMTest", "SMT", address(rewardToken));
+        StakingAMMock assetModule =
+            new StakingAMMock(users.owner, address(registry), "StakingAMTest", "SMT", address(rewardToken));
 
         // Given : unprivileged address is not the owner of the AM.
         vm.assume(_unprivilegedAddress != users.owner);
@@ -40,13 +41,15 @@ contract Initialize_AbstractStakingAM_Fuzz_Test is AbstractStakingAM_Fuzz_Test {
     }
 
     function testFuzz_success_initialize() public {
-        StakingAMMock assetModule = new StakingAMMock(address(registry), "StakingAMTest", "SMT", address(rewardToken));
+        StakingAMMock assetModule =
+            new StakingAMMock(users.owner, address(registry), "StakingAMTest", "SMT", address(rewardToken));
 
         // Given : Asset Module is added to the Registry.
         vm.prank(users.owner);
         registry.addAssetModule(address(assetModule));
 
         // When : Calling initialize().
+        vm.prank(users.owner);
         assetModule.initialize();
 
         // Then : The Asset Module should be added to the Registry as an asset.

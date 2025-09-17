@@ -48,12 +48,12 @@ abstract contract RegistryL1_Fuzz_Test is Fuzz_Test {
         Fuzz_Test.setUp();
 
         vm.startPrank(users.owner);
-        factory = new FactoryExtension();
-        registry_ = new RegistryL1Extension(address(factory));
+        factory = new FactoryExtension(users.owner);
+        registry_ = new RegistryL1Extension(users.owner, address(factory));
         chainlinkOM = new ChainlinkOMExtension(address(registry_));
-        erc20AM = new ERC20PrimaryAMExtension(address(registry_));
-        floorERC721AM = new FloorERC721AMExtension(address(registry_));
-        floorERC1155AM = new FloorERC1155AMExtension(address(registry_));
+        erc20AM = new ERC20PrimaryAMExtension(users.owner, address(registry_));
+        floorERC721AM = new FloorERC721AMExtension(users.owner, address(registry_));
+        floorERC1155AM = new FloorERC1155AMExtension(users.owner, address(registry_));
 
         accountsGuard = new AccountsGuardExtension(users.owner, address(factory));
         accountLogic = new AccountV3(address(factory), address(accountsGuard), address(0));
@@ -90,10 +90,10 @@ abstract contract RegistryL1_Fuzz_Test is Fuzz_Test {
             address(mockERC1155.sft1), 1, BitPackingLib.pack(BA_TO_QA_DOUBLE, oracleSft1ToToken1ToUsd)
         );
 
-        primaryAM = new PrimaryAMMock(address(registry_), 0);
+        primaryAM = new PrimaryAMMock(users.owner, address(registry_), 0);
         registry_.addAssetModule(address(primaryAM));
 
-        derivedAM = new DerivedAMMock(address(registry_), 0);
+        derivedAM = new DerivedAMMock(users.owner, address(registry_), 0);
         registry_.addAssetModule(address(derivedAM));
         vm.stopPrank();
 

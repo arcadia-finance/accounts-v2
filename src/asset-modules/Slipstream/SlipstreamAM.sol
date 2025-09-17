@@ -61,11 +61,14 @@ contract SlipstreamAM is DerivedAM {
     ////////////////////////////////////////////////////////////// */
 
     /**
+     * @param owner_ The address of the Owner.
      * @param registry_ The contract address of the Registry.
      * @param nonFungiblePositionManager The contract address of the protocols NonFungiblePositionManager.
      * @dev The ASSET_TYPE, necessary for the deposit and withdraw logic in the Accounts, is "2" for Slipstream Liquidity Positions (ERC721).
      */
-    constructor(address registry_, address nonFungiblePositionManager) DerivedAM(registry_, 2) {
+    constructor(address owner_, address registry_, address nonFungiblePositionManager)
+        DerivedAM(owner_, registry_, 2)
+    {
         NON_FUNGIBLE_POSITION_MANAGER = INonfungiblePositionManager(nonFungiblePositionManager);
         CL_FACTORY = INonfungiblePositionManager(nonFungiblePositionManager).factory();
     }

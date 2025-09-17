@@ -35,7 +35,7 @@ abstract contract RegistryGuardian_Fuzz_Test is Fuzz_Test {
         Fuzz_Test.setUp();
 
         vm.startPrank(users.owner);
-        registryGuardian = new RegistryGuardianExtension();
+        registryGuardian = new RegistryGuardianExtension(users.owner);
         registryGuardian.changeGuardian(users.guardian);
         vm.stopPrank();
 

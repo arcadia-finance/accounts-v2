@@ -76,7 +76,7 @@ contract SetNewAccountInfo_Factory_Fuzz_Test is Factory_Fuzz_Test {
         vm.assume(newAssetAddress != address(0));
 
         vm.startPrank(users.owner);
-        registry2 = new RegistryL2Extension(address(factory), address(sequencerUptimeOracle));
+        registry2 = new RegistryL2Extension(users.owner, address(factory), address(sequencerUptimeOracle));
         if (logic.code.length == 0 && !isPrecompile(logic)) {
             vm.expectRevert(abi.encodePacked("call to non-contract address ", vm.toString(logic)));
         } else {
@@ -116,7 +116,7 @@ contract SetNewAccountInfo_Factory_Fuzz_Test is Factory_Fuzz_Test {
         vm.assume(nonFactory != address(factory));
 
         AccountLogicMock account_ = new AccountLogicMock(nonFactory);
-        RegistryL2 badRegistry = new RegistryL2(nonFactory, address(sequencerUptimeOracle));
+        RegistryL2 badRegistry = new RegistryL2(users.owner, nonFactory, address(sequencerUptimeOracle));
 
         vm.prank(users.owner);
         vm.expectRevert(FactoryErrors.FactoryMismatch.selector);
@@ -140,7 +140,7 @@ contract SetNewAccountInfo_Factory_Fuzz_Test is Factory_Fuzz_Test {
         AccountVariableVersion(logic).setFactory(address(factory));
 
         vm.prank(users.owner);
-        registry2 = new RegistryL2Extension(address(factory), address(sequencerUptimeOracle));
+        registry2 = new RegistryL2Extension(users.owner, address(factory), address(sequencerUptimeOracle));
         vm.assume(logic != address(registry2));
 
         vm.startPrank(users.owner);

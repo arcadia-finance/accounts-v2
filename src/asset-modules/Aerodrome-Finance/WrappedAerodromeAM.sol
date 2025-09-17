@@ -91,10 +91,14 @@ contract WrappedAerodromeAM is DerivedAM, ERC721, ReentrancyGuard {
     ////////////////////////////////////////////////////////////// */
 
     /**
+     * @param owner_ The address of the Owner.
      * @param registry The address of the Registry.
      * @dev The ASSET_TYPE, necessary for the deposit and withdraw logic in the Accounts, is "2" for ERC721 tokens.
      */
-    constructor(address registry) DerivedAM(registry, 2) ERC721("Arcadia Wrapped Aerodrome Positions", "aWAEROP") { }
+    constructor(address owner_, address registry)
+        DerivedAM(owner_, registry, 2)
+        ERC721("Arcadia Wrapped Aerodrome Positions", "aWAEROP")
+    { }
 
     /* //////////////////////////////////////////////////////////////
                                INITIALIZE

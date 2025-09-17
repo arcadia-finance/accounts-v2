@@ -37,7 +37,7 @@ abstract contract StandardERC4626AM_Fuzz_Test is Fuzz_Test {
         ybToken1 = new ERC4626Mock(mockERC20.token1, "Mocked Yield Bearing Token 1", "mybTOKEN1");
 
         vm.startPrank(users.owner);
-        erc4626AM = new ERC4626AMExtension(address(registry));
+        erc4626AM = new ERC4626AMExtension(users.owner, address(registry));
         registry.addAssetModule(address(erc4626AM));
         vm.stopPrank();
     }

@@ -50,11 +50,12 @@ contract UniswapV2AM is DerivedAM {
     ////////////////////////////////////////////////////////////// */
 
     /**
+     * @param owner_ The address of the Owner.
      * @param registry_ The address of the Registry.
      * @param uniswapV2Factory_ The factory for Uniswap V2 pairs.
      * @dev The ASSET_TYPE, necessary for the deposit and withdraw logic in the Accounts, is "1" for ERC20 tokens.
      */
-    constructor(address registry_, address uniswapV2Factory_) DerivedAM(registry_, 1) {
+    constructor(address owner_, address registry_, address uniswapV2Factory_) DerivedAM(owner_, registry_, 1) {
         UNISWAP_V2_FACTORY = uniswapV2Factory_;
     }
 

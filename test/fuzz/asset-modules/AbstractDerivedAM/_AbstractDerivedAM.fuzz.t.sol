@@ -58,9 +58,9 @@ abstract contract AbstractDerivedAM_Fuzz_Test is Fuzz_Test {
 
         vm.startPrank(users.owner);
 
-        derivedAM = new DerivedAMMock(address(registry), 0);
+        derivedAM = new DerivedAMMock(users.owner, address(registry), 0);
 
-        primaryAM = new PrimaryAMMock(address(registry), 0);
+        primaryAM = new PrimaryAMMock(users.owner, address(registry), 0);
 
         registry.addAssetModule(address(derivedAM));
         registry.addAssetModule(address(primaryAM));

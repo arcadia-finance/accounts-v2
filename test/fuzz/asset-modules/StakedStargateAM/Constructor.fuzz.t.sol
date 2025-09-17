@@ -24,7 +24,7 @@ contract Constructor_StakedStargateAM_Fuzz_Test is StakedStargateAM_Fuzz_Test {
                               TESTS
     /////////////////////////////////////////////////////////////// */
     function testFuzz_success_constructor() public {
-        StakedStargateAM assetModule = new StakedStargateAM(address(registry), address(lpStakingTimeMock));
+        StakedStargateAM assetModule = new StakedStargateAM(users.owner, address(registry), address(lpStakingTimeMock));
 
         assertEq(address(assetModule.LP_STAKING_TIME()), address(lpStakingTimeMock));
         assertEq(address(assetModule.REWARD_TOKEN()), address(lpStakingTimeMock.eToken()));

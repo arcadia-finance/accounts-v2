@@ -50,7 +50,7 @@ abstract contract AbstractPrimaryAM_Fuzz_Test is Fuzz_Test {
         Fuzz_Test.setUp();
 
         vm.prank(users.owner);
-        assetModule = new PrimaryAMMock(address(registry), 0);
+        assetModule = new PrimaryAMMock(users.owner, address(registry), 0);
     }
 
     /* ///////////////////////////////////////////////////////////////

@@ -33,10 +33,11 @@ contract StandardERC4626AM is DerivedAM {
     ////////////////////////////////////////////////////////////// */
 
     /**
+     * @param owner_ The address of the Owner.
      * @param registry_ The address of the Registry.
      * @dev The ASSET_TYPE, necessary for the deposit and withdraw logic in the Accounts, is "1" for ERC20 tokens.
      */
-    constructor(address registry_) DerivedAM(registry_, 1) { }
+    constructor(address owner_, address registry_) DerivedAM(owner_, registry_, 1) { }
 
     /*///////////////////////////////////////////////////////////////
                         ASSET MANAGEMENT
