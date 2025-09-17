@@ -32,7 +32,7 @@ contract ArcadiaAccountsFixture is Base_Test {
         deployCodeTo("FactoryExtension.sol", args, address(factory));
 
         registry = new RegistryL2Extension(users.owner, address(factory), address(sequencerUptimeOracle));
-        chainlinkOM = new ChainlinkOMExtension(address(registry));
+        chainlinkOM = new ChainlinkOMExtension(users.owner, address(registry));
         erc20AM = new ERC20PrimaryAMExtension(users.owner, address(registry));
 
         accountsGuard = new AccountsGuardExtension(users.owner, address(factory));

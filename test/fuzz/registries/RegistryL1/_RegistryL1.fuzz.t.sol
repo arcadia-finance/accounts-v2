@@ -50,7 +50,7 @@ abstract contract RegistryL1_Fuzz_Test is Fuzz_Test {
         vm.startPrank(users.owner);
         factory = new FactoryExtension(users.owner);
         registry_ = new RegistryL1Extension(users.owner, address(factory));
-        chainlinkOM = new ChainlinkOMExtension(address(registry_));
+        chainlinkOM = new ChainlinkOMExtension(users.owner, address(registry_));
         erc20AM = new ERC20PrimaryAMExtension(users.owner, address(registry_));
         floorERC721AM = new FloorERC721AMExtension(users.owner, address(registry_));
         floorERC1155AM = new FloorERC1155AMExtension(users.owner, address(registry_));

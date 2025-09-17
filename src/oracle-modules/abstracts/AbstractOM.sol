@@ -48,9 +48,10 @@ abstract contract OracleModule is Owned {
     ////////////////////////////////////////////////////////////// */
 
     /**
+     * @param owner_ The address of the Owner.
      * @param registry_ The contract address of the Registry.
      */
-    constructor(address registry_) Owned(msg.sender) {
+    constructor(address owner_, address registry_) Owned(owner_) {
         REGISTRY = registry_;
     }
 

@@ -7,7 +7,7 @@ pragma solidity ^0.8.0;
 import { ChainlinkOM } from "../../../src/oracle-modules/ChainlinkOM.sol";
 
 contract ChainlinkOMExtension is ChainlinkOM {
-    constructor(address registry_) ChainlinkOM(registry_) { }
+    constructor(address owner_, address registry_) ChainlinkOM(owner_, registry_) { }
 
     function getInOracleModule(address oracle) public view returns (bool) {
         return inOracleModule[oracle];
