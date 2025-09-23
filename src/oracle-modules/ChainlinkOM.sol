@@ -9,7 +9,7 @@ import { IChainLinkData } from "../interfaces/IChainLinkData.sol";
 import { IRegistry } from "./interfaces/IRegistry.sol";
 
 /**
- * @title Abstract Oracle Module
+ * @title Chainlink Oracle Module
  * @author Pragma Labs
  * @notice Oracle Module for Chainlink Oracles.
  */
