@@ -16,12 +16,4 @@ contract AccountsGuardExtension is AccountsGuard {
     function setAccount(address account_) external {
         account = account_;
     }
-
-    function getBlockNumber() external view returns (uint32 blockNumber_) {
-        blockNumber_ = blockNumber;
-    }
-
-    function setBlockNumber(uint32 blockNumber_) external {
-        blockNumber = blockNumber_;
-    }
 }
