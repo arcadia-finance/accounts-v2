@@ -12,4 +12,8 @@ contract FactoryExtension is Factory {
     function setLatestAccountVersion(uint88 latestAccountVersion_) external {
         latestAccountVersion = latestAccountVersion_;
     }
+
+    function setAccount(address account, uint256 index) external {
+        accountIndex[account] = index;
+    }
 }

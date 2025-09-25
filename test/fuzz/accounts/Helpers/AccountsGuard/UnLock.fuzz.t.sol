@@ -4,47 +4,50 @@
  */
 pragma solidity ^0.8.0;
 
-import { AccountsGuard_Fuzz_Test } from "./_AccountsGuard.fuzz.t.sol";
 import { AccountsGuard } from "../../../../../src/accounts/helpers/AccountsGuard.sol";
+import { AccountsGuard_Fuzz_Test } from "./_AccountsGuard.fuzz.t.sol";
+import { AccountsGuardHelper } from "../../../../utils/mocks/accounts/AccountsGuardHelper.sol";
 
 /**
  * @notice Fuzz tests for the function "unLock" of contract "AccountsGuard".
  */
 contract UnLock_AccountsGuard_Fuzz_Test is AccountsGuard_Fuzz_Test {
     /* ///////////////////////////////////////////////////////////////
+                             VARIABLES
+    /////////////////////////////////////////////////////////////// */
+
+    AccountsGuardHelper internal accountMock;
+
+    /* ///////////////////////////////////////////////////////////////
                               SETUP
     /////////////////////////////////////////////////////////////// */
 
     function setUp() public override {
         AccountsGuard_Fuzz_Test.setUp();
+
+        accountMock = new AccountsGuardHelper(address(accountsGuard));
+        factory.setAccount(address(accountMock), 10);
     }
 
     /*//////////////////////////////////////////////////////////////
                               TESTS
     //////////////////////////////////////////////////////////////*/
-    function testFuzz_Revert_unLock_OnlyAccount(address account_, address caller) public {
+    function testFuzz_Revert_unLock_OnlyAccount(address account_) public {
         // Given: Caller is not the account.
-        vm.assume(caller != account_);
+        vm.assume(account_ != address(accountMock));
 
-        // And: account is set.
-        accountsGuard.setAccount(account_);
-
-        // When: unLock is called by a non-account.
+        // When: unLock is called by a different account.
         // Then: It should revert.
-        vm.prank(caller);
         vm.expectRevert(AccountsGuard.OnlyAccount.selector);
-        accountsGuard.unLock();
+        accountMock.unlockWitInitialState(account_);
     }
 
-    function testFuzz_Success_unLock(address account_) public {
+    function testFuzz_Success_unLock() public {
         // Given: account is set.
-        accountsGuard.setAccount(account_);
-
-        // When: unLock is called by Guardian.
-        vm.prank(account_);
-        accountsGuard.unLock();
+        // When: unLock is called by the account.
+        address account_ = accountMock.unlockWitInitialState(address(accountMock));
 
         // Then: The account is reset.
-        assertEq(accountsGuard.getAccount(), address(0));
+        assertEq(account_, address(0));
     }
 }

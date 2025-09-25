@@ -26,14 +26,15 @@ contract AccountsGuard is Owned {
     // Flag indicating if the functionalities are paused.
     bool public paused;
 
-    // The blocknumber when the last lock was initiated or reset.
-    uint32 internal blockNumber;
-
-    // The address of the Arcadia Account that initiated the lock.
-    address internal account;
-
     // Address of the Guardian.
     address public guardian;
+
+    /* //////////////////////////////////////////////////////////////
+                          TRANSIENT STORAGE
+    ////////////////////////////////////////////////////////////// */
+
+    // The address of the Arcadia Account that initiated the lock.
+    address internal transient account;
 
     /* //////////////////////////////////////////////////////////////
                                 ERRORS
@@ -97,15 +98,14 @@ contract AccountsGuard is Owned {
      * The guard gives NO reentrancy protection for non atomic flows.
      * @dev If the AccountsGuard gets in an invalid state due to a faulty implementation in an Account
      * where the Guard was locked but not unlocked (should never happen in practice),
-     * then only transactions within the same block as the faulty transaction will revert.
+     * then only calls within the same transaction as the faulty call will revert.
      */
     function lock(bool pauseCheck) external {
         if (pauseCheck && paused) revert Paused();
-        if (account != address(0) && blockNumber == block.number) revert Reentered();
+        if (account != address(0)) revert Reentered();
         if (!ARCADIA_FACTORY.isAccount(msg.sender)) revert OnlyAccount();
 
         account = msg.sender;
-        blockNumber = uint32(block.number);
     }
 
     /**
