@@ -2,7 +2,7 @@
  * Created by Pragma Labs
  * SPDX-License-Identifier: BUSL-1.1
  */
-pragma solidity ^0.8.22;
+pragma solidity ^0.8.0;
 
 import { RegistryL1_Fuzz_Test } from "./_RegistryL1.fuzz.t.sol";
 
@@ -20,7 +20,7 @@ contract GetRateInUsd_RegistryL1_Fuzz_Test is RegistryL1_Fuzz_Test {
     function setUp() public override {
         RegistryL1_Fuzz_Test.setUp();
 
-        oracleModule = new OracleModuleMock(address(registry_));
+        oracleModule = new OracleModuleMock(users.owner, address(registry_));
     }
 
     /*//////////////////////////////////////////////////////////////

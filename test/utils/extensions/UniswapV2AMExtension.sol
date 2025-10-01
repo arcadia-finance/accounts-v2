@@ -2,13 +2,15 @@
  * Created by Pragma Labs
  * SPDX-License-Identifier: BUSL-1.1
  */
-pragma solidity ^0.8.22;
+pragma solidity ^0.8.0;
 
 import { AssetValueAndRiskFactors } from "../../../src/libraries/AssetValuationLib.sol";
 import { UniswapV2AM } from "../mocks/asset-modules/UniswapV2AM.sol";
 
 contract UniswapV2AMExtension is UniswapV2AM {
-    constructor(address registry_, address uniswapV2Factory_) UniswapV2AM(registry_, uniswapV2Factory_) { }
+    constructor(address owner_, address registry_, address uniswapV2Factory_)
+        UniswapV2AM(owner_, registry_, uniswapV2Factory_)
+    { }
 
     function getAssetFromKey(bytes32 key) public pure returns (address asset, uint256 assetId) {
         (asset, assetId) = _getAssetFromKey(key);

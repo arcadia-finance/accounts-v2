@@ -2,14 +2,14 @@
  * Created by Pragma Labs
  * SPDX-License-Identifier: BUSL-1.1
  */
-pragma solidity ^0.8.22;
+pragma solidity ^0.8.0;
 
 import { AssetValueAndRiskFactors } from "../../../src/libraries/AssetValuationLib.sol";
 import { StakedAerodromeAM } from "../../../src/asset-modules/Aerodrome-Finance/StakedAerodromeAM.sol";
 
 contract StakedAerodromeAMExtension is StakedAerodromeAM {
-    constructor(address registry, address aerodromeVoter, address rewardToken)
-        StakedAerodromeAM(registry, aerodromeVoter, rewardToken)
+    constructor(address owner_, address registry, address aerodromeVoter, address rewardToken)
+        StakedAerodromeAM(owner_, registry, aerodromeVoter, rewardToken)
     { }
 
     function stakeAndClaim(address asset, uint256 amount) public {

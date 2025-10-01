@@ -2,13 +2,15 @@
  * Created by Pragma Labs
  * SPDX-License-Identifier: BUSL-1.1
  */
-pragma solidity ^0.8.22;
+pragma solidity ^0.8.0;
 
 import { AerodromePoolAM } from "../../../src/asset-modules/Aerodrome-Finance/AerodromePoolAM.sol";
-import { AssetValuationLib, AssetValueAndRiskFactors } from "../../../src/libraries/AssetValuationLib.sol";
+import { AssetValueAndRiskFactors } from "../../../src/libraries/AssetValuationLib.sol";
 
 contract AerodromePoolAMExtension is AerodromePoolAM {
-    constructor(address registry, address aerodromeFactory) AerodromePoolAM(registry, aerodromeFactory) { }
+    constructor(address owner_, address registry, address aerodromeFactory)
+        AerodromePoolAM(owner_, registry, aerodromeFactory)
+    { }
 
     function getAssetFromKey(bytes32 key) public pure returns (address asset, uint256 assetId) {
         (asset, assetId) = _getAssetFromKey(key);

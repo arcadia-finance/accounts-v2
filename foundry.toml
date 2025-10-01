@@ -14,14 +14,17 @@ remappings = [
     "@uniswap/v3-periphery/contracts/=lib/v3-periphery/contracts/",
     "contracts/=lib/slipstream/contracts",
     "solmate/=lib/solmate/",
+    "lib/openzeppelin-contracts-upgradeable-v4.9:@openzeppelin/=lib/openzeppelin-contracts-v4.9/",
+    "lib/merkl-contracts:@openzeppelin/contracts/=lib/openzeppelin-contracts-v4.9/contracts/",
+    "lib/merkl-contracts:@openzeppelin/contracts-upgradeable/=lib/openzeppelin-contracts-upgradeable-v4.9/contracts/",
     "lib/slipstream:@openzeppelin/=lib/slipstream/lib/openzeppelin-contracts/",
-    "lib/v3-periphery:@openzeppelin/=lib/openzeppelin-contracts/",
+    "lib/v3-periphery:@openzeppelin/=lib/openzeppelin-contracts-v3.4/",
     "lib/v4-periphery:@openzeppelin/=lib/v4-periphery/lib/v4-core/lib/openzeppelin-contracts/",
     "lib/v4-periphery/lib/v4-core:@openzeppelin/=lib/v4-periphery/lib/v4-core/lib/openzeppelin-contracts/",
 ]
 fs_permissions = [{ access = "read", path = "./out"}, { access = "write", path = "./script/out"}]
-evm_version = 'cancun'
 unchecked_cheatcode_artifacts = true
+ignored_warnings_from = ["lib/slipstream/contracts/libraries/EnumerableSet.sol"]
 
 [fmt]
 bracket_spacing = true
@@ -31,6 +34,16 @@ number_underscore = "thousands"
 quote_style = "double"
 tab_width = 4
 
+[lint]
+exclude_lints = [
+    "asm-keccak256"
+]
+ignore = [
+    "**/merkl/**/*",
+    "**/RemoveMerklOperator.fuzz.t.sol",
+    "**/SetMerklOperators.fuzz.t.sol",
+]
+
 [profile.dev]
 fuzz = { runs = 50, max_test_rejects = 100_000_000}
 
@@ -39,5 +52,3 @@ fuzz = { runs = 200, max_test_rejects = 100_000_000}
 
 [profile.hf]
 fuzz = { runs = 2_000, max_test_rejects = 1_000_000_000}
-
-# See more config options https://github.com/gakonst/foundry/tree/master/config

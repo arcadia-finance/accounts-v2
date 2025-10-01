@@ -2,7 +2,7 @@
  * Created by Pragma Labs
  * SPDX-License-Identifier: MIT
  */
-pragma solidity ^0.8.22;
+pragma solidity ^0.8.0;
 
 /**
  * @title Creditor implementation.
@@ -39,7 +39,7 @@ interface ICreditor {
      * @notice Returns the Risk Manager of the creditor.
      * @return riskManager The Risk Manager of the creditor.
      */
-    function riskManager() external view returns (address riskManager);
+    function riskManager() external view returns (address);
 
     /**
      * @notice Callback of the Account during a flashAction.

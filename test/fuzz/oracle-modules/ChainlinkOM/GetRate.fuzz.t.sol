@@ -2,11 +2,11 @@
  * Created by Pragma Labs
  * SPDX-License-Identifier: BUSL-1.1
  */
-pragma solidity ^0.8.22;
-
-import { ChainlinkOM_Fuzz_Test, OracleModule } from "./_ChainlinkOM.fuzz.t.sol";
+pragma solidity ^0.8.0;
 
 import { ArcadiaOracle } from "../../../utils/mocks/oracles/ArcadiaOracle.sol";
+import { ChainlinkOM_Fuzz_Test } from "./_ChainlinkOM.fuzz.t.sol";
+import { OracleModule } from "../../../../src/oracle-modules/abstracts/AbstractOM.sol";
 import { RevertingOracle } from "../../../utils/mocks/oracles/RevertingOracle.sol";
 
 /**

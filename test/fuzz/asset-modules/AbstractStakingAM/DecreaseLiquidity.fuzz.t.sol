@@ -2,11 +2,10 @@
  * Created by Pragma Labs
  * SPDX-License-Identifier: BUSL-1.1
  */
-pragma solidity ^0.8.22;
+pragma solidity ^0.8.0;
 
 import { AbstractStakingAM_Fuzz_Test, StakingAM, ERC20Mock } from "./_AbstractStakingAM.fuzz.t.sol";
-
-import { Fuzz_Test, Constants } from "../../Fuzz.t.sol";
+import { Constants } from "../../Fuzz.t.sol";
 import { FixedPointMathLib } from "../../../../lib/solmate/src/utils/FixedPointMathLib.sol";
 import { stdError } from "../../../../lib/forge-std/src/StdError.sol";
 
@@ -414,8 +413,8 @@ contract DecreaseLiquidity_AbstractStakingAM_Fuzz_Test is AbstractStakingAM_Fuzz
         // Given : 2 actors and initial Asset amounts
         address user1 = address(0x1);
         address user2 = address(0x2);
-        uint128 user1InitBalance = uint128(1_000_000 * (10 ** Constants.stableDecimals));
-        uint128 user2InitBalance = uint128(4_000_000 * (10 ** Constants.stableDecimals));
+        uint128 user1InitBalance = uint128(1_000_000 * (10 ** Constants.STABLE_DECIMALS));
+        uint128 user2InitBalance = uint128(4_000_000 * (10 ** Constants.STABLE_DECIMALS));
 
         // Given : Fund both users with amount of Assets
         address asset = address(mockERC20.stable1);
@@ -437,7 +436,7 @@ contract DecreaseLiquidity_AbstractStakingAM_Fuzz_Test is AbstractStakingAM_Fuzz
         stakingAM.mint(asset, user2InitBalance);
 
         // Given : Mock rewards
-        uint128 rewardAmount1 = uint128(1_000_000 * (10 ** Constants.tokenDecimals));
+        uint128 rewardAmount1 = uint128(1_000_000 * (10 ** Constants.TOKEN_DECIMALS));
         stakingAM.setActualRewardBalance(asset, rewardAmount1);
         deal(address(rewardToken), address(stakingAM), type(uint256).max, true);
 
@@ -449,7 +448,7 @@ contract DecreaseLiquidity_AbstractStakingAM_Fuzz_Test is AbstractStakingAM_Fuzz
         assertEq(rewardToken.balanceOf(user1), rewardAmount1 / 5);
 
         // Given : User 1 stakes additional tokens and stakes
-        uint128 user1AddedBalance = uint128(3_000_000 * (10 ** Constants.stableDecimals));
+        uint128 user1AddedBalance = uint128(3_000_000 * (10 ** Constants.STABLE_DECIMALS));
         deal(asset, user1, user1AddedBalance, true);
         vm.prank(user1);
         ERC20Mock(asset).approve(address(stakingAM), user1AddedBalance);
@@ -458,7 +457,7 @@ contract DecreaseLiquidity_AbstractStakingAM_Fuzz_Test is AbstractStakingAM_Fuzz
         stakingAM.increaseLiquidity(1, user1AddedBalance);
 
         // Given : Add 1 mio more rewards
-        uint128 rewardAmount2 = uint128(1_000_000 * (10 ** Constants.tokenDecimals));
+        uint128 rewardAmount2 = uint128(1_000_000 * (10 ** Constants.TOKEN_DECIMALS));
         stakingAM.setActualRewardBalance(asset, rewardAmount2);
 
         // Given : A third user stakes while there is no reward increase (this shouldn't accrue rewards for him and not impact other user rewards)

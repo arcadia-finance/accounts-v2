@@ -2,13 +2,11 @@
  * Created by Pragma Labs
  * SPDX-License-Identifier: MIT
  */
-pragma solidity ^0.8.22;
-
-import { Fork_Test } from "../Fork.t.sol";
+pragma solidity ^0.8.0;
 
 import { ERC20 } from "../../../lib/solmate/src/tokens/ERC20.sol";
 import { ERC721 } from "../../../lib/solmate/src/tokens/ERC721.sol";
-
+import { Fork_Test } from "../Fork.t.sol";
 import { LiquidityAmounts } from "../../../src/asset-modules/UniswapV3/libraries/LiquidityAmounts.sol";
 import { LiquidityAmountsExtension } from
     "../../utils/fixtures/uniswap-v3/extensions/libraries/LiquidityAmountsExtension.sol";
@@ -34,13 +32,14 @@ contract UniswapV3AM_Fork_Test is Fork_Test {
     IUniswapV3Factory internal constant UNISWAP_V3_FACTORY =
         IUniswapV3Factory(0x33128a8fC17869897dcE68Ed026d694621f6FDfD);
 
-    int24 MIN_TICK = -887_272;
-    int24 MAX_TICK = -MIN_TICK;
+    int24 internal constant MIN_TICK = -887_272;
+    int24 internal constant MAX_TICK = -MIN_TICK;
 
     /*///////////////////////////////////////////////////////////////
                             TEST CONTRACTS
     ///////////////////////////////////////////////////////////////*/
 
+    /// forge-lint: disable-next-line(mixed-case-variable)
     UniswapV3AM internal uniV3AM_;
     IUniswapV3PoolExtension internal pool;
 
@@ -53,7 +52,7 @@ contract UniswapV3AM_Fork_Test is Fork_Test {
 
         // Deploy uniV3AM_.
         vm.startPrank(users.owner);
-        uniV3AM_ = new UniswapV3AM(address(registry), address(NONFUNGIBLE_POSITION_MANAGER));
+        uniV3AM_ = new UniswapV3AM(users.owner, address(registry), address(NONFUNGIBLE_POSITION_MANAGER));
         registry.addAssetModule(address(uniV3AM_));
         uniV3AM_.setProtocol();
         vm.stopPrank();
@@ -66,7 +65,7 @@ contract UniswapV3AM_Fork_Test is Fork_Test {
     /*////////////////////////////////////////////////////////////////
                         HELPER FUNCTIONS
     ////////////////////////////////////////////////////////////////*/
-    function givenTickWithinAllowedRange(int24 tick) public view returns (int24) {
+    function givenTickWithinAllowedRange(int24 tick) internal pure returns (int24) {
         uint256 tick_;
         if (tick < 0) {
             tick_ = uint256(-int256(tick));
@@ -86,7 +85,7 @@ contract UniswapV3AM_Fork_Test is Fork_Test {
         int24 tickLower,
         int24 tickUpper,
         bool revertsOnZeroLiquidity
-    ) public returns (uint256 tokenId) {
+    ) internal returns (uint256 tokenId) {
         (uint160 sqrtPrice,,,,,,) = pool_.slot0();
 
         (uint256 amount0, uint256 amount1) = LiquidityAmounts.getAmountsForLiquidity(

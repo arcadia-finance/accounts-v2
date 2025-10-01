@@ -2,7 +2,7 @@
  * Created by Pragma Labs
  * SPDX-License-Identifier: BUSL-1.1
  */
-pragma solidity ^0.8.22;
+pragma solidity ^0.8.0;
 
 import { Asset, Oracle } from "./Shared.sol";
 
@@ -17,6 +17,7 @@ library AerodromeGauges {
     address internal constant CL1_USDS_USDC = 0xe2a2B1D8AA4bD8A05e517Ccf61E96A727831B63e;
     address internal constant CL1_USDZ_USDC = 0xE2F3C8c699A1bf30A12118B287B5208e7C6ddFEF;
     address internal constant CL1_WEETH_WETH = 0xfCfEE5f453728BaA5ffDA151f25A0e53B8C5A01C;
+    address internal constant CL1_WETH_USDC = 0x45C6e6A47a711B14D8357D5243F46704904578e3;
     address internal constant CL1_WETH_WRSETH = 0xEc33F9cbE64c7Bc9b262Efaaa56b7872e8889AaE;
     address internal constant CL1_WETH_WSTETH = 0x2A1f7bf46bd975b5004b61c6040597E1B6117040;
     address internal constant CL1_WSTETH_WRSETH = 0x4197186D3D65f694018Ae4B80355225Ce1dD64AD;
@@ -101,6 +102,7 @@ library AerodromePools {
     address internal constant V_WETH_WSTETH = 0xA6385c73961dd9C58db2EF0c4EB98cE4B60651e8;
 }
 
+/// forge-lint: disable-next-item(mixed-case-function)
 library Assets {
     function AAVE() internal pure returns (Asset memory) {
         return Asset({ asset: 0x63706e401c06ac8513145b7687A14804d17f814b, decimals: 18 });
@@ -231,11 +233,17 @@ library ExternalContracts {
     address internal constant UNISWAPV4_POS_MNGR = 0x7C5f5A4bBd8fD63184577525326123B519429bDc;
 }
 
+library Merkl {
+    address internal constant DISTRIBUTOR = 0x3Ef3D8bA38EBe18DB133cEc108f4D14CE00Dd9Ae;
+}
+
 library MerkleRoots {
     bytes32 internal constant V1 = 0xcc69885fda6bcc1a4ace058b4a62bf5e179ea78fd58a1ccd71c22cc9b688792f;
     bytes32 internal constant V2 = 0xad3228b676f7d3cd4284a5443f17f1962b36e491b30a40b2405849e597ba5fb5;
+    bytes32 internal constant V4 = 0x03a8115b458ca7ccb57dc8120b852092dd652c46642e100d332bdf624cd1eaf1;
 }
 
+/// forge-lint: disable-next-item(mixed-case-function)
 library Oracles {
     function AAVE_USD() internal pure returns (Oracle memory) {
         return Oracle({

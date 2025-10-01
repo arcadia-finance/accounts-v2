@@ -2,11 +2,10 @@
  * Created by Pragma Labs
  * SPDX-License-Identifier: BUSL-1.1
  */
-pragma solidity ^0.8.22;
-
-import { Fuzz_Test, Constants } from "../Fuzz.t.sol";
+pragma solidity ^0.8.0;
 
 import { AssetValuationLibExtension } from "../../utils/extensions/AssetValuationLibExtension.sol";
+import { Fuzz_Test } from "../Fuzz.t.sol";
 
 /**
  * @notice Common logic needed by all "AssetValuationLib" fuzz tests.

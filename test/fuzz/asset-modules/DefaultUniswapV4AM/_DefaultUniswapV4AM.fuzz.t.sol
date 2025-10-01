@@ -2,20 +2,16 @@
  * Created by Pragma Labs
  * SPDX-License-Identifier: BUSL-1.1
  */
-pragma solidity ^0.8.22;
+pragma solidity ^0.8.0;
 
-import { Base_Test } from "../../../Base.t.sol";
-import { BaseHook } from "../../../../lib/v4-periphery/src/utils/BaseHook.sol";
 import { DefaultUniswapV4AMExtension } from "../../../../test/utils/extensions/DefaultUniswapV4AMExtension.sol";
 import { ERC20 } from "../../../../lib/solmate/src/tokens/ERC20.sol";
 import { Fuzz_Test } from "../../Fuzz.t.sol";
 import { FixedPointMathLib } from "../../../../lib/solmate/src/utils/FixedPointMathLib.sol";
-import { Hooks } from "../../../../lib/v4-periphery/lib/v4-core/src/libraries/Hooks.sol";
 import { LiquidityAmounts } from "../../../../src/asset-modules/UniswapV3/libraries/LiquidityAmounts.sol";
 import { LiquidityAmountsExtension } from
     "../../../utils/fixtures/uniswap-v3/extensions/libraries/LiquidityAmountsExtension.sol";
 import { PoolKey } from "../../../../lib/v4-periphery/lib/v4-core/src/types/PoolKey.sol";
-import { PositionManager } from "../../../../lib/v4-periphery/src/PositionManager.sol";
 import { TickMath } from "../../../../lib/v4-periphery/lib/v4-core/src/libraries/TickMath.sol";
 import { UniswapV4Fixture } from "../../../utils/fixtures/uniswap-v4/UniswapV4Fixture.f.sol";
 import { UniswapV4HooksRegistryExtension } from "../../../../test/utils/extensions/UniswapV4HooksRegistryExtension.sol";
@@ -28,6 +24,7 @@ abstract contract DefaultUniswapV4AM_Fuzz_Test is Fuzz_Test, UniswapV4Fixture {
                               CONSTANTS
     /////////////////////////////////////////////////////////////// */
 
+    /// forge-lint: disable-next-line(mixed-case-variable)
     DefaultUniswapV4AMExtension internal uniswapV4AM;
     UniswapV4HooksRegistryExtension internal v4HooksRegistry;
     PoolKey internal stablePoolKey;
@@ -101,7 +98,8 @@ abstract contract DefaultUniswapV4AM_Fuzz_Test is Fuzz_Test, UniswapV4Fixture {
 
         // Deploy Asset-Module and HooksRegistry
         vm.startPrank(users.owner);
-        v4HooksRegistry = new UniswapV4HooksRegistryExtension(address(registry), address(positionManagerV4));
+        v4HooksRegistry =
+            new UniswapV4HooksRegistryExtension(users.owner, address(registry), address(positionManagerV4));
         registry.addAssetModule(address(v4HooksRegistry));
         v4HooksRegistry.setProtocol();
         vm.stopPrank();
@@ -109,7 +107,7 @@ abstract contract DefaultUniswapV4AM_Fuzz_Test is Fuzz_Test, UniswapV4Fixture {
         uniswapV4AM = DefaultUniswapV4AMExtension(v4HooksRegistry.DEFAULT_UNISWAP_V4_AM());
 
         // Set Extension contract for uniswapV4AM.
-        bytes memory args = abi.encode(address(v4HooksRegistry), address(positionManagerV4));
+        bytes memory args = abi.encode(users.owner, address(v4HooksRegistry), address(positionManagerV4));
         vm.startPrank(address(v4HooksRegistry));
         deployCodeTo("DefaultUniswapV4AMExtension.sol", args, address(uniswapV4AM));
         vm.stopPrank();
@@ -142,7 +140,7 @@ abstract contract DefaultUniswapV4AM_Fuzz_Test is Fuzz_Test, UniswapV4Fixture {
 
     function givenValidTicks(int24 tickLower, int24 tickUpper)
         public
-        view
+        pure
         returns (int24 tickLower_, int24 tickUpper_)
     {
         tickLower_ = int24(bound(tickLower, MIN_TICK, MAX_TICK - 2));

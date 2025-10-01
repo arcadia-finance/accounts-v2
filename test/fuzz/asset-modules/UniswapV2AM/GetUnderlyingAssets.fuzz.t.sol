@@ -2,7 +2,7 @@
  * Created by Pragma Labs
  * SPDX-License-Identifier: BUSL-1.1
  */
-pragma solidity ^0.8.22;
+pragma solidity ^0.8.0;
 
 import { UniswapV2AM_Fuzz_Test } from "./_UniswapV2AM.fuzz.t.sol";
 
@@ -36,7 +36,7 @@ contract GetUnderlyingAssets_UniswapV2AM_Fuzz_Test is UniswapV2AM_Fuzz_Test {
         assertEq(actualUnderlyingAssetKeys[1], expectedUnderlyingAssetKeys[1]);
     }
 
-    function testFuzz_Success_getUnderlyingAssets_NotInAssetModule() public {
+    function testFuzz_Success_getUnderlyingAssets_NotInAssetModule() public view {
         bytes32 assetKey = bytes32(abi.encodePacked(uint96(0), address(pairToken1Token2)));
         bytes32[] memory expectedUnderlyingAssetKeys = new bytes32[](2);
         expectedUnderlyingAssetKeys[0] = bytes32(abi.encodePacked(uint96(0), address(mockERC20.token2)));

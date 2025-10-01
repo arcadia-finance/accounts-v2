@@ -1,8 +1,9 @@
 // SPDX-License-Identifier: MIT
-pragma solidity ^0.8.22;
+pragma solidity ^0.8.0;
 
 import { TickMath } from "../../../../../../src/asset-modules/UniswapV3/libraries/TickMath.sol";
 
+/// forge-lint: disable-next-item(mixed-case-variable)
 library TickMathsExtension {
     /// @dev The minimum value that can be returned from #getSqrtRatioAtTick. Equivalent to getSqrtRatioAtTick(MIN_TICK)
     uint160 internal constant MIN_SQRT_RATIO = 4_295_128_739;

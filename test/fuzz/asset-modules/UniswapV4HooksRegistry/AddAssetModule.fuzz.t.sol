@@ -2,7 +2,7 @@
  * Created by Pragma Labs
  * SPDX-License-Identifier: BUSL-1.1
  */
-pragma solidity ^0.8.22;
+pragma solidity ^0.8.0;
 
 import { RegistryErrors } from "../../../../src/libraries/Errors.sol";
 import { UniswapV4HooksRegistry_Fuzz_Test } from "./_UniswapV4HooksRegistry.fuzz.t.sol";
@@ -46,7 +46,10 @@ contract AddAssetModule_UniswapV4HooksRegistry_Fuzz_Test is UniswapV4HooksRegist
         vm.stopPrank();
     }
 
-    function testFuzz_addAssetModule(address assetModule) public {
+    function testFuzz_Success_addAssetModule(address assetModule) public {
+        // Given: Asset Module is not the default Uniswap v4 Asset Module.
+        vm.assume(assetModule != address(uniswapV4AM));
+
         // When: Calling addAssetModule
         // Then: It should emit an event
         vm.prank(users.owner);

@@ -2,18 +2,15 @@
  * Created by Pragma Labs
  * SPDX-License-Identifier: BUSL-1.1
  */
-pragma solidity ^0.8.22;
+pragma solidity ^0.8.0;
 
 import { AbstractStakingAM_Fuzz_Test } from "../AbstractStakingAM/_AbstractStakingAM.fuzz.t.sol";
 import { AerodromeFixture } from "../../../utils/fixtures/aerodrome/AerodromeFixture.f.sol";
-import { Fuzz_Test } from "../../Fuzz.t.sol";
-
 import { AerodromePoolAM } from "../../../../src/asset-modules/Aerodrome-Finance/AerodromePoolAM.sol";
-import { ERC20 } from "../../../../lib/solmate/src/tokens/ERC20.sol";
 import { ERC20Mock } from "../../../utils/mocks/tokens/ERC20Mock.sol";
+import { Fuzz_Test } from "../../Fuzz.t.sol";
 import { Gauge } from "../../../utils/mocks/Aerodrome/AeroGaugeMock.sol";
 import { Pool } from "../../../utils/mocks/Aerodrome/AeroPoolMock.sol";
-import { StakedAerodromeAM } from "../../../../src/asset-modules/Aerodrome-Finance/StakedAerodromeAM.sol";
 import { StakedAerodromeAMExtension } from "../../../utils/extensions/StakedAerodromeAMExtension.sol";
 import { StakingAM } from "../../../../src/asset-modules/abstracts/AbstractStakingAM.sol";
 import { StdStorage, stdStorage } from "../../../../lib/forge-std/src/Test.sol";
@@ -27,10 +24,12 @@ abstract contract StakedAerodromeAM_Fuzz_Test is Fuzz_Test, AbstractStakingAM_Fu
                             TEST CONTRACTS
     /////////////////////////////////////////////////////////////// */
 
+    /// forge-lint: disable-start(mixed-case-variable)
     AerodromePoolAM internal aerodromePoolAM;
     Gauge internal aeroGauge;
     Pool internal aeroPool;
     StakedAerodromeAMExtension internal stakedAerodromeAM;
+    /// forge-lint: disable-end(mixed-case-variable)
 
     /* ///////////////////////////////////////////////////////////////
                               SETUP
@@ -48,11 +47,11 @@ abstract contract StakedAerodromeAM_Fuzz_Test is Fuzz_Test, AbstractStakingAM_Fu
 
         // Deploy Aerodrome AM.
         vm.startPrank(users.owner);
-        aerodromePoolAM = new AerodromePoolAM(address(registry), address(aeroPoolFactory));
+        aerodromePoolAM = new AerodromePoolAM(users.owner, address(registry), address(aeroPoolFactory));
         registry.addAssetModule(address(aerodromePoolAM));
 
         // Deploy StakedAerodromeAM.
-        stakedAerodromeAM = new StakedAerodromeAMExtension(address(registry), address(voter), AERO);
+        stakedAerodromeAM = new StakedAerodromeAMExtension(users.owner, address(registry), address(voter), AERO);
         registry.addAssetModule(address(stakedAerodromeAM));
         stakedAerodromeAM.initialize();
         vm.stopPrank();
@@ -61,6 +60,8 @@ abstract contract StakedAerodromeAM_Fuzz_Test is Fuzz_Test, AbstractStakingAM_Fu
     /* ///////////////////////////////////////////////////////////////
                           HELPER FUNCTIONS
     /////////////////////////////////////////////////////////////// */
+
+    /// forge-lint: disable-next-item(mixed-case-function,mixed-case-variable)
     function setStakedAerodromeAMState(
         StakingAMStateForAsset memory stakingAMStateForAsset,
         StakingAM.PositionState memory stakingAMStateForPosition,

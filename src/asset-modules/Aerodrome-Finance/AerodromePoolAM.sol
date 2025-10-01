@@ -2,7 +2,7 @@
  * Created by Pragma Labs
  * SPDX-License-Identifier: BUSL-1.1
  */
-pragma solidity ^0.8.22;
+pragma solidity ^0.8.30;
 
 import { AssetValuationLib, AssetValueAndRiskFactors } from "../../libraries/AssetValuationLib.sol";
 import { DerivedAM, FixedPointMathLib, IRegistry } from "../abstracts/AbstractDerivedAM.sol";
@@ -56,11 +56,12 @@ contract AerodromePoolAM is DerivedAM {
     ////////////////////////////////////////////////////////////// */
 
     /**
+     * @param owner_ The address of the Owner.
      * @param registry_ The address of the Registry.
      * @param aerodromeFactory The contract address of the pool factory of Aerodrome Finance.
      * @dev The ASSET_TYPE, necessary for the deposit and withdraw logic in the Accounts, is "1" for ERC20 tokens.
      */
-    constructor(address registry_, address aerodromeFactory) DerivedAM(registry_, 1) {
+    constructor(address owner_, address registry_, address aerodromeFactory) DerivedAM(owner_, registry_, 1) {
         AERO_FACTORY = IAeroFactory(aerodromeFactory);
     }
 
@@ -75,7 +76,7 @@ contract AerodromePoolAM is DerivedAM {
      * Since tokens with very high supply might cause an overflow in _getTrustedReservesStable().
      */
     function addAsset(address pool) external onlyOwner {
-        if (AERO_FACTORY.isPool(pool) != true) revert InvalidPool();
+        if (!AERO_FACTORY.isPool(pool)) revert InvalidPool();
 
         (address token0, address token1) = IAeroPool(pool).tokens();
         if (!IRegistry(REGISTRY).isAllowed(token0, 0)) revert AssetNotAllowed();

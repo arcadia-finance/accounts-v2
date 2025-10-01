@@ -2,7 +2,7 @@
  * Created by Pragma Labs
  * SPDX-License-Identifier: BUSL-1.1
  */
-pragma solidity ^0.8.22;
+pragma solidity ^0.8.0;
 
 import { SlipstreamAM_Fuzz_Test } from "./_SlipstreamAM.fuzz.t.sol";
 
@@ -25,7 +25,9 @@ contract Constructor_SlipstreamAM_Fuzz_Test is SlipstreamAM_Fuzz_Test {
     //////////////////////////////////////////////////////////////*/
     function testFuzz_Success_deployment(address registry_) public {
         vm.startPrank(users.owner);
-        SlipstreamAMExtension slipstreamAM_ = new SlipstreamAMExtension(registry_, address(slipstreamPositionManager));
+        /// forge-lint: disable-next-line(mixed-case-variable)
+        SlipstreamAMExtension slipstreamAM_ =
+            new SlipstreamAMExtension(users.owner, registry_, address(slipstreamPositionManager));
         vm.stopPrank();
 
         assertEq(slipstreamAM_.REGISTRY(), registry_);

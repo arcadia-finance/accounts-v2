@@ -2,13 +2,12 @@
  * Created by Pragma Labs
  * SPDX-License-Identifier: BUSL-1.1
  */
-pragma solidity ^0.8.22;
+pragma solidity ^0.8.0;
 
-import { Fuzz_Test, Constants } from "../../Fuzz.t.sol";
-
+import { Fuzz_Test } from "../../Fuzz.t.sol";
+import { ERC20Mock } from "../../../utils/mocks/tokens/ERC20Mock.sol";
 import { StakingAM } from "../../../../src/asset-modules/abstracts/AbstractStakingAM.sol";
 import { StakingAMMock } from "../../../utils/mocks/asset-modules/StakingAMMock.sol";
-import { ERC20Mock } from "../../../utils/mocks/tokens/ERC20Mock.sol";
 
 /**
  * @notice Common logic needed by "StakingAM" fuzz tests.
@@ -18,6 +17,7 @@ abstract contract AbstractStakingAM_Fuzz_Test is Fuzz_Test {
                             VARIABLES
     /////////////////////////////////////////////////////////////// */
 
+    /// forge-lint: disable-start(pascal-case-struct)
     struct StakingAMStateForAsset {
         uint256 currentRewardGlobal;
         uint128 lastRewardPerTokenGlobal;
@@ -30,12 +30,14 @@ abstract contract AbstractStakingAM_Fuzz_Test is Fuzz_Test {
         uint128 lastRewardPerTokenPosition;
         uint128 lastRewardPosition;
     }
+    /// forge-lint: disable-end(pascal-case-struct)
 
     /*////////////////////////////////////////////////////////////////
                             TEST CONTRACTS
     /////////////////////////////////////////////////////////////// */
 
     ERC20Mock internal rewardToken;
+    /// forge-lint: disable-next-line(mixed-case-variable)
     StakingAMMock internal stakingAM;
 
     /* ///////////////////////////////////////////////////////////////
@@ -47,7 +49,7 @@ abstract contract AbstractStakingAM_Fuzz_Test is Fuzz_Test {
 
         vm.startPrank(users.owner);
         rewardToken = new ERC20Mock("RewardToken", "RWT", 18);
-        stakingAM = new StakingAMMock(address(registry), "StakingAMTest", "SMT", address(rewardToken));
+        stakingAM = new StakingAMMock(users.owner, address(registry), "StakingAMTest", "SMT", address(rewardToken));
         vm.stopPrank();
     }
 
@@ -55,6 +57,7 @@ abstract contract AbstractStakingAM_Fuzz_Test is Fuzz_Test {
                           HELPER FUNCTIONS
     /////////////////////////////////////////////////////////////// */
 
+    /// forge-lint: disable-next-item(mixed-case-function,mixed-case-variable)
     function setStakingAMState(
         StakingAMStateForAsset memory stakingAMStateForAsset,
         StakingAM.PositionState memory stakingAMStateForPosition,
@@ -71,10 +74,11 @@ abstract contract AbstractStakingAM_Fuzz_Test is Fuzz_Test {
         stakingAM.setAssetInPosition(asset, id);
     }
 
+    /// forge-lint: disable-next-item(mixed-case-function,mixed-case-variable)
     function givenValidStakingAMState(
         StakingAMStateForAsset memory stakingAMStateForAsset,
         StakingAM.PositionState memory stakingAMStateForPosition
-    ) public view returns (StakingAMStateForAsset memory, StakingAM.PositionState memory) {
+    ) public pure returns (StakingAMStateForAsset memory, StakingAM.PositionState memory) {
         // Given: More than 1 gwei is staked.
         stakingAMStateForAsset.totalStaked = uint128(bound(stakingAMStateForAsset.totalStaked, 1, type(uint128).max));
 

@@ -2,12 +2,11 @@
  * Created by Pragma Labs
  * SPDX-License-Identifier: BUSL-1.1
  */
-pragma solidity ^0.8.22;
+pragma solidity ^0.8.0;
 
 import { WrappedAerodromeAM_Fuzz_Test } from "./_WrappedAerodromeAM.fuzz.t.sol";
 
 import { FixedPointMathLib } from "../../../../lib/solmate/src/utils/FixedPointMathLib.sol";
-import { Pool } from "../../../utils/mocks/Aerodrome/AeroPoolMock.sol";
 import { WrappedAerodromeAM } from "../../../../src/asset-modules/Aerodrome-Finance/WrappedAerodromeAM.sol";
 
 /**
@@ -333,7 +332,7 @@ contract GetFeeBalances_WrappedAerodromeAM_Fuzz_Test is WrappedAerodromeAM_Fuzz_
         WrappedAerodromeAM.PositionState memory positionState,
         uint256 fee0,
         uint256 fee1
-    ) public {
+    ) public view {
         // Given: totalWrapped is zero.
         poolState.totalWrapped = 0;
 
@@ -359,7 +358,7 @@ contract GetFeeBalances_WrappedAerodromeAM_Fuzz_Test is WrappedAerodromeAM_Fuzz_
         WrappedAerodromeAM.PositionState memory positionState,
         uint256 fee0,
         uint256 fee1
-    ) public {
+    ) public view {
         // Given : Valid state
         (poolState, positionState, fee0, fee1) = givenValidAMState(poolState, positionState, fee0, fee1);
 

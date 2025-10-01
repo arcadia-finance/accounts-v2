@@ -2,7 +2,7 @@
  * Created by Pragma Labs
  * SPDX-License-Identifier: BUSL-1.1
  */
-pragma solidity ^0.8.22;
+pragma solidity ^0.8.30;
 
 import { DerivedAM, FixedPointMathLib, IRegistry } from "../abstracts/AbstractDerivedAM.sol";
 import { FixedPoint96 } from "./libraries/FixedPoint96.sol";
@@ -61,11 +61,14 @@ contract UniswapV3AM is DerivedAM {
     ////////////////////////////////////////////////////////////// */
 
     /**
+     * @param owner_ The address of the Owner.
      * @param registry_ The contract address of the Registry.
      * @param nonFungiblePositionManager The contract address of the protocols NonFungiblePositionManager.
      * @dev The ASSET_TYPE, necessary for the deposit and withdraw logic in the Accounts, is "2" for Uniswap V3 Liquidity Positions (ERC721).
      */
-    constructor(address registry_, address nonFungiblePositionManager) DerivedAM(registry_, 2) {
+    constructor(address owner_, address registry_, address nonFungiblePositionManager)
+        DerivedAM(owner_, registry_, 2)
+    {
         NON_FUNGIBLE_POSITION_MANAGER = INonfungiblePositionManager(nonFungiblePositionManager);
         UNISWAP_V3_FACTORY = INonfungiblePositionManager(nonFungiblePositionManager).factory();
     }
@@ -217,7 +220,7 @@ contract UniswapV3AM is DerivedAM {
 
         // As the sole liquidity provider in a new pool,
         // a malicious actor could bypass the max exposure by
-        // continiously swapping large amounts and increasing the fee portion
+        // continuously swapping large amounts and increasing the fee portion
         // of the liquidity position.
         fee0 = fee0 > principal0 ? principal0 : fee0;
         fee1 = fee1 > principal1 ? principal1 : fee1;

@@ -2,7 +2,7 @@
  * Created by Pragma Labs
  * SPDX-License-Identifier: BUSL-1.1
  */
-pragma solidity ^0.8.22;
+pragma solidity ^0.8.30;
 
 import { ERC20, IRegistry, StakingAM } from "../abstracts/AbstractStakingAM.sol";
 import { IAeroGauge } from "./interfaces/IAeroGauge.sol";
@@ -25,7 +25,7 @@ contract StakedAerodromeAM is StakingAM {
                                 STORAGE
     ////////////////////////////////////////////////////////////// */
 
-    // Bool indicating if the AssetModule has been initialized and rewardtoken is allowed.
+    // Bool indicating if the AssetModule has been initialized and rewardToken is allowed.
     bool internal initialized;
 
     // Maps an Aerodrome Finance Pool to its gauge.
@@ -46,13 +46,14 @@ contract StakedAerodromeAM is StakingAM {
     ////////////////////////////////////////////////////////////// */
 
     /**
+     * @param owner_ The address of the Owner.
      * @param registry The address of the Registry.
      * @param aerodromeVoter The address of the Aerodrome Finance Voter contract.
      * @param rewardToken The contract address of the Reward Token.
      * @dev The ASSET_TYPE, necessary for the deposit and withdraw logic in the Accounts, is "2" for ERC721 tokens.
      */
-    constructor(address registry, address aerodromeVoter, address rewardToken)
-        StakingAM(registry, "Arcadia Staked Aerodrome Positions", "aSAEROP")
+    constructor(address owner_, address registry, address aerodromeVoter, address rewardToken)
+        StakingAM(owner_, registry, "Arcadia Staked Aerodrome Positions", "aSAEROP")
     {
         REWARD_TOKEN = ERC20(rewardToken);
         AERO_VOTER = IAeroVoter(aerodromeVoter);
@@ -67,7 +68,7 @@ contract StakedAerodromeAM is StakingAM {
      * @param gauge The contract address of the gauge to stake the Aerodrome Finance LP.
      */
     function addAsset(address gauge) external {
-        if (AERO_VOTER.isGauge(gauge) != true) revert GaugeNotValid();
+        if (!AERO_VOTER.isGauge(gauge)) revert GaugeNotValid();
 
         address pool = IAeroGauge(gauge).stakingToken();
         if (!IRegistry(REGISTRY).isAllowed(pool, 0)) revert PoolNotAllowed();

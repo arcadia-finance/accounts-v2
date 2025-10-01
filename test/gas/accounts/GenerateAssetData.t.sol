@@ -2,13 +2,13 @@
  * Created by Pragma Labs
  * SPDX-License-Identifier: BUSL-1.1
  */
-pragma solidity ^0.8.22;
+pragma solidity ^0.8.0;
 
 import { Gas_Test } from "../Gas.t.sol";
-import { AccountV1 } from "../../../src/accounts/AccountV1.sol";
+import { AccountV3 } from "../../../src/accounts/AccountV3.sol";
 
 /**
- * @notice Fuzz tests for the function "closeMarginAccount" of contract "AccountV1".
+ * @notice Fuzz tests for the function "closeMarginAccount" of contract "AccountV3".
  */
 contract GenerateAssetData_Accounts_Gas_Test is Gas_Test {
     /* ///////////////////////////////////////////////////////////////
@@ -33,7 +33,7 @@ contract GenerateAssetData_Accounts_Gas_Test is Gas_Test {
 
     function testGas_GenerateAssetData_Single_ERC20() public {
         vm.pauseGasMetering();
-        AccountV1 account = AccountV1(newAccount);
+        AccountV3 account = AccountV3(newAccount);
 
         vm.prank(users.tokenCreator);
         mockERC20.stable1.mint(users.accountOwner, 1000 * 10 ** 18);

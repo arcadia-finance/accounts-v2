@@ -2,7 +2,7 @@
  * Created by Pragma Labs
  * SPDX-License-Identifier: BUSL-1.1
  */
-pragma solidity ^0.8.22;
+pragma solidity ^0.8.0;
 
 import { AssetValuationLib, AssetValueAndRiskFactors } from "../../libraries/AssetValuationLib.sol";
 import { ERC20 } from "../../../lib/solmate/src/tokens/ERC20.sol";
@@ -45,6 +45,7 @@ abstract contract StakingAM is DerivedAM, ERC721, ReentrancyGuard {
     uint256 internal lastPositionId;
 
     // The baseURI of the ERC721 tokens.
+    /// forge-lint: disable-next-item(mixed-case-variable)
     string public baseURI;
 
     // Map Asset to its corresponding struct with global state.
@@ -97,13 +98,14 @@ abstract contract StakingAM is DerivedAM, ERC721, ReentrancyGuard {
     ////////////////////////////////////////////////////////////// */
 
     /**
+     * @param owner_ The address of the Owner.
      * @param registry The contract address of the Registry.
      * @param name_ Name of the Staking Module.
      * @param symbol_ Symbol of the Staking Module.
      * @dev The ASSET_TYPE, necessary for the deposit and withdraw logic in the Accounts, is "2" for ERC721 tokens.
      */
-    constructor(address registry, string memory name_, string memory symbol_)
-        DerivedAM(registry, 2)
+    constructor(address owner_, address registry, string memory name_, string memory symbol_)
+        DerivedAM(owner_, registry, 2)
         ERC721(name_, symbol_)
     { }
 
@@ -572,6 +574,7 @@ abstract contract StakingAM is DerivedAM, ERC721, ReentrancyGuard {
      * @notice Function that stores a new base URI.
      * @param newBaseURI The new base URI to store.
      */
+    /// forge-lint: disable-next-item(mixed-case-function,mixed-case-variable)
     function setBaseURI(string calldata newBaseURI) external virtual onlyOwner {
         baseURI = newBaseURI;
     }
@@ -581,6 +584,7 @@ abstract contract StakingAM is DerivedAM, ERC721, ReentrancyGuard {
      * @param tokenId The id of the Account.
      * @return uri The token URI.
      */
+    /// forge-lint: disable-next-item(mixed-case-function,mixed-case-variable)
     function tokenURI(uint256 tokenId) public view virtual override returns (string memory uri) {
         return bytes(baseURI).length > 0 ? string(abi.encodePacked(baseURI, tokenId.toString())) : "";
     }

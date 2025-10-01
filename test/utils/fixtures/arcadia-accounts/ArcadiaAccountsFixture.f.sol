@@ -2,38 +2,54 @@
  * Created by Pragma Labs
  * SPDX-License-Identifier: BUSL-1.1
  */
-pragma solidity ^0.8.22;
+pragma solidity ^0.8.0;
 
-import { Base_Test } from "../../../Base.t.sol";
-
-import { AccountV1 } from "../../../../src/accounts/AccountV1.sol";
+import { AccountsGuardExtension } from "../../extensions/AccountsGuardExtension.sol";
+import { AccountPlaceholder } from "../../../../src/accounts/AccountPlaceholder.sol";
+import { AccountV3 } from "../../../../src/accounts/AccountV3.sol";
 import { ArcadiaOracle } from "../../mocks/oracles/ArcadiaOracle.sol";
+import { Base_Test } from "../../../Base.t.sol";
 import { BitPackingLib } from "../../../../src/libraries/BitPackingLib.sol";
 import { ChainlinkOMExtension } from "../../extensions/ChainlinkOMExtension.sol";
 import { Constants } from "../../Constants.sol";
 import { ERC20 } from "../../../../lib/solmate/src/tokens/ERC20.sol";
 import { ERC20Mock } from "../../mocks/tokens/ERC20Mock.sol";
 import { ERC20PrimaryAMExtension } from "../../extensions/ERC20PrimaryAMExtension.sol";
-import { Factory } from "../../../../src/Factory.sol";
+import { FactoryExtension } from "../../extensions/FactoryExtension.sol";
 import { RegistryL2Extension } from "../../extensions/RegistryL2Extension.sol";
 import { SequencerUptimeOracle } from "../../mocks/oracles/SequencerUptimeOracle.sol";
-import { Utils } from "../../Utils.sol";
 
 contract ArcadiaAccountsFixture is Base_Test {
-    function deployArcadiaAccounts() public {
+    function deployArcadiaAccounts(address merklDistributor) public {
         // Deploy the sequencer uptime oracle.
         vm.prank(users.oracleOwner);
         sequencerUptimeOracle = new SequencerUptimeOracle();
 
         // Deploy the base test contracts.
         vm.startPrank(users.owner);
-        factory = new Factory();
-        registry = new RegistryL2Extension(address(factory), address(sequencerUptimeOracle));
-        chainlinkOM = new ChainlinkOMExtension(address(registry));
-        erc20AM = new ERC20PrimaryAMExtension(address(registry));
+        factory = FactoryExtension(0xDa14Fdd72345c4d2511357214c5B89A919768e59);
+        bytes memory args = abi.encode(users.owner);
+        deployCodeTo("FactoryExtension.sol", args, address(factory));
 
-        accountV1Logic = new AccountV1(address(factory));
-        factory.setNewAccountInfo(address(registry), address(accountV1Logic), Constants.upgradeProof1To2, "");
+        registry = new RegistryL2Extension(users.owner, address(factory), address(sequencerUptimeOracle));
+        chainlinkOM = new ChainlinkOMExtension(users.owner, address(registry));
+        erc20AM = new ERC20PrimaryAMExtension(users.owner, address(registry));
+
+        accountsGuard = new AccountsGuardExtension(users.owner, address(factory));
+
+        // Placeholder for Account Implementation V1.
+        AccountPlaceholder accountPlaceholder = AccountPlaceholder(0xbea2B6d45ACaF62385877D835970a0788719cAe1);
+        args = abi.encode(address(factory), address(accountsGuard), 1);
+        deployCodeTo("AccountPlaceholder.sol", args, address(accountPlaceholder));
+        factory.setNewAccountInfo(address(registry), address(accountPlaceholder), Constants.ROOT, "");
+
+        // Placeholder for Account Implementation V2.
+        accountPlaceholder = new AccountPlaceholder(address(factory), address(accountsGuard), 2);
+        factory.setNewAccountInfo(address(registry), address(accountPlaceholder), Constants.ROOT, "");
+
+        // Account Implementation V3.
+        accountLogic = new AccountV3(address(factory), address(accountsGuard), merklDistributor);
+        factory.setNewAccountInfo(address(registry), address(accountLogic), Constants.ROOT, "");
 
         // Set the Guardians.
         vm.startPrank(users.owner);
@@ -53,14 +69,14 @@ contract ArcadiaAccountsFixture is Base_Test {
         // Deploy an initial Account with all inputs to zero
         vm.prank(users.accountOwner);
         address proxyAddress = factory.createAccount(0, 0, address(0));
-        account = AccountV1(proxyAddress);
+        account = AccountV3(proxyAddress);
 
         // Label the base test contracts.
         vm.label({ account: address(factory), newLabel: "Factory" });
         vm.label({ account: address(registry), newLabel: "Registry" });
         vm.label({ account: address(chainlinkOM), newLabel: "Chainlink Oracle Module" });
         vm.label({ account: address(erc20AM), newLabel: "Standard ERC20 Asset Module" });
-        vm.label({ account: address(accountV1Logic), newLabel: "Account V1 Logic" });
+        vm.label({ account: address(accountLogic), newLabel: "Account Logic" });
     }
 
     /*//////////////////////////////////////////////////////////////////////////
@@ -114,7 +130,7 @@ contract ArcadiaAccountsFixture is Base_Test {
         vm.stopPrank();
     }
 
-    function depositERC20InAccount(AccountV1 account_, ERC20Mock token, uint256 amount) public {
+    function depositErc20InAccount(AccountV3 account_, ERC20Mock token, uint256 amount) public {
         address[] memory assets = new address[](1);
         assets[0] = address(token);
 

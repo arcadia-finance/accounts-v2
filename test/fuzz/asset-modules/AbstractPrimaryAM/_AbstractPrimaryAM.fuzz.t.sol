@@ -2,14 +2,11 @@
  * Created by Pragma Labs
  * SPDX-License-Identifier: BUSL-1.1
  */
-pragma solidity ^0.8.22;
+pragma solidity ^0.8.0;
 
-import { Fuzz_Test, Constants } from "../../Fuzz.t.sol";
-
+import { Fuzz_Test } from "../../Fuzz.t.sol";
 import { OracleModuleMock } from "../../../utils/mocks/oracle-modules/OracleModuleMock.sol";
-
 import { PrimaryAMMock } from "../../../utils/mocks/asset-modules/PrimaryAMMock.sol";
-import { AssetModule } from "../../../../src/asset-modules/abstracts/AbstractAM.sol";
 
 /**
  * @notice Common logic needed by all "AbstractPrimaryAM" fuzz tests.
@@ -28,6 +25,7 @@ abstract contract AbstractPrimaryAM_Fuzz_Test is Fuzz_Test {
                              VARIABLES
     /////////////////////////////////////////////////////////////// */
 
+    /// forge-lint: disable-next-item(pascal-case-struct)
     struct PrimaryAMAssetState {
         address creditor;
         address asset;
@@ -52,7 +50,7 @@ abstract contract AbstractPrimaryAM_Fuzz_Test is Fuzz_Test {
         Fuzz_Test.setUp();
 
         vm.prank(users.owner);
-        assetModule = new PrimaryAMMock(address(registry), 0);
+        assetModule = new PrimaryAMMock(users.owner, address(registry), 0);
     }
 
     /* ///////////////////////////////////////////////////////////////
@@ -67,6 +65,7 @@ abstract contract AbstractPrimaryAM_Fuzz_Test is Fuzz_Test {
         oracleModule.setRate(oracleId, rate);
     }
 
+    /// forge-lint: disable-next-item(mixed-case-function)
     function setPrimaryAMAssetState(PrimaryAMAssetState memory assetState) internal {
         assetModule.setExposure(
             assetState.creditor,

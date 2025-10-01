@@ -2,17 +2,17 @@
  * Created by Pragma Labs
  * SPDX-License-Identifier: BUSL-1.1
  */
-pragma solidity ^0.8.22;
+pragma solidity ^0.8.30;
 
-import { Proxy } from "./Proxy.sol";
+import { CreateProxyLib } from "./libraries/CreateProxyLib.sol";
+import { ERC721, ERC721TokenReceiver } from "../lib/solmate/src/tokens/ERC721.sol";
+import { FactoryErrors } from "./libraries/Errors.sol";
+import { FactoryGuardian } from "./guardians/FactoryGuardian.sol";
 import { IAccount } from "./interfaces/IAccount.sol";
 import { IFactory } from "./interfaces/IFactory.sol";
 import { IRegistry } from "./interfaces/IRegistry.sol";
-import { ERC721, ERC721TokenReceiver } from "../lib/solmate/src/tokens/ERC721.sol";
-import { Strings } from "./libraries/Strings.sol";
 import { MerkleProofLib } from "../lib/solmate/src/utils/MerkleProofLib.sol";
-import { FactoryGuardian } from "./guardians/FactoryGuardian.sol";
-import { FactoryErrors } from "./libraries/Errors.sol";
+import { Strings } from "./libraries/Strings.sol";
 
 /**
  * @title Factory
@@ -30,6 +30,7 @@ contract Factory is IFactory, ERC721, FactoryGuardian {
     // The latest Account version, newly deployed Account use the latest version by default.
     uint88 public latestAccountVersion;
     // The baseURI of the ERC721 tokens.
+    /// forge-lint: disable-next-item(mixed-case-variable)
     string public baseURI;
 
     // The Merkle root of the Merkle tree of all the compatible Account versions.
@@ -67,7 +68,10 @@ contract Factory is IFactory, ERC721, FactoryGuardian {
                                 CONSTRUCTOR
     ////////////////////////////////////////////////////////////// */
 
-    constructor() ERC721("Arcadia Account", "ARCADIA") { }
+    /**
+     * @param owner_ The address of the Owner.
+     */
+    constructor(address owner_) ERC721("Arcadia Account", "ARCADIA") FactoryGuardian(owner_) { }
 
     /*///////////////////////////////////////////////////////////////
                           ACCOUNT MANAGEMENT
@@ -75,17 +79,17 @@ contract Factory is IFactory, ERC721, FactoryGuardian {
 
     /**
      * @notice Function to create a new Account.
-     * @param salt A salt to be used to generate the hash.
+     * @param userSalt A salt, provided by the user, to generate the Account address.
      * @param accountVersion The Account version.
      * @param creditor The contract address of the creditor.
-     * @return account The contract address of the proxy contract of the newly deployed Account.
+     * @return account The contract address of the Proxy of the newly deployed Account.
      * @dev If accountVersion == 0, the newest version will be used.
      * @dev createAccount() uses the CREATE2 opcode, which can lead to address collision vulnerabilities,
      * as described in: https://eips.ethereum.org/EIPS/eip-3607.
      * To decrease the probability of finding an address collision, the number of possible account addresses is limited to 2**64.
      * We use a salt with 64 bits, the 32 right most bits of the address of the tx.origin, and 32 bits provided by the user.
      */
-    function createAccount(uint32 salt, uint256 accountVersion, address creditor)
+    function createAccount(uint32 userSalt, uint256 accountVersion, address creditor)
         external
         whenCreateNotPaused
         returns (address account)
@@ -96,13 +100,10 @@ contract Factory is IFactory, ERC721, FactoryGuardian {
         if (accountVersionBlocked[accountVersion]) revert FactoryErrors.AccountVersionBlocked();
 
         // Hash tx.origin with the user provided salt to avoid front-running Account deployment with an identical salt.
-        // We use tx.origin instead of msg.sender so that deployments through a third party contract are not vulnerable to front-running.
-        account = address(
-            // 64 bit salt: 32 bits from tx.origin and 32 bits provided by the user.
-            new Proxy{ salt: keccak256(abi.encodePacked(salt, uint32(uint160(tx.origin)))) }(
-                versionInformation[accountVersion].implementation
-            )
-        );
+        // We use tx.origin instead of msg.sender so that deployments through third party contracts are not vulnerable to front-running.
+        // 64 bit salt: 32 bits from tx.origin and 32 bits provided by the user.
+        uint256 salt = uint256(keccak256(abi.encodePacked(userSalt, uint32(uint160(tx.origin)))));
+        account = CreateProxyLib.createProxy(salt, versionInformation[accountVersion].implementation);
 
         allAccounts.push(account);
         accountIndex[account] = allAccounts.length;
@@ -230,6 +231,7 @@ contract Factory is IFactory, ERC721, FactoryGuardian {
         if (to == account) revert FactoryErrors.InvalidRecipient();
 
         IAccount(account).transferOwnership(to);
+        /// forge-lint: disable-next-line(erc20-unchecked-transfer)
         super.transferFrom(from, to, id);
     }
 
@@ -334,6 +336,25 @@ contract Factory is IFactory, ERC721, FactoryGuardian {
         numberOfAccounts = allAccounts.length;
     }
 
+    /**
+     * @notice Computes the address of a new Account.
+     * @param user The address of the user (tx.origin) creating the Account.
+     * @param userSalt A salt, provided by the user, to generate the Account address.
+     * @param accountVersion The Account version.
+     * @return account The contract address of the Proxy of the new Account.
+     * @dev Does not verify if the account version exists or is blocked.
+     */
+    function getAccountAddress(address user, uint32 userSalt, uint256 accountVersion)
+        external
+        view
+        returns (address account)
+    {
+        accountVersion = accountVersion == 0 ? latestAccountVersion : accountVersion;
+
+        uint256 salt = uint256(keccak256(abi.encodePacked(userSalt, uint32(uint160(user)))));
+        account = CreateProxyLib.getProxyAddress(salt, versionInformation[accountVersion].implementation);
+    }
+
     /*///////////////////////////////////////////////////////////////
                         ERC-721 LOGIC
     ///////////////////////////////////////////////////////////////*/
@@ -345,6 +366,7 @@ contract Factory is IFactory, ERC721, FactoryGuardian {
      * and might be updated later to allow users to choose/create their own Account art,
      * as such no URI freeze is added.
      */
+    /// forge-lint: disable-next-item(mixed-case-function,mixed-case-variable)
     function setBaseURI(string calldata newBaseURI) external onlyOwner {
         baseURI = newBaseURI;
     }
@@ -354,6 +376,7 @@ contract Factory is IFactory, ERC721, FactoryGuardian {
      * @param tokenId The id of the Account.
      * @return uri The token URI.
      */
+    /// forge-lint: disable-next-item(mixed-case-function,mixed-case-variable)
     function tokenURI(uint256 tokenId) public view override returns (string memory uri) {
         return bytes(baseURI).length > 0 ? string(abi.encodePacked(baseURI, tokenId.toString())) : "";
     }

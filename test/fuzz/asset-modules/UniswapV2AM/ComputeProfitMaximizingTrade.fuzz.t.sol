@@ -2,7 +2,7 @@
  * Created by Pragma Labs
  * SPDX-License-Identifier: BUSL-1.1
  */
-pragma solidity ^0.8.22;
+pragma solidity ^0.8.0;
 
 import { UniswapV2AM_Fuzz_Test } from "./_UniswapV2AM.fuzz.t.sol";
 
@@ -81,7 +81,7 @@ contract ComputeProfitMaximizingTrade_UniswapV2AM_Fuzz_Test is UniswapV2AM_Fuzz_
         uint256 priceToken1,
         uint112 reserve0,
         uint112 reserve1
-    ) public {
+    ) public view {
         vm.assume(reserve0 > 10e6); //Minimum liquidity
         vm.assume(reserve1 > 10e6); //Minimum liquidity
         vm.assume(priceToken0 > 10e6); //Realistic prices

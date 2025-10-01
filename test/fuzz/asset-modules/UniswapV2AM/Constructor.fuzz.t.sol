@@ -2,7 +2,7 @@
  * Created by Pragma Labs
  * SPDX-License-Identifier: BUSL-1.1
  */
-pragma solidity ^0.8.22;
+pragma solidity ^0.8.0;
 
 import { UniswapV2AM_Fuzz_Test } from "./_UniswapV2AM.fuzz.t.sol";
 
@@ -25,7 +25,8 @@ contract Constructor_UniswapV2AM_Fuzz_Test is UniswapV2AM_Fuzz_Test {
     //////////////////////////////////////////////////////////////*/
     function testFuzz_Success_deployment(address registry_) public {
         vm.startPrank(users.owner);
-        UniswapV2AMExtension uniswapV2AM_ = new UniswapV2AMExtension(registry_, address(uniswapV2Factory));
+        /// forge-lint: disable-next-line(mixed-case-variable)
+        UniswapV2AMExtension uniswapV2AM_ = new UniswapV2AMExtension(users.owner, registry_, address(uniswapV2Factory));
         vm.stopPrank();
         assertEq(uniswapV2AM_.REGISTRY(), registry_);
         assertEq(uniswapV2AM_.ASSET_TYPE(), 1);

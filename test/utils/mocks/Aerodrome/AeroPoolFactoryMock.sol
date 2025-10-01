@@ -2,11 +2,12 @@
  * Created by Pragma Labs
  * SPDX-License-Identifier: BUSL-1.1
  */
-pragma solidity ^0.8.22;
+pragma solidity ^0.8.0;
 
 import { IPool } from "./interfaces/IPool.sol";
 import { Clones } from "../../mocks/openzeppelin-0.8/Clones.sol";
 
+/// forge-lint: disable-next-item(screaming-snake-case-immutable)
 contract PoolFactory {
     event SetFeeManager(address feeManager);
     event SetPauser(address pauser);

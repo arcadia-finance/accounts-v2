@@ -2,13 +2,13 @@
  * Created by Pragma Labs
  * SPDX-License-Identifier: BUSL-1.1
  */
-pragma solidity ^0.8.22;
+pragma solidity ^0.8.0;
 
-import { Factory_Fuzz_Test, FactoryErrors } from "./_Factory.fuzz.t.sol";
-
-import { AccountV2 } from "../../utils/mocks/accounts/AccountV2.sol";
+import { AccountLogicMock } from "../../utils/mocks/accounts/AccountLogicMock.sol";
 import { Constants } from "../../utils/Constants.sol";
 import { Factory } from "../../../src/Factory.sol";
+import { Factory_Fuzz_Test } from "./_Factory.fuzz.t.sol";
+import { FactoryErrors } from "../../../src/libraries/Errors.sol";
 
 /**
  * @notice Fuzz tests for the function "upgradeAccountVersion" of contract "Factory".
@@ -18,7 +18,7 @@ contract UpgradeAccountVersion_Factory_Fuzz_Test is Factory_Fuzz_Test {
                               TEST CONTRACTS
     /////////////////////////////////////////////////////////////// */
 
-    AccountV2 internal accountV2Logic;
+    AccountLogicMock internal accountLogicMock;
 
     /* ///////////////////////////////////////////////////////////////
                               SETUP
@@ -27,10 +27,10 @@ contract UpgradeAccountVersion_Factory_Fuzz_Test is Factory_Fuzz_Test {
     function setUp() public override {
         Factory_Fuzz_Test.setUp();
 
-        // Set a Mocked V2 Account Logic contract in the Factory.
+        // Set a Mocked Account Logic contract in the Factory.
         vm.startPrank(users.owner);
-        accountV2Logic = new AccountV2(address(factory));
-        factory.setNewAccountInfo(address(registry), address(accountV2Logic), Constants.upgradeRoot1To2, "");
+        accountLogicMock = new AccountLogicMock(address(factory));
+        factory.setNewAccountInfo(address(registry), address(accountLogicMock), Constants.ROOT, "");
         vm.stopPrank();
     }
 
@@ -63,8 +63,7 @@ contract UpgradeAccountVersion_Factory_Fuzz_Test is Factory_Fuzz_Test {
     function testFuzz_Revert_upgradeAccountVersion_VersionNotAllowed(uint256 version, bytes32[] calldata proofs)
         public
     {
-        vm.assume(version != 1);
-        vm.assume(version != 2);
+        vm.assume(version > factory.latestAccountVersion());
 
         vm.startPrank(users.accountOwner);
         vm.expectRevert(FactoryErrors.InvalidUpgrade.selector);
@@ -74,12 +73,12 @@ contract UpgradeAccountVersion_Factory_Fuzz_Test is Factory_Fuzz_Test {
 
     function testFuzz_Success_upgradeAccountVersion() public {
         bytes32[] memory proofs = new bytes32[](1);
-        proofs[0] = Constants.upgradeProof1To2;
+        proofs[0] = Constants.PROOF_4_TO_3;
 
-        // When: "users.accountOwner" Upgrade the account to AccountV2Logic.
+        // When: "users.accountOwner" Upgrade the account to AccountLogicMockLogic.
         vm.startPrank(users.accountOwner);
         vm.expectEmit(true, true, true, true);
-        emit Factory.AccountUpgraded(address(account), 2);
+        emit Factory.AccountUpgraded(address(account), factory.latestAccountVersion());
         factory.upgradeAccountVersion(address(account), factory.latestAccountVersion(), proofs);
         vm.stopPrank();
     }

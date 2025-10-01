@@ -2,7 +2,7 @@
  * Created by Pragma Labs
  * SPDX-License-Identifier: BUSL-1.1
  */
-pragma solidity ^0.8.22;
+pragma solidity ^0.8.0;
 
 import { IERC20 } from "../../../../src/interfaces/IERC20.sol";
 import { ERC20Mock } from "../tokens/ERC20Mock.sol";
@@ -29,15 +29,18 @@ contract StargatePoolMock is ERC20Mock {
         convertRate = convertRate_;
     }
 
+    /// forge-lint: disable-next-item(mixed-case-function,mixed-case-variable)
     function amountLPtoLD(uint256 _amountLP) external view returns (uint256) {
         return amountSDtoLD(_amountLPtoSD(_amountLP));
     }
 
+    /// forge-lint: disable-next-item(mixed-case-function,mixed-case-variable)
     function _amountLPtoSD(uint256 _amountLP) internal view returns (uint256) {
         require(totalSupply > 0, "Stargate: cant convert LPtoSD when totalSupply == 0");
         return _amountLP * totalLiquidity / totalSupply;
     }
 
+    /// forge-lint: disable-next-item(mixed-case-function)
     function amountSDtoLD(uint256 _amount) internal view returns (uint256) {
         return _amount * convertRate;
     }

@@ -2,7 +2,7 @@
  * Created by Pragma Labs
  * SPDX-License-Identifier: BUSL-1.1
  */
-pragma solidity ^0.8.22;
+pragma solidity ^0.8.0;
 
 import { AbstractPrimaryAM_Fuzz_Test } from "./_AbstractPrimaryAM.fuzz.t.sol";
 
@@ -27,7 +27,7 @@ contract Constructor_AbstractPrimaryAM_Fuzz_Test is AbstractPrimaryAM_Fuzz_Test 
         vm.assume(assetType_ > 0);
 
         vm.startPrank(users.owner);
-        PrimaryAMMock assetModule_ = new PrimaryAMMock(registry_, assetType_);
+        PrimaryAMMock assetModule_ = new PrimaryAMMock(users.owner, registry_, assetType_);
         vm.stopPrank();
 
         assertEq(assetModule_.REGISTRY(), registry_);

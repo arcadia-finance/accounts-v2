@@ -2,7 +2,7 @@
  * Created by Pragma Labs
  * SPDX-License-Identifier: BUSL-1.1
  */
-pragma solidity ^0.8.22;
+pragma solidity ^0.8.0;
 
 import { Math } from "../../mocks/openzeppelin-0.8/Math.sol";
 import { IPool } from "./interfaces/IPool.sol";
@@ -19,6 +19,7 @@ import { ReentrancyGuard } from "../../mocks/openzeppelin-0.8/ReentrancyGuard.so
 /// @title Pool
 /// @author velodrome.finance, @figs999, @pegahcarter
 /// @notice Protocol token pool, either stable or volatile
+/// forge-lint: disable-next-item(all)
 contract Pool is IPool, ERC20Permit, ReentrancyGuard {
     using SafeERC20 for IERC20;
 

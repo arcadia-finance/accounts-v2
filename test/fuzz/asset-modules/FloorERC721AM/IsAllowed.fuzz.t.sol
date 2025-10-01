@@ -2,7 +2,7 @@
  * Created by Pragma Labs
  * SPDX-License-Identifier: BUSL-1.1
  */
-pragma solidity ^0.8.22;
+pragma solidity ^0.8.0;
 
 import { FloorERC721AM_Fuzz_Test } from "./_FloorERC721AM.fuzz.t.sol";
 
@@ -32,7 +32,7 @@ contract IsAllowed_FloorERC721AM_Fuzz_Test is FloorERC721AM_Fuzz_Test {
         assertTrue(floorERC721AM.isAllowed(address(mockERC721.nft2), id));
     }
 
-    function testFuzz_Success_isAllowed_Negative_WrongAddress(address randomAsset) public {
+    function testFuzz_Success_isAllowed_Negative_WrongAddress(address randomAsset) public view {
         vm.assume(randomAsset != address(mockERC721.nft1));
         vm.assume(randomAsset != address(mockERC721.nft2));
         vm.assume(randomAsset != address(mockERC721.nft3));

@@ -2,7 +2,7 @@
  * Created by Pragma Labs
  * SPDX-License-Identifier: BUSL-1.1
  */
-pragma solidity ^0.8.22;
+pragma solidity ^0.8.0;
 
 import { Fuzz_Test } from "../../Fuzz.t.sol";
 
@@ -11,11 +11,9 @@ import { StdStorage, stdStorage } from "../../../../lib/forge-std/src/Test.sol";
 import { ArcadiaOracle } from "../../../utils/mocks/oracles/ArcadiaOracle.sol";
 import { BitPackingLib } from "../../../../src/libraries/BitPackingLib.sol";
 import { ERC20Mock } from "../../../utils/mocks/tokens/ERC20Mock.sol";
-import { AssetModule } from "../../../../src/asset-modules/abstracts/AbstractAM.sol";
 import { UniswapV2PairMock } from "../../../utils/mocks/UniswapV2/UniswapV2PairMock.sol";
 import { UniswapV2AMExtension } from "../../../utils/extensions/UniswapV2AMExtension.sol";
 import { UniswapV2FactoryMock } from "../../../utils/mocks/UniswapV2/UniswapV2FactoryMock.sol";
-import { UniswapV2AM } from "../../../utils/mocks/asset-modules/UniswapV2AM.sol";
 
 /**
  * @notice Common logic needed by all "UniswapV2AM" fuzz tests.
@@ -26,8 +24,8 @@ abstract contract UniswapV2AM_Fuzz_Test is Fuzz_Test {
                               CONSTANTS
     /////////////////////////////////////////////////////////////// */
 
-    address internal constant haydenAdams = address(10);
-    address internal constant lpProvider = address(11);
+    address internal constant HAYDEN_ADAMS = address(10);
+    address internal constant LP_PROVIDER = address(11);
 
     /* ///////////////////////////////////////////////////////////////
                               VARIABLES
@@ -44,6 +42,7 @@ abstract contract UniswapV2AM_Fuzz_Test is Fuzz_Test {
                           TEST CONTRACTS
     /////////////////////////////////////////////////////////////// */
 
+    /// forge-lint: disable-next-line(mixed-case-variable)
     UniswapV2AMExtension internal uniswapV2AM;
 
     /* ///////////////////////////////////////////////////////////////
@@ -53,7 +52,7 @@ abstract contract UniswapV2AM_Fuzz_Test is Fuzz_Test {
     function setUp() public virtual override(Fuzz_Test) {
         Fuzz_Test.setUp();
 
-        vm.startPrank(haydenAdams);
+        vm.startPrank(HAYDEN_ADAMS);
         uniswapV2Factory = new UniswapV2FactoryMock();
         uniswapV2Pair = new UniswapV2PairMock();
         address pairToken1Token2Addr = uniswapV2Factory.createPair(address(mockERC20.token2), address(mockERC20.token1));
@@ -63,7 +62,7 @@ abstract contract UniswapV2AM_Fuzz_Test is Fuzz_Test {
         vm.stopPrank();
 
         vm.startPrank(users.owner);
-        uniswapV2AM = new UniswapV2AMExtension(address(registry), address(uniswapV2Factory));
+        uniswapV2AM = new UniswapV2AMExtension(users.owner, address(registry), address(uniswapV2Factory));
         registry.addAssetModule(address(uniswapV2AM));
         vm.stopPrank();
     }
@@ -71,7 +70,7 @@ abstract contract UniswapV2AM_Fuzz_Test is Fuzz_Test {
     /*////////////////////////////////////////////////////////////////
                         HELPER FUNCTIONS
     ////////////////////////////////////////////////////////////////*/
-    function assertInRange(uint256 actualValue, uint256 expectedValue, uint8 precision) internal {
+    function assertInRange(uint256 actualValue, uint256 expectedValue, uint8 precision) internal pure {
         if (expectedValue == 0) {
             assertEq(actualValue, expectedValue);
         } else {

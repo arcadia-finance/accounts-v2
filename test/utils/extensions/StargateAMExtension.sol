@@ -2,13 +2,15 @@
  * Created by Pragma Labs
  * SPDX-License-Identifier: BUSL-1.1
  */
-pragma solidity ^0.8.22;
+pragma solidity ^0.8.0;
 
 import { AssetValueAndRiskFactors } from "../../../src/libraries/AssetValuationLib.sol";
 import { StargateAM } from "../../../src/asset-modules/Stargate-Finance/StargateAM.sol";
 
 contract StargateAMExtension is StargateAM {
-    constructor(address registry, address stargateFactory) StargateAM(registry, stargateFactory) { }
+    constructor(address owner_, address registry, address stargateFactory)
+        StargateAM(owner_, registry, stargateFactory)
+    { }
 
     function getAssetFromKey(bytes32 key) public pure returns (address asset, uint256 assetId) {
         (asset, assetId) = _getAssetFromKey(key);

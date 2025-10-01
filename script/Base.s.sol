@@ -2,7 +2,7 @@
  * Created by Pragma Labs
  * SPDX-License-Identifier: BUSL-1.1
  */
-pragma solidity ^0.8.22;
+pragma solidity ^0.8.0;
 
 import { AerodromePoolAM } from "../src/asset-modules/Aerodrome-Finance/AerodromePoolAM.sol";
 import { ArcadiaAccounts, AssetModules, OracleModules } from "./utils/constants/Shared.sol";
@@ -17,12 +17,13 @@ import { SlipstreamAM } from "../src/asset-modules/Slipstream/SlipstreamAM.sol";
 import { StakedAerodromeAM } from "../src/asset-modules/Aerodrome-Finance/StakedAerodromeAM.sol";
 import { StakedSlipstreamAM } from "../src/asset-modules/Slipstream/StakedSlipstreamAM.sol";
 import { Test } from "../lib/forge-std/src/Test.sol";
-import { UniswapV3AM } from "../src/asset-modules/UniswapV3/UniswapV3AM.sol";
 import { WrappedAerodromeAM } from "../src/asset-modules/Aerodrome-Finance/WrappedAerodromeAM.sol";
 
 abstract contract Base_Script is Test, SafeTransactionBuilder {
     uint256 internal deployer = vm.envUint("PRIVATE_KEY_DEPLOYER");
+    uint256 internal manager;
 
+    /// forge-lint: disable-start(mixed-case-variable)
     bool[] internal BA_TO_QA_SINGLE = new bool[](1);
     bool[] internal BA_TO_QA_DOUBLE = new bool[](2);
 
@@ -35,6 +36,7 @@ abstract contract Base_Script is Test, SafeTransactionBuilder {
     StakedAerodromeAM internal stakedAerodromeAM = StakedAerodromeAM(AssetModules.STAKED_AERO);
     StakedSlipstreamAM internal stakedSlipstreamAM = StakedSlipstreamAM(AssetModules.STAKED_SLIPSTREAM);
     WrappedAerodromeAM internal wrappedAerodromeAM = WrappedAerodromeAM(AssetModules.WRAPPED_AERO);
+    /// forge-lint: disable-end(mixed-case-variable)
 
     constructor() {
         BA_TO_QA_SINGLE[0] = true;

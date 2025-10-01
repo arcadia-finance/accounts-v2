@@ -2,9 +2,9 @@
  * Created by Pragma Labs
  * SPDX-License-Identifier: BUSL-1.1
  */
-pragma solidity ^0.8.22;
+pragma solidity ^0.8.30;
 
-import { AssetModule, IAssetModule, Owned } from "../abstracts/AbstractAM.sol";
+import { AssetModule, IAssetModule } from "../abstracts/AbstractAM.sol";
 import { AssetValueAndRiskFactors } from "../../libraries/AssetValuationLib.sol";
 import { DefaultUniswapV4AM } from "./DefaultUniswapV4AM.sol";
 import { Hooks } from "./libraries/Hooks.sol";
@@ -78,16 +78,16 @@ contract UniswapV4HooksRegistry is AssetModule {
     ////////////////////////////////////////////////////////////// */
 
     /**
+     * @param owner_ The address of the Owner.
      * @param registry_ The contract address of the Registry.
      * @param positionManager The contract address of the uniswapV4 PositionManager.
      * @dev The ASSET_TYPE, necessary for the deposit and withdraw logic in the Accounts, is "2" for Uniswap V4 Liquidity Positions (ERC721).
      */
-    constructor(address registry_, address positionManager) AssetModule(registry_, 2) {
+    constructor(address owner_, address registry_, address positionManager) AssetModule(owner_, registry_, 2) {
         POSITION_MANAGER = IPositionManager(positionManager);
 
         // Deploy the Default Uniswap V4 AM.
-        DEFAULT_UNISWAP_V4_AM = address(new DefaultUniswapV4AM(address(this), positionManager));
-        DefaultUniswapV4AM(DEFAULT_UNISWAP_V4_AM).transferOwnership(msg.sender);
+        DEFAULT_UNISWAP_V4_AM = address(new DefaultUniswapV4AM(owner_, address(this), positionManager));
         isAssetModule[DEFAULT_UNISWAP_V4_AM] = true;
 
         emit AssetModuleAdded(DEFAULT_UNISWAP_V4_AM);
@@ -245,6 +245,7 @@ contract UniswapV4HooksRegistry is AssetModule {
      * denominated in USD with 18 decimals precision.
      * @param riskFactor The risk factor of the asset for the Creditor, 4 decimals precision.
      */
+    /// forge-lint: disable-next-item(mixed-case-function)
     function setRiskParametersOfDerivedAM(
         address creditor,
         address assetModule,

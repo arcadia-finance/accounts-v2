@@ -2,12 +2,12 @@
  * Created by Pragma Labs
  * SPDX-License-Identifier: BUSL-1.1
  */
-pragma solidity ^0.8.22;
-
-import { StandardERC4626AM_Fuzz_Test, AssetModule, StandardERC4626AM } from "./_StandardERC4626AM.fuzz.t.sol";
+pragma solidity ^0.8.0;
 
 import { ERC4626Mock } from "../../../utils/mocks/tokens/ERC4626Mock.sol";
 import { RegistryErrors } from "../../../../src/libraries/Errors.sol";
+import { StandardERC4626AM } from "../../../utils/mocks/asset-modules/StandardERC4626AM.sol";
+import { StandardERC4626AM_Fuzz_Test } from "./_StandardERC4626AM.fuzz.t.sol";
 
 /**
  * @notice Fuzz tests for the function "addAsset" of contract "StandardERC4626AM".

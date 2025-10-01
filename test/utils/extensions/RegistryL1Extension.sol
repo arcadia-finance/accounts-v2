@@ -2,12 +2,12 @@
  * Created by Pragma Labs
  * SPDX-License-Identifier: BUSL-1.1
  */
-pragma solidity ^0.8.22;
+pragma solidity ^0.8.0;
 
 import { RegistryL1 } from "../../../src/registries/RegistryL1.sol";
 
 contract RegistryL1Extension is RegistryL1 {
-    constructor(address factory) RegistryL1(factory) { }
+    constructor(address owner_, address factory) RegistryL1(owner_, factory) { }
 
     function getOracleCounter() public view returns (uint256 oracleCounter_) {
         oracleCounter_ = oracleCounter;

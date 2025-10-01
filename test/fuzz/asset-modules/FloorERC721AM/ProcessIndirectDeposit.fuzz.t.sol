@@ -2,11 +2,11 @@
  * Created by Pragma Labs
  * SPDX-License-Identifier: BUSL-1.1
  */
-pragma solidity ^0.8.22;
+pragma solidity ^0.8.0;
 
-import { FloorERC721AM_Fuzz_Test, AssetModule } from "./_FloorERC721AM.fuzz.t.sol";
-
+import { AssetModule } from "../../../../src/asset-modules/abstracts/AbstractAM.sol";
 import { FloorERC721AM } from "../../../utils/mocks/asset-modules/FloorERC721AM.sol";
+import { FloorERC721AM_Fuzz_Test } from "./_FloorERC721AM.fuzz.t.sol";
 
 /**
  * @notice Fuzz tests for the function "processIndirectDeposit" of contract "FloorERC721AM".

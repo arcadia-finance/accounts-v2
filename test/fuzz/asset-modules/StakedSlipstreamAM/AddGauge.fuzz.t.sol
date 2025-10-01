@@ -2,7 +2,7 @@
  * Created by Pragma Labs
  * SPDX-License-Identifier: BUSL-1.1
  */
-pragma solidity ^0.8.22;
+pragma solidity ^0.8.0;
 
 import { StakedSlipstreamAM_Fuzz_Test } from "./_StakedSlipstreamAM.fuzz.t.sol";
 
@@ -10,7 +10,6 @@ import { ERC20Mock } from "../../../utils/mocks/tokens/ERC20Mock.sol";
 import { StakedSlipstreamAM } from "../../../../src/asset-modules/Slipstream/StakedSlipstreamAM.sol";
 import { StdStorage, stdStorage } from "../../../../lib/forge-std/src/Test.sol";
 import { TickMath } from "../../../../src/asset-modules/UniswapV3/libraries/TickMath.sol";
-import { Utils } from "../../../utils/Utils.sol";
 
 /**
  * @notice Fuzz tests for the function "addGauge" of contract "StakedSlipstreamAM".

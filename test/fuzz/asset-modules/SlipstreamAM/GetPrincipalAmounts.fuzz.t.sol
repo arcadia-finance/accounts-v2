@@ -2,7 +2,7 @@
  * Created by Pragma Labs
  * SPDX-License-Identifier: BUSL-1.1
  */
-pragma solidity ^0.8.22;
+pragma solidity ^0.8.0;
 
 import { SlipstreamAM_Fuzz_Test } from "./_SlipstreamAM.fuzz.t.sol";
 
@@ -32,7 +32,7 @@ contract GetPrincipalAmounts_SlipstreamAM_Fuzz_Test is SlipstreamAM_Fuzz_Test {
         uint128 liquidity,
         uint256 priceToken0,
         uint256 priceToken1
-    ) public {
+    ) public view {
         // Check that ticks are within allowed ranges.
         vm.assume(tickLower < tickUpper);
         vm.assume(isWithinAllowedRange(tickLower));

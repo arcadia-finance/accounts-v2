@@ -2,7 +2,7 @@
  * Created by Pragma Labs
  * SPDX-License-Identifier: BUSL-1.1
  */
-pragma solidity ^0.8.22;
+pragma solidity ^0.8.0;
 
 import { ERC721 } from "../../../../lib/solmate/src/tokens/ERC721.sol";
 
@@ -15,6 +15,7 @@ import {
 contract NonfungiblePositionManagerMock is ERC721 {
     uint256 public id;
 
+    /// forge-lint: disable-next-line(screaming-snake-case-immutable)
     address public immutable factory;
 
     mapping(address => uint80) internal _poolIds;
@@ -126,6 +127,7 @@ contract NonfungiblePositionManagerMock is ERC721 {
         return (id, 10 ** 18, 10 ** 18, 10 ** 18);
     }
 
+    /// forge-lint: disable-next-item(mixed-case-function)
     function tokenURI(uint256) public pure override returns (string memory) {
         return string("https://ipfs.io/ipfs/");
     }

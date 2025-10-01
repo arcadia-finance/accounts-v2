@@ -2,7 +2,7 @@
  * Created by Pragma Labs
  * SPDX-License-Identifier: BUSL-1.1
  */
-pragma solidity ^0.8.22;
+pragma solidity ^0.8.0;
 
 library AccountErrors {
     error AccountInAuction();
@@ -18,6 +18,7 @@ library AccountErrors {
     error InvalidRecipient();
     error InvalidRegistry();
     error InvalidUpgrade();
+    error LengthMismatch();
     error NoFallback();
     error NoReentry();
     error NonZeroOpenPosition();
@@ -33,6 +34,7 @@ library AccountErrors {
 }
 
 library FactoryErrors {
+    error AccountCreationFailed();
     error AccountVersionBlocked();
     error FactoryMismatch();
     error InvalidAccountVersion();

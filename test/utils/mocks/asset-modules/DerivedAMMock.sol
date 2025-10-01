@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: MIT
-pragma solidity ^0.8.22;
+pragma solidity ^0.8.0;
 
 import { DerivedAMExtension } from "../../extensions/DerivedAMExtension.sol";
 import { AssetValuationLib, AssetValueAndRiskFactors } from "../../../../src/libraries/AssetValuationLib.sol";
@@ -15,7 +15,9 @@ contract DerivedAMMock is DerivedAMExtension {
     bool internal returnRateUnderlyingAssetToUsd;
     uint256 internal rateUnderlyingAssetToUsd;
 
-    constructor(address registry_, uint256 assetType_) DerivedAMExtension(registry_, assetType_) { }
+    constructor(address owner_, address registry_, uint256 assetType_)
+        DerivedAMExtension(owner_, registry_, assetType_)
+    { }
 
     function isAllowed(address asset, uint256) public view override returns (bool) { }
 

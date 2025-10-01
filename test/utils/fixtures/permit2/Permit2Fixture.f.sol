@@ -1,9 +1,8 @@
 // SPDX-License-Identifier: MIT
-pragma solidity ^0.8.22;
+pragma solidity ^0.8.0;
 
+import { IPermit2 } from "../../interfaces/IPermit2.sol";
 import { Test } from "../../../../lib/forge-std/src/Test.sol";
-import { Utils } from "../../../utils/Utils.sol";
-import { IPermit2 } from "../../Interfaces.sol";
 
 /// @notice helper to deploy permit2 from precompiled bytecode
 /// @dev useful if testing externally against permit2 and want to avoid

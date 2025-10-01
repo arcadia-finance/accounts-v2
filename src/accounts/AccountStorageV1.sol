@@ -2,7 +2,7 @@
  * Created by Pragma Labs
  * SPDX-License-Identifier: BUSL-1.1
  */
-pragma solidity ^0.8.22;
+pragma solidity ^0.8.0;
 
 /**
  * @title Arcadia Accounts Storage
@@ -14,7 +14,7 @@ pragma solidity ^0.8.22;
  * @dev Since Accounts are proxies and can be upgraded by the user, all storage variables should be declared in this contract.
  * New account versions must create a new account storage contract and inherit this storage contract.
  */
-contract AccountStorageV1 {
+abstract contract AccountStorageV1 {
     /* //////////////////////////////////////////////////////////////
                                 STORAGE
     ////////////////////////////////////////////////////////////// */

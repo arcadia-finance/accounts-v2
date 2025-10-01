@@ -2,20 +2,15 @@
  * Created by Pragma Labs
  * SPDX-License-Identifier: BUSL-1.1
  */
-pragma solidity ^0.8.22;
+pragma solidity ^0.8.0;
 
 import { UniswapV3AM_Fuzz_Test } from "./_UniswapV3AM.fuzz.t.sol";
-
-import { AssetModule } from "../../../../src/asset-modules/abstracts/AbstractAM.sol";
 import { ERC20 } from "../../../../lib/solmate/src/tokens/ERC20.sol";
 import { ERC20Mock } from "../../../utils/mocks/tokens/ERC20Mock.sol";
-import { INonfungiblePositionManagerExtension } from
-    "../../../utils/fixtures/uniswap-v3/extensions/interfaces/INonfungiblePositionManagerExtension.sol";
 import { IUniswapV3PoolExtension } from
     "../../../utils/fixtures/uniswap-v3/extensions/interfaces/IUniswapV3PoolExtension.sol";
 import { LiquidityAmounts } from "../../../../src/asset-modules/UniswapV3/libraries/LiquidityAmounts.sol";
 import { TickMath } from "../../../../src/asset-modules/UniswapV3/libraries/TickMath.sol";
-import { UniswapV3AM } from "../../../../src/asset-modules/UniswapV3/UniswapV3AM.sol";
 
 /**
  * @notice Fuzz tests for the function "processDirectWithdrawal" of contract "UniswapV3AM".
@@ -134,18 +129,18 @@ contract ProcessDirectWithdrawal_UniswapV3AM_Fuzz_Test is UniswapV3AM_Fuzz_Test 
 
             // And: Exposures to the underlying assets are updated.
             // Token0:
-            bytes32 UnderlyingAssetKey = bytes32(abi.encodePacked(uint96(0), address(token0)));
+            bytes32 underlyingAssetKey = bytes32(abi.encodePacked(uint96(0), address(token0)));
             assertEq(
-                uniV3AM.getExposureAssetToUnderlyingAssetsLast(address(creditorUsd), assetKey, UnderlyingAssetKey), 0
+                uniV3AM.getExposureAssetToUnderlyingAssetsLast(address(creditorUsd), assetKey, underlyingAssetKey), 0
             );
-            (uint128 exposure,,,) = erc20AM.riskParams(address(creditorUsd), UnderlyingAssetKey);
+            (uint128 exposure,,,) = erc20AM.riskParams(address(creditorUsd), underlyingAssetKey);
             assertEq(exposure, initialExposure0);
             // Token1:
-            UnderlyingAssetKey = bytes32(abi.encodePacked(uint96(0), address(token1)));
+            underlyingAssetKey = bytes32(abi.encodePacked(uint96(0), address(token1)));
             assertEq(
-                uniV3AM.getExposureAssetToUnderlyingAssetsLast(address(creditorUsd), assetKey, UnderlyingAssetKey), 0
+                uniV3AM.getExposureAssetToUnderlyingAssetsLast(address(creditorUsd), assetKey, underlyingAssetKey), 0
             );
-            (exposure,,,) = erc20AM.riskParams(address(creditorUsd), UnderlyingAssetKey);
+            (exposure,,,) = erc20AM.riskParams(address(creditorUsd), underlyingAssetKey);
             assertEq(exposure, initialExposure1);
         }
     }
@@ -233,18 +228,18 @@ contract ProcessDirectWithdrawal_UniswapV3AM_Fuzz_Test is UniswapV3AM_Fuzz_Test 
 
             // And: Exposures to the underlying assets are updated.
             // Token0:
-            bytes32 UnderlyingAssetKey = bytes32(abi.encodePacked(uint96(0), address(token0)));
+            bytes32 underlyingAssetKey = bytes32(abi.encodePacked(uint96(0), address(token0)));
             assertEq(
-                uniV3AM.getExposureAssetToUnderlyingAssetsLast(address(creditorUsd), assetKey, UnderlyingAssetKey), 0
+                uniV3AM.getExposureAssetToUnderlyingAssetsLast(address(creditorUsd), assetKey, underlyingAssetKey), 0
             );
-            (uint128 exposure,,,) = erc20AM.riskParams(address(creditorUsd), UnderlyingAssetKey);
+            (uint128 exposure,,,) = erc20AM.riskParams(address(creditorUsd), underlyingAssetKey);
             assertEq(exposure, initialExposure0);
             // Token1:
-            UnderlyingAssetKey = bytes32(abi.encodePacked(uint96(0), address(token1)));
+            underlyingAssetKey = bytes32(abi.encodePacked(uint96(0), address(token1)));
             assertEq(
-                uniV3AM.getExposureAssetToUnderlyingAssetsLast(address(creditorUsd), assetKey, UnderlyingAssetKey), 0
+                uniV3AM.getExposureAssetToUnderlyingAssetsLast(address(creditorUsd), assetKey, underlyingAssetKey), 0
             );
-            (exposure,,,) = erc20AM.riskParams(address(creditorUsd), UnderlyingAssetKey);
+            (exposure,,,) = erc20AM.riskParams(address(creditorUsd), underlyingAssetKey);
             assertEq(exposure, initialExposure1);
         }
     }
@@ -337,20 +332,20 @@ contract ProcessDirectWithdrawal_UniswapV3AM_Fuzz_Test is UniswapV3AM_Fuzz_Test 
                 sqrtPriceX96, TickMath.getSqrtRatioAtTick(ticks[1]), TickMath.getSqrtRatioAtTick(ticks[2]), liquidity_
             );
             // Token0:
-            bytes32 UnderlyingAssetKey = bytes32(abi.encodePacked(uint96(0), address(token0)));
+            bytes32 underlyingAssetKey = bytes32(abi.encodePacked(uint96(0), address(token0)));
             assertEq(
-                uniV3AM.getExposureAssetToUnderlyingAssetsLast(address(creditorUsd), assetKey, UnderlyingAssetKey),
+                uniV3AM.getExposureAssetToUnderlyingAssetsLast(address(creditorUsd), assetKey, underlyingAssetKey),
                 amount0
             );
-            (uint128 exposure,,,) = erc20AM.riskParams(address(creditorUsd), UnderlyingAssetKey);
+            (uint128 exposure,,,) = erc20AM.riskParams(address(creditorUsd), underlyingAssetKey);
             assertEq(exposure, amount0 + initialExposure0);
             // Token1:
-            UnderlyingAssetKey = bytes32(abi.encodePacked(uint96(0), address(token1)));
+            underlyingAssetKey = bytes32(abi.encodePacked(uint96(0), address(token1)));
             assertEq(
-                uniV3AM.getExposureAssetToUnderlyingAssetsLast(address(creditorUsd), assetKey, UnderlyingAssetKey),
+                uniV3AM.getExposureAssetToUnderlyingAssetsLast(address(creditorUsd), assetKey, underlyingAssetKey),
                 amount1
             );
-            (exposure,,,) = erc20AM.riskParams(address(creditorUsd), UnderlyingAssetKey);
+            (exposure,,,) = erc20AM.riskParams(address(creditorUsd), underlyingAssetKey);
             assertEq(exposure, amount1 + initialExposure1);
 
             assertEq(uniV3AM.getAssetToLiquidity(tokenId), liquidity_);

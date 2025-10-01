@@ -2,12 +2,12 @@
  * Created by Pragma Labs
  * SPDX-License-Identifier: BUSL-1.1
  */
-pragma solidity ^0.8.22;
+pragma solidity ^0.8.0;
 
 import { ChainlinkOM } from "../../../src/oracle-modules/ChainlinkOM.sol";
 
 contract ChainlinkOMExtension is ChainlinkOM {
-    constructor(address registry_) ChainlinkOM(registry_) { }
+    constructor(address owner_, address registry_) ChainlinkOM(owner_, registry_) { }
 
     function getInOracleModule(address oracle) public view returns (bool) {
         return inOracleModule[oracle];

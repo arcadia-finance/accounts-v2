@@ -2,7 +2,7 @@
  * Created by Pragma Labs
  * SPDX-License-Identifier: BUSL-1.1
  */
-pragma solidity ^0.8.22;
+pragma solidity ^0.8.0;
 
 import { DefaultUniswapV4AM_Fuzz_Test } from "./_DefaultUniswapV4AM.fuzz.t.sol";
 import { LiquidityAmounts } from "../../../../src/asset-modules/UniswapV3/libraries/LiquidityAmounts.sol";
@@ -31,7 +31,7 @@ contract GetPrincipalAmounts_DefaultUniswapV4AM_Fuzz_Test is DefaultUniswapV4AM_
         uint128 liquidity,
         uint256 priceToken0,
         uint256 priceToken1
-    ) public {
+    ) public view {
         // Given : Ticks are within allowed ranges.
         tickLower = int24(bound(tickLower, MIN_TICK, MAX_TICK - 2));
         tickUpper = int24(bound(tickUpper, tickLower + 1, MAX_TICK));

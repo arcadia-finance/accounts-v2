@@ -2,10 +2,9 @@
  * Created by Pragma Labs
  * SPDX-License-Identifier: BUSL-1.1
  */
-pragma solidity ^0.8.22;
+pragma solidity ^0.8.0;
 
-import { Fuzz_Test, Constants } from "../../Fuzz.t.sol";
-
+import { Fuzz_Test } from "../../Fuzz.t.sol";
 import { StargateAMExtension } from "../../../utils/extensions/StargateAMExtension.sol";
 import { StargateFactoryMock } from "../../../utils/mocks/Stargate/StargateFactoryMock.sol";
 import { StargatePoolMock } from "../../../utils/mocks/Stargate/StargatePoolMock.sol";
@@ -39,7 +38,7 @@ abstract contract StargateAM_Fuzz_Test is Fuzz_Test {
 
         // Deploy the Stargate AssetModule.
         vm.startPrank(users.owner);
-        stargateAssetModule = new StargateAMExtension(address(registry), address(sgFactoryMock));
+        stargateAssetModule = new StargateAMExtension(users.owner, address(registry), address(sgFactoryMock));
         registry.addAssetModule(address(stargateAssetModule));
         vm.stopPrank();
     }

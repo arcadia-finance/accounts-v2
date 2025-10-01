@@ -2,7 +2,7 @@
  * Created by Pragma Labs
  * SPDX-License-Identifier: BUSL-1.1
  */
-pragma solidity ^0.8.22;
+pragma solidity ^0.8.0;
 
 import { ERC20PrimaryAM_Fuzz_Test } from "./_ERC20PrimaryAM.fuzz.t.sol";
 
@@ -11,7 +11,6 @@ import { BitPackingLib } from "../../../../src/libraries/BitPackingLib.sol";
 
 import { Constants } from "../../../utils/Constants.sol";
 import { ERC20Mock } from "../../../utils/mocks/tokens/ERC20Mock.sol";
-import { AssetModule } from "../../../../src/asset-modules/abstracts/AbstractAM.sol";
 import { PrimaryAM, ERC20PrimaryAM } from "../../../../src/asset-modules/ERC20-Primaries/ERC20PrimaryAM.sol";
 import { RegistryErrors } from "../../../../src/libraries/Errors.sol";
 
@@ -83,7 +82,7 @@ contract AddAsset_ERC20PrimaryAM_Fuzz_Test is ERC20PrimaryAM_Fuzz_Test {
         assertTrue(erc20AM.isAllowed(address(mockERC20.token4), 0));
         bytes32 assetKey = bytes32(abi.encodePacked(uint96(0), address(mockERC20.token4)));
         (uint64 assetUnit, bytes32 oracles) = erc20AM.assetToInformation(assetKey);
-        assertEq(assetUnit, 10 ** Constants.tokenDecimals);
+        assertEq(assetUnit, 10 ** Constants.TOKEN_DECIMALS);
         assertEq(oracles, oraclesToken4ToUsd);
 
         assertTrue(registry.inRegistry(address(mockERC20.token4)));

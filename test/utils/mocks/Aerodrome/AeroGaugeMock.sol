@@ -2,7 +2,7 @@
  * Created by Pragma Labs
  * SPDX-License-Identifier: BUSL-1.1
  */
-pragma solidity ^0.8.22;
+pragma solidity ^0.8.0;
 
 import { Math } from "../../mocks/openzeppelin-0.8/Math.sol";
 import { IReward } from "./interfaces/IReward.sol";
@@ -19,6 +19,7 @@ import { ProtocolTimeLibrary } from "./libraries/ProtocolTimeLibrary.sol";
 /// @title Protocol Gauge
 /// @author veldorome.finance, @figs999, @pegahcarter
 /// @notice Gauge contract for distribution of emissions by address
+/// forge-lint: disable-next-item(all)
 contract Gauge is IGauge, ERC2771Context, ReentrancyGuard {
     using SafeERC20 for IERC20;
     /// @inheritdoc IGauge

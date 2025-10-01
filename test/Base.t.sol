@@ -2,17 +2,17 @@
  * Created by Pragma Labs
  * SPDX-License-Identifier: BUSL-1.1
  */
-pragma solidity ^0.8.22;
+pragma solidity ^0.8.0;
 
-import { Test } from "../lib/forge-std/src/Test.sol";
-
-import { AccountV1 } from "../src/accounts/AccountV1.sol";
+import { AccountsGuardExtension } from "./utils/extensions/AccountsGuardExtension.sol";
+import { AccountV3 } from "../src/accounts/AccountV3.sol";
 import { ChainlinkOMExtension } from "./utils/extensions/ChainlinkOMExtension.sol";
 import { ERC20PrimaryAMExtension } from "./utils/extensions/ERC20PrimaryAMExtension.sol";
 import { ERC721TokenReceiver } from "../lib/solmate/src/tokens/ERC721.sol";
-import { Factory } from "../src/Factory.sol";
+import { FactoryExtension } from "./utils/extensions/FactoryExtension.sol";
 import { RegistryL2Extension } from "./utils/extensions/RegistryL2Extension.sol";
 import { SequencerUptimeOracle } from "./utils/mocks/oracles/SequencerUptimeOracle.sol";
+import { Test } from "../lib/forge-std/src/Test.sol";
 import { Users } from "./utils/Types.sol";
 
 /// @notice Base test contract with common logic needed by all tests.
@@ -22,8 +22,10 @@ abstract contract Base_Test is Test {
     //////////////////////////////////////////////////////////////////////////*/
 
     // baseToQuoteAsset arrays
+    /// forge-lint: disable-start(mixed-case-variable)
     bool[] internal BA_TO_QA_SINGLE = new bool[](1);
     bool[] internal BA_TO_QA_DOUBLE = new bool[](2);
+    /// forge-lint: disable-end(mixed-case-variable)
 
     /*//////////////////////////////////////////////////////////////////////////
                                      VARIABLES
@@ -35,13 +37,16 @@ abstract contract Base_Test is Test {
                                    TEST CONTRACTS
     //////////////////////////////////////////////////////////////////////////*/
 
-    AccountV1 internal account;
-    AccountV1 internal accountV1Logic;
+    /// forge-lint: disable-start(mixed-case-variable)
+    AccountsGuardExtension internal accountsGuard;
+    AccountV3 internal account;
+    AccountV3 internal accountLogic;
     ChainlinkOMExtension internal chainlinkOM;
     ERC20PrimaryAMExtension internal erc20AM;
-    Factory internal factory;
+    FactoryExtension internal factory;
     RegistryL2Extension internal registry;
     SequencerUptimeOracle internal sequencerUptimeOracle;
+    /// forge-lint: disable-end(mixed-case-variable)
 
     /*//////////////////////////////////////////////////////////////////////////
                                   SET-UP FUNCTION
@@ -81,6 +86,7 @@ abstract contract Base_Test is Test {
         return user;
     }
 
+    /// forge-lint: disable-next-item(mixed-case-function)
     modifier canReceiveERC721(address to) {
         vm.assume(to != address(0));
         vm.assume(to != 0x4200000000000000000000000000000000000006);
@@ -103,7 +109,7 @@ abstract contract Base_Test is Test {
         // address), but the same rationale for excluding them applies so we include those too.
 
         // These should be present on all EVM-compatible chains.
-        if (addr >= address(0x1) && addr <= address(0x9)) return true;
+        if (addr >= address(0x1) && addr <= address(0x11)) return true;
 
         // forgefmt: disable-start
         if (chainId == 10 || chainId == 420) {

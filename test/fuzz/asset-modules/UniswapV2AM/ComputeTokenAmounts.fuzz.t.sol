@@ -2,7 +2,7 @@
  * Created by Pragma Labs
  * SPDX-License-Identifier: BUSL-1.1
  */
-pragma solidity ^0.8.22;
+pragma solidity ^0.8.0;
 
 import { UniswapV2AM_Fuzz_Test } from "./_UniswapV2AM.fuzz.t.sol";
 
@@ -26,7 +26,7 @@ contract ComputeTokenAmounts_UniswapV2AM_Fuzz_Test is UniswapV2AM_Fuzz_Test {
         uint112 reserve1,
         uint256 totalSupply,
         uint256 liquidityAmount
-    ) public {
+    ) public view {
         vm.assume(totalSupply > 0); // division by 0
         vm.assume(reserve0 > 0); // division by 0
         vm.assume(reserve1 > 0); // division by 0
@@ -61,7 +61,7 @@ contract ComputeTokenAmounts_UniswapV2AM_Fuzz_Test is UniswapV2AM_Fuzz_Test {
         uint112 reserve1 = uint112(uint256(reserve0) * reserve1Last / reserve0Last); // pool is still balanced and fees accrued
 
         // Given: Fees are enabled
-        vm.prank(haydenAdams);
+        vm.prank(HAYDEN_ADAMS);
         uniswapV2Factory.setFeeTo(address(1));
         uniswapV2AM.syncFee();
 

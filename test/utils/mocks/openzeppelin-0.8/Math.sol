@@ -2,11 +2,12 @@
  * Created by Pragma Labs
  * SPDX-License-Identifier: BUSL-1.1
  */
-pragma solidity ^0.8.22;
+pragma solidity ^0.8.0;
 
 /**
  * @dev Standard math utilities missing in the Solidity language.
  */
+/// forge-lint: disable-next-item(all)
 library Math {
     /**
      * @dev Returns the largest of two numbers.

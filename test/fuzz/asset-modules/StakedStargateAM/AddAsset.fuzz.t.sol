@@ -2,7 +2,7 @@
  * Created by Pragma Labs
  * SPDX-License-Identifier: BUSL-1.1
  */
-pragma solidity ^0.8.22;
+pragma solidity ^0.8.0;
 
 import { StakedStargateAM_Fuzz_Test } from "./_StakedStargateAM.fuzz.t.sol";
 import { StakedStargateAM } from "../../../../src/asset-modules/Stargate-Finance/StakedStargateAM.sol";
@@ -23,7 +23,7 @@ contract AddAsset_StakedStargateAM_Fuzz_Test is StakedStargateAM_Fuzz_Test {
                               TESTS
     /////////////////////////////////////////////////////////////// */
     function testFuzz_Revert_addAsset_PoolNotAllowed(uint256 pid) public {
-        // Given : Address returned from lpStakingTime for a specific pool id is not the pool address
+        // Given : Address returned from LP_STAKING_TIME for a specific pool id is not the pool address
         lpStakingTimeMock.setInfoForPoolId(pid, 0, address(0));
 
         // When : An asset is added to the AM.

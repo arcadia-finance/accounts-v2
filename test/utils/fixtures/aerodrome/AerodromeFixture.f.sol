@@ -2,7 +2,7 @@
  * Created by Pragma Labs
  * SPDX-License-Identifier: BUSL-1.1
  */
-pragma solidity ^0.8.22;
+pragma solidity ^0.8.0;
 
 import { Test } from "../../../../lib/forge-std/src/Test.sol";
 
@@ -19,7 +19,7 @@ contract AerodromeFixture is Test {
                                    CONSTANTS
     //////////////////////////////////////////////////////////////////////////*/
 
-    address AERO = 0x940181a94A35A4569E4529A3CDfB74e38FD98631;
+    address internal constant AERO = 0x940181a94A35A4569E4529A3CDfB74e38FD98631;
 
     /*//////////////////////////////////////////////////////////////////////////
                                    CONTRACTS

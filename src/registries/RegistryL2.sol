@@ -2,7 +2,7 @@
  * Created by Pragma Labs
  * SPDX-License-Identifier: BUSL-1.1
  */
-pragma solidity ^0.8.22;
+pragma solidity ^0.8.30;
 
 import { BitPackingLib } from "../libraries/BitPackingLib.sol";
 import { FixedPointMathLib } from "../../lib/solmate/src/utils/FixedPointMathLib.sol";
@@ -89,10 +89,8 @@ contract RegistryL2 is IRegistry, RegistryGuardian {
 
     event AssetAdded(address indexed assetAddress, address indexed assetModule);
     event AssetModuleAdded(address assetModule);
-    event Deposit(address account);
     event OracleAdded(uint256 indexed oracleId, address indexed oracleModule);
     event OracleModuleAdded(address oracleModule);
-    event Withdrawal(address account);
 
     /* //////////////////////////////////////////////////////////////
                                 MODIFIERS
@@ -147,10 +145,11 @@ contract RegistryL2 is IRegistry, RegistryGuardian {
     ////////////////////////////////////////////////////////////// */
 
     /**
+     * @param owner_ The address of the Owner.
      * @param factory The contract address of the Arcadia Accounts Factory.
      * @param sequencerUptimeOracle_ The contract address of the sequencer uptime oracle.
      */
-    constructor(address factory, address sequencerUptimeOracle_) {
+    constructor(address owner_, address factory, address sequencerUptimeOracle_) RegistryGuardian(owner_) {
         FACTORY = factory;
         sequencerUptimeOracle = sequencerUptimeOracle_;
 
@@ -408,6 +407,7 @@ contract RegistryL2 is IRegistry, RegistryGuardian {
      * denominated in USD with 18 decimals precision.
      * @param riskFactor The risk factor of the asset for the Creditor, 4 decimals precision.
      */
+    /// forge-lint: disable-next-item(mixed-case-function)
     function setRiskParametersOfDerivedAM(
         address creditor,
         address assetModule,
@@ -486,9 +486,6 @@ contract RegistryL2 is IRegistry, RegistryGuardian {
                 if (recursiveCalls > maxRecursiveCalls) revert RegistryErrors.MaxRecursiveCallsReached();
             }
         }
-
-        // Emit Deposit event for account for indexing purposes.
-        emit Deposit(msg.sender);
     }
 
     /**
@@ -532,9 +529,6 @@ contract RegistryL2 is IRegistry, RegistryGuardian {
                 );
             }
         }
-
-        // Emit Withdrawal event for account for indexing purposes.
-        emit Withdrawal(msg.sender);
     }
 
     /**

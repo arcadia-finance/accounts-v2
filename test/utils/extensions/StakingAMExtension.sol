@@ -2,13 +2,15 @@
  * Created by Pragma Labs
  * SPDX-License-Identifier: BUSL-1.1
  */
-pragma solidity ^0.8.22;
+pragma solidity ^0.8.0;
 
 import { AssetValueAndRiskFactors } from "../../../src/libraries/AssetValuationLib.sol";
 import { StakingAM } from "../../../src/asset-modules/abstracts/AbstractStakingAM.sol";
 
 abstract contract StakingAMExtension is StakingAM {
-    constructor(address registry, string memory name_, string memory symbol_) StakingAM(registry, name_, symbol_) { }
+    constructor(address owner_, address registry, string memory name_, string memory symbol_)
+        StakingAM(owner_, registry, name_, symbol_)
+    { }
 
     function addAsset(address asset) public {
         _addAsset(asset);

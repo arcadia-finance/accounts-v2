@@ -2,11 +2,10 @@
  * Created by Pragma Labs
  * SPDX-License-Identifier: MIT
  */
-pragma solidity ^0.8.22;
+pragma solidity ^0.8.0;
 
-import { StakedAerodromeAM_Fuzz_Test, StakedAerodromeAM } from "./_StakedAerodromeAM.fuzz.t.sol";
-
-import { ERC20 } from "../../../../lib/solmate/src/tokens/ERC20.sol";
+import { StakedAerodromeAM } from "../../../../src/asset-modules/Aerodrome-Finance/StakedAerodromeAM.sol";
+import { StakedAerodromeAM_Fuzz_Test } from "./_StakedAerodromeAM.fuzz.t.sol";
 
 /**
  * @notice Fuzz tests for the constructor of contract "StakedAerodromeAM".
@@ -24,7 +23,7 @@ contract Constructor_StakedAerodromeAM_Fuzz_Test is StakedAerodromeAM_Fuzz_Test 
                             FUZZ TESTS
     ///////////////////////////////////////////////////////////////*/
     function testFuzz_success_constructor() public {
-        StakedAerodromeAM assetModule = new StakedAerodromeAM(address(registry), address(voter), AERO);
+        StakedAerodromeAM assetModule = new StakedAerodromeAM(users.owner, address(registry), address(voter), AERO);
 
         assertEq(address(assetModule.REWARD_TOKEN()), AERO);
         assertEq(assetModule.ASSET_TYPE(), 2);

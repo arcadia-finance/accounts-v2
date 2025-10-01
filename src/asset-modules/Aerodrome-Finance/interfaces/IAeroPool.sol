@@ -4,7 +4,7 @@
  *
  * SPDX-License-Identifier: MIT
  */
-pragma solidity ^0.8.22;
+pragma solidity ^0.8.0;
 
 interface IAeroPool {
     function index0() external view returns (uint256);
@@ -20,5 +20,5 @@ interface IAeroPool {
     function totalSupply() external view returns (uint256);
     function balanceOf(address) external view returns (uint256);
     function approve(address, uint256) external returns (bool);
-    function stable() external returns (bool);
+    function stable() external view returns (bool);
 }

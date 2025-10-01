@@ -2,7 +2,7 @@
  * Created by Pragma Labs
  * SPDX-License-Identifier: BUSL-1.1
  */
-pragma solidity ^0.8.22;
+pragma solidity ^0.8.0;
 
 import { AssetValuationLib, AssetValueAndRiskFactors } from "../../../../src/libraries/AssetValuationLib.sol";
 import { PrimaryAMMock } from "../../../utils/mocks/asset-modules/PrimaryAMMock.sol";
@@ -16,6 +16,7 @@ contract GetValuesInUsdRecursive_UniswapV4HooksRegistry_Fuzz_Test is UniswapV4Ho
                              VARIABLES
     /////////////////////////////////////////////////////////////// */
 
+    /// forge-lint: disable-next-line(mixed-case-variable)
     PrimaryAMMock internal primaryAM;
 
     /* ///////////////////////////////////////////////////////////////
@@ -26,7 +27,7 @@ contract GetValuesInUsdRecursive_UniswapV4HooksRegistry_Fuzz_Test is UniswapV4Ho
         UniswapV4HooksRegistry_Fuzz_Test.setUp();
 
         vm.startPrank(users.owner);
-        primaryAM = new PrimaryAMMock(address(registry), 0);
+        primaryAM = new PrimaryAMMock(users.owner, address(registry), 0);
         registry.addAssetModule(address(primaryAM));
         vm.stopPrank();
     }

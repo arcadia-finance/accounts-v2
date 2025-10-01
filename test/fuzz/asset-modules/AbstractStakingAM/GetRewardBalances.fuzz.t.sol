@@ -2,9 +2,7 @@
  * Created by Pragma Labs
  * SPDX-License-Identifier: BUSL-1.1
  */
-pragma solidity ^0.8.22;
-
-import { Fuzz_Test, Constants } from "../../Fuzz.t.sol";
+pragma solidity ^0.8.0;
 
 import { AbstractStakingAM_Fuzz_Test } from "./_AbstractStakingAM.fuzz.t.sol";
 import { StakingAM } from "../../../../src/asset-modules/abstracts/AbstractStakingAM.sol";
@@ -73,9 +71,12 @@ contract GetRewardBalances_AbstractStakingAM_Fuzz_Test is AbstractStakingAM_Fuzz
         assetState.totalStaked = uint128(bound(assetState.totalStaked, 1, type(uint128).max - 1));
 
         // And: deltaRewardPerToken is bigger as type(uint128).max (overflow safeCastTo128).
-        uint256 lowerBound = (assetState.totalStaked < 1e18)
-            ? uint256(type(uint128).max).mulDivUp(assetState.totalStaked, 1e18)
-            : uint256(type(uint128).max) * assetState.totalStaked / 1e18 + assetState.totalStaked;
+        uint256 lowerBound = 1
+            + (
+                (assetState.totalStaked < 1e18)
+                    ? uint256(type(uint128).max).mulDivUp(assetState.totalStaked, 1e18)
+                    : uint256(type(uint128).max) * assetState.totalStaked / 1e18 + assetState.totalStaked
+            );
         currentRewardGlobal = bound(currentRewardGlobal, lowerBound, type(uint256).max);
 
         // And: State is persisted.

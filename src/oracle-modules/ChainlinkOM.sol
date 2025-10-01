@@ -2,14 +2,14 @@
  * Created by Pragma Labs
  * SPDX-License-Identifier: BUSL-1.1
  */
-pragma solidity ^0.8.22;
+pragma solidity ^0.8.30;
 
 import { OracleModule } from "./abstracts/AbstractOM.sol";
 import { IChainLinkData } from "../interfaces/IChainLinkData.sol";
 import { IRegistry } from "./interfaces/IRegistry.sol";
 
 /**
- * @title Abstract Oracle Module
+ * @title Chainlink Oracle Module
  * @author Pragma Labs
  * @notice Oracle Module for Chainlink Oracles.
  */
@@ -47,9 +47,10 @@ contract ChainlinkOM is OracleModule {
     ////////////////////////////////////////////////////////////// */
 
     /**
+     * @param owner_ The address of the Owner.
      * @param registry_ The contract address of the Registry.
      */
-    constructor(address registry_) OracleModule(registry_) { }
+    constructor(address owner_, address registry_) OracleModule(owner_, registry_) { }
 
     /*///////////////////////////////////////////////////////////////
                           ORACLE MANAGEMENT

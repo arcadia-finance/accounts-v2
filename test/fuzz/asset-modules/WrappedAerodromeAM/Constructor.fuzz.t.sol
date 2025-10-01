@@ -2,7 +2,7 @@
  * Created by Pragma Labs
  * SPDX-License-Identifier: BUSL-1.1
  */
-pragma solidity ^0.8.22;
+pragma solidity ^0.8.0;
 
 import { WrappedAerodromeAM_Fuzz_Test } from "./_WrappedAerodromeAM.fuzz.t.sol";
 
@@ -25,7 +25,7 @@ contract Constructor_WrappedAerodromeAM_Fuzz_Test is WrappedAerodromeAM_Fuzz_Tes
     //////////////////////////////////////////////////////////////*/
     function testFuzz_Success_deployment(address registry_) public {
         vm.prank(users.owner);
-        WrappedAerodromeAM assetModule_ = new WrappedAerodromeAM(registry_);
+        WrappedAerodromeAM assetModule_ = new WrappedAerodromeAM(users.owner, registry_);
 
         assertEq(assetModule_.REGISTRY(), registry_);
         assertEq(assetModule_.name(), "Arcadia Wrapped Aerodrome Positions");

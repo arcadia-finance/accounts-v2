@@ -2,13 +2,13 @@
  * Created by Pragma Labs
  * SPDX-License-Identifier: BUSL-1.1
  */
-pragma solidity ^0.8.22;
+pragma solidity ^0.8.0;
 
 import { AssetValueAndRiskFactors } from "../../../src/libraries/AssetValuationLib.sol";
 import { StandardERC4626AM } from "../mocks/asset-modules/StandardERC4626AM.sol";
 
 contract ERC4626AMExtension is StandardERC4626AM {
-    constructor(address registry_) StandardERC4626AM(registry_) { }
+    constructor(address owner_, address registry_) StandardERC4626AM(owner_, registry_) { }
 
     function getAssetFromKey(bytes32 key) public pure returns (address asset, uint256 assetId) {
         (asset, assetId) = _getAssetFromKey(key);

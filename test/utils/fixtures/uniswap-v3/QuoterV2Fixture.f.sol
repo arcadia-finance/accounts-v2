@@ -2,11 +2,11 @@
  * Created by Pragma Labs
  * SPDX-License-Identifier: BUSL-1.1
  */
-pragma solidity ^0.8.22;
+pragma solidity ^0.8.0;
 
-import { Test } from "../../../../lib/forge-std/src/Test.sol";
-
+import { Constants } from "../../../utils/Constants.sol";
 import { IQuoterV2 } from "./extensions/interfaces/IQuoterV2.sol";
+import { Test } from "../../../../lib/forge-std/src/Test.sol";
 import { Utils } from "../../../utils/Utils.sol";
 
 contract QuoterV2Fixture is Test {
@@ -33,8 +33,7 @@ contract QuoterV2Fixture is Test {
 
         // Overwrite constant in bytecode of QuoterV2.
         // -> Replace the code hash of UniswapV3Pool.sol with the code hash of UniswapV3PoolExtension.sol
-        bytes32 POOL_INIT_CODE_HASH = 0xe34f199b19b2b4f47f68442619d555527d244f78a3297ea89325f843f87b8b54;
-        bytecode = Utils.veryBadBytesReplacer(bytecode, POOL_INIT_CODE_HASH, poolExtensionInitCodeHash);
+        bytecode = Utils.veryBadBytesReplacer(bytecode, Constants.POOL_INIT_CODE_HASH, poolExtensionInitCodeHash);
 
         address quoter_ = Utils.deployBytecode(bytecode);
         quoter = IQuoterV2(quoter_);

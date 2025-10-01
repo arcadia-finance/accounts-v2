@@ -2,12 +2,11 @@
  * Created by Pragma Labs
  * SPDX-License-Identifier: BUSL-1.1
  */
-pragma solidity ^0.8.22;
+pragma solidity ^0.8.0;
 
-import { AerodromePoolAM_Fuzz_Test, Constants } from "./_AerodromePoolAM.fuzz.t.sol";
-
-import { Utils } from "../../../utils/Utils.sol";
+import { AerodromePoolAM_Fuzz_Test } from "./_AerodromePoolAM.fuzz.t.sol";
 import { AssetValuationLib, AssetValueAndRiskFactors } from "../../../../src/libraries/AssetValuationLib.sol";
+import { Utils } from "../../../utils/Utils.sol";
 
 /**
  * @notice Fuzz tests for the function "_calculateValueAndRiskFactors" of contract "AerodromePoolAM".

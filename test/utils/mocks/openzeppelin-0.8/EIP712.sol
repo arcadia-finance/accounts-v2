@@ -32,6 +32,7 @@ import { ShortString, ShortStrings } from "./ShortStrings.sol";
  *
  * @custom:oz-upgrades-unsafe-allow state-variable-immutable state-variable-assignment
  */
+/// forge-lint: disable-next-item(screaming-snake-case-immutable)
 abstract contract EIP712 is IERC5267 {
     using ShortStrings for *;
 

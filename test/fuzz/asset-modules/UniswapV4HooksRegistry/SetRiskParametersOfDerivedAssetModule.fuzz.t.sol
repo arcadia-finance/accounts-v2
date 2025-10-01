@@ -2,7 +2,7 @@
  * Created by Pragma Labs
  * SPDX-License-Identifier: BUSL-1.1
  */
-pragma solidity ^0.8.22;
+pragma solidity ^0.8.0;
 
 import { AssetValuationLib } from "../../../../src/libraries/AssetValuationLib.sol";
 import { DerivedAMMock } from "../../../utils/mocks/asset-modules/DerivedAMMock.sol";
@@ -17,6 +17,7 @@ contract SetRiskParametersOfDerivedAM_UniswapV4HooksRegistry_Fuzz_Test is Uniswa
                              VARIABLES
     /////////////////////////////////////////////////////////////// */
 
+    /// forge-lint: disable-next-line(mixed-case-variable)
     DerivedAMMock internal derivedAM;
 
     /* ///////////////////////////////////////////////////////////////
@@ -27,7 +28,7 @@ contract SetRiskParametersOfDerivedAM_UniswapV4HooksRegistry_Fuzz_Test is Uniswa
         UniswapV4HooksRegistry_Fuzz_Test.setUp();
 
         vm.startPrank(users.owner);
-        derivedAM = new DerivedAMMock(address(registry), 0);
+        derivedAM = new DerivedAMMock(users.owner, address(registry), 0);
         registry.addAssetModule(address(derivedAM));
         vm.stopPrank();
     }

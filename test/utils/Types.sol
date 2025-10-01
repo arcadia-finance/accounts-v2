@@ -2,7 +2,7 @@
  * Created by Pragma Labs
  * SPDX-License-Identifier: BUSL-1.1
  */
-pragma solidity ^0.8.22;
+pragma solidity ^0.8.0;
 
 import { ArcadiaOracle } from "../utils/mocks/oracles/ArcadiaOracle.sol";
 import { ERC20Mock } from "../utils/mocks/tokens/ERC20Mock.sol";
@@ -37,6 +37,7 @@ struct MockOracles {
     ArcadiaOracle sft2ToUsd;
 }
 
+/// forge-lint: disable-start(pascal-case-struct)
 struct MockERC20 {
     ERC20Mock stable1;
     ERC20Mock stable2;
@@ -56,6 +57,7 @@ struct MockERC1155 {
     ERC1155Mock sft1;
     ERC1155Mock sft2;
 }
+/// forge-lint: disable-end(pascal-case-struct)
 
 struct Rates {
     uint256 stable1ToUsd;

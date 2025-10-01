@@ -2,7 +2,7 @@
  * Created by Pragma Labs
  * SPDX-License-Identifier: BUSL-1.1
  */
-pragma solidity ^0.8.22;
+pragma solidity ^0.8.0;
 
 import { AerodromeFixture } from "../aerodrome/AerodromeFixture.f.sol";
 import { WETH9Fixture } from "../weth9/WETH9Fixture.f.sol";
@@ -18,6 +18,7 @@ import { LiquidityAmountsExtension } from "../uniswap-v3/extensions/libraries/Li
 import { TickMath } from "../../../../src/asset-modules/UniswapV3/libraries/TickMath.sol";
 import { Utils } from "../../Utils.sol";
 
+/// forge-lint: disable-next-item(divide-before-multiply,mixed-case-function)
 contract SlipstreamFixture is WETH9Fixture, AerodromeFixture {
     /*//////////////////////////////////////////////////////////////////////////
                                    CONTRACTS

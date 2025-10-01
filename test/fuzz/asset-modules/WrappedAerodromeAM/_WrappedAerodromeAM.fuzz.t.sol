@@ -2,9 +2,9 @@
  * Created by Pragma Labs
  * SPDX-License-Identifier: BUSL-1.1
  */
-pragma solidity ^0.8.22;
+pragma solidity ^0.8.0;
 
-import { Fuzz_Test, Constants } from "../../Fuzz.t.sol";
+import { Fuzz_Test } from "../../Fuzz.t.sol";
 import { AerodromeFixture } from "../../../utils/fixtures/aerodrome/AerodromeFixture.f.sol";
 
 import { AerodromePoolAM } from "../../../../src/asset-modules/Aerodrome-Finance/AerodromePoolAM.sol";
@@ -25,11 +25,13 @@ abstract contract WrappedAerodromeAM_Fuzz_Test is Fuzz_Test, AerodromeFixture {
                             TEST CONTRACTS
     /////////////////////////////////////////////////////////////// */
 
+    /// forge-lint: disable-start(mixed-case-variable)
     AerodromePoolAM internal aerodromePoolAM;
     ERC20Mock internal asset0;
     ERC20Mock internal asset1;
     Pool internal aeroPool;
     WrappedAerodromeAMExtension internal wrappedAerodromeAM;
+    /// forge-lint: disable-end(mixed-case-variable)
 
     /* ///////////////////////////////////////////////////////////////
                               SETUP
@@ -43,11 +45,11 @@ abstract contract WrappedAerodromeAM_Fuzz_Test is Fuzz_Test, AerodromeFixture {
 
         // Deploy Aerodrome AM.
         vm.startPrank(users.owner);
-        aerodromePoolAM = new AerodromePoolAM(address(registry), address(aeroPoolFactory));
+        aerodromePoolAM = new AerodromePoolAM(users.owner, address(registry), address(aeroPoolFactory));
         registry.addAssetModule(address(aerodromePoolAM));
 
         // Deploy WrappedAerodromeAM.
-        wrappedAerodromeAM = new WrappedAerodromeAMExtension(address(registry));
+        wrappedAerodromeAM = new WrappedAerodromeAMExtension(users.owner, address(registry));
         registry.addAssetModule(address(wrappedAerodromeAM));
         wrappedAerodromeAM.initialize();
         vm.stopPrank();
@@ -62,6 +64,8 @@ abstract contract WrappedAerodromeAM_Fuzz_Test is Fuzz_Test, AerodromeFixture {
     /* ///////////////////////////////////////////////////////////////
                           HELPER FUNCTIONS
     /////////////////////////////////////////////////////////////// */
+
+    /// forge-lint: disable-next-item(mixed-case-function)
     function givenValidAMState(
         WrappedAerodromeAM.PoolState memory poolState,
         WrappedAerodromeAM.PositionState memory positionState,
@@ -69,7 +73,7 @@ abstract contract WrappedAerodromeAM_Fuzz_Test is Fuzz_Test, AerodromeFixture {
         uint256 fee1
     )
         public
-        view
+        pure
         returns (WrappedAerodromeAM.PoolState memory, WrappedAerodromeAM.PositionState memory, uint256, uint256)
     {
         // Given: more than 1 gwei is staked.
@@ -129,6 +133,7 @@ abstract contract WrappedAerodromeAM_Fuzz_Test is Fuzz_Test, AerodromeFixture {
         return (poolState, positionState, fee0, fee1);
     }
 
+    /// forge-lint: disable-next-item(mixed-case-function)
     function setAMState(
         Pool pool_,
         uint256 positionId,

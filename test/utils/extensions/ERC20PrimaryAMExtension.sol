@@ -2,12 +2,12 @@
  * Created by Pragma Labs
  * SPDX-License-Identifier: BUSL-1.1
  */
-pragma solidity ^0.8.22;
+pragma solidity ^0.8.0;
 
 import { ERC20PrimaryAM } from "../../../src/asset-modules/ERC20-Primaries/ERC20PrimaryAM.sol";
 
 contract ERC20PrimaryAMExtension is ERC20PrimaryAM {
-    constructor(address registry_) ERC20PrimaryAM(registry_) { }
+    constructor(address owner_, address registry_) ERC20PrimaryAM(owner_, registry_) { }
 
     function getAssetFromKey(bytes32 key) public pure returns (address asset, uint256 assetId) {
         (asset, assetId) = _getAssetFromKey(key);

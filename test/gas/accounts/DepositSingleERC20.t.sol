@@ -2,13 +2,13 @@
  * Created by Pragma Labs
  * SPDX-License-Identifier: BUSL-1.1
  */
-pragma solidity ^0.8.22;
+pragma solidity ^0.8.0;
 
 import { Gas_Test } from "../Gas.t.sol";
-import { AccountV1 } from "../../../src/accounts/AccountV1.sol";
+import { AccountV3 } from "../../../src/accounts/AccountV3.sol";
 
 /**
- * @notice Fuzz tests for the function "closeMarginAccount" of contract "AccountV1".
+ * @notice Fuzz tests for the function "closeMarginAccount" of contract "AccountV3".
  */
 contract Deposits_SingleERC20_Gas_Test is Gas_Test {
     /* ///////////////////////////////////////////////////////////////
@@ -31,8 +31,8 @@ contract Deposits_SingleERC20_Gas_Test is Gas_Test {
 
     function testGas_Deposit_ERC20_Single() public {
         vm.pauseGasMetering();
-        (address[] memory assets, uint256[] memory ids, uint256[] memory amounts, AccountV1 account) =
-            prepare_deposit_single_erc20(newAccount);
+        (address[] memory assets, uint256[] memory ids, uint256[] memory amounts, AccountV3 account) =
+            prepareDepositSingleErc20(newAccount);
         vm.resumeGasMetering();
         vm.prank(users.accountOwner);
         account.deposit(assets, ids, amounts);
@@ -40,8 +40,8 @@ contract Deposits_SingleERC20_Gas_Test is Gas_Test {
 
     function testGas_Value_ERC20_Single() public {
         vm.pauseGasMetering();
-        (address[] memory assets, uint256[] memory ids, uint256[] memory amounts, AccountV1 account) =
-            prepare_deposit_single_erc20(newAccount);
+        (address[] memory assets, uint256[] memory ids, uint256[] memory amounts, AccountV3 account) =
+            prepareDepositSingleErc20(newAccount);
         vm.prank(users.accountOwner);
         account.deposit(assets, ids, amounts);
         vm.resumeGasMetering();
@@ -51,8 +51,8 @@ contract Deposits_SingleERC20_Gas_Test is Gas_Test {
 
     function testGas_GenerateAssetData_ERC20_Single() public {
         vm.pauseGasMetering();
-        (address[] memory assets, uint256[] memory ids, uint256[] memory amounts, AccountV1 account) =
-            prepare_deposit_single_erc20(newAccount);
+        (address[] memory assets, uint256[] memory ids, uint256[] memory amounts, AccountV3 account) =
+            prepareDepositSingleErc20(newAccount);
         vm.prank(users.accountOwner);
         account.deposit(assets, ids, amounts);
         vm.resumeGasMetering();
@@ -62,8 +62,8 @@ contract Deposits_SingleERC20_Gas_Test is Gas_Test {
 
     function testGas_Withdraw_ERC20_Single() public {
         vm.pauseGasMetering();
-        (address[] memory assets, uint256[] memory ids, uint256[] memory amounts, AccountV1 account) =
-            prepare_deposit_single_erc20(newAccount);
+        (address[] memory assets, uint256[] memory ids, uint256[] memory amounts, AccountV3 account) =
+            prepareDepositSingleErc20(newAccount);
         vm.prank(users.accountOwner);
         account.deposit(assets, ids, amounts);
         vm.resumeGasMetering();

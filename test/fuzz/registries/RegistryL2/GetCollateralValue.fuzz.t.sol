@@ -2,13 +2,13 @@
  * Created by Pragma Labs
  * SPDX-License-Identifier: BUSL-1.1
  */
-pragma solidity ^0.8.22;
+pragma solidity ^0.8.0;
 
-import { RegistryL2_Fuzz_Test, RegistryErrors } from "./_RegistryL2.fuzz.t.sol";
+import { RegistryErrors } from "../../../../src/libraries/Errors.sol";
+import { RegistryL2_Fuzz_Test } from "./_RegistryL2.fuzz.t.sol";
 
 import { Constants } from "../../../utils/Constants.sol";
-import { AssetModule } from "../../../../src/asset-modules/abstracts/AbstractAM.sol";
-import { AssetValuationLib, AssetValueAndRiskFactors } from "../../../../src/libraries/AssetValuationLib.sol";
+import { AssetValuationLib } from "../../../../src/libraries/AssetValuationLib.sol";
 
 /**
  * @notice Fuzz tests for the function "getCollateralValue" of contract "RegistryL2".
@@ -136,7 +136,7 @@ contract GetCollateralValue_RegistryL2_Fuzz_Test is RegistryL2_Fuzz_Test {
         vm.prank(users.transmitter);
         mockOracles.token1ToUsd.transmit(rateToken1ToUsd);
 
-        uint256 token1ValueInUsd = convertAssetToUsd(Constants.tokenDecimals, amountToken1, oracleToken1ToUsdArr);
+        uint256 token1ValueInUsd = convertAssetToUsd(Constants.TOKEN_DECIMALS, amountToken1, oracleToken1ToUsdArr);
         vm.assume(token1ValueInUsd > 0);
 
         vm.prank(users.riskManager);

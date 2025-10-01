@@ -2,13 +2,14 @@
  * Created by Pragma Labs
  * SPDX-License-Identifier: BUSL-1.1
  */
-pragma solidity ^0.8.22;
+pragma solidity ^0.8.0;
 
-import { AbstractDerivedAM_Fuzz_Test, AssetModule } from "./_AbstractDerivedAM.fuzz.t.sol";
+import { AbstractDerivedAM_Fuzz_Test } from "./_AbstractDerivedAM.fuzz.t.sol";
 
 /**
  * @notice Fuzz tests for the function "_processWithdrawal" of contract "AbstractDerivedAM".
  */
+/// forge-lint: disable-next-item(mixed-case-variable)
 contract ProcessWithdrawal_AbstractDerivedAM_Fuzz_Test is AbstractDerivedAM_Fuzz_Test {
     /* ///////////////////////////////////////////////////////////////
                               SETUP
@@ -122,9 +123,9 @@ contract ProcessWithdrawal_AbstractDerivedAM_Fuzz_Test is AbstractDerivedAM_Fuzz
         assertEq(usdExposureAsset, underlyingPMState.usdValue);
 
         // And: "lastExposureAssetToUnderlyingAsset" is updated.
-        bytes32 UnderlyingAssetKey = derivedAM.getKeyFromAsset(assetState.underlyingAsset, assetState.underlyingAssetId);
+        bytes32 underlyingAssetKey = derivedAM.getKeyFromAsset(assetState.underlyingAsset, assetState.underlyingAssetId);
         assertEq(
-            derivedAM.getExposureAssetToUnderlyingAssetsLast(assetState.creditor, assetKey, UnderlyingAssetKey),
+            derivedAM.getExposureAssetToUnderlyingAssetsLast(assetState.creditor, assetKey, underlyingAssetKey),
             assetState.exposureAssetToUnderlyingAsset
         );
 
@@ -194,9 +195,9 @@ contract ProcessWithdrawal_AbstractDerivedAM_Fuzz_Test is AbstractDerivedAM_Fuzz
         assertEq(usdExposureAsset, underlyingPMState.usdValue);
 
         // And: "lastExposureAssetToUnderlyingAsset" is updated.
-        bytes32 UnderlyingAssetKey = derivedAM.getKeyFromAsset(assetState.underlyingAsset, assetState.underlyingAssetId);
+        bytes32 underlyingAssetKey = derivedAM.getKeyFromAsset(assetState.underlyingAsset, assetState.underlyingAssetId);
         assertEq(
-            derivedAM.getExposureAssetToUnderlyingAssetsLast(assetState.creditor, assetKey, UnderlyingAssetKey),
+            derivedAM.getExposureAssetToUnderlyingAssetsLast(assetState.creditor, assetKey, underlyingAssetKey),
             assetState.exposureAssetToUnderlyingAsset
         );
 
@@ -262,9 +263,9 @@ contract ProcessWithdrawal_AbstractDerivedAM_Fuzz_Test is AbstractDerivedAM_Fuzz
         assertEq(usdExposureAsset, underlyingPMState.usdValue);
 
         // And: "lastExposureAssetToUnderlyingAsset" is updated.
-        bytes32 UnderlyingAssetKey = derivedAM.getKeyFromAsset(assetState.underlyingAsset, assetState.underlyingAssetId);
+        bytes32 underlyingAssetKey = derivedAM.getKeyFromAsset(assetState.underlyingAsset, assetState.underlyingAssetId);
         assertEq(
-            derivedAM.getExposureAssetToUnderlyingAssetsLast(assetState.creditor, assetKey, UnderlyingAssetKey),
+            derivedAM.getExposureAssetToUnderlyingAssetsLast(assetState.creditor, assetKey, underlyingAssetKey),
             assetState.exposureAssetToUnderlyingAsset
         );
 

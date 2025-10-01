@@ -2,18 +2,16 @@
  * Created by Pragma Labs
  * SPDX-License-Identifier: BUSL-1.1
  */
-pragma solidity ^0.8.22;
+pragma solidity ^0.8.0;
 
-import { Fuzz_Test } from "../../Fuzz.t.sol";
-import { SlipstreamFixture } from "../../../utils/fixtures/slipstream/Slipstream.f.sol";
-
-import { ERC20 } from "../../../../lib/solmate/src/tokens/ERC20.sol";
 import { ERC20Mock } from "../../../utils/mocks/tokens/ERC20Mock.sol";
+import { Fuzz_Test } from "../../Fuzz.t.sol";
 import { ICLGauge } from "../../../../src/asset-modules/Slipstream/interfaces/ICLGauge.sol";
 import { ICLPoolExtension } from "../../../utils/fixtures/slipstream/extensions/interfaces/ICLPoolExtension.sol";
 import { LiquidityAmounts } from "../../../../src/asset-modules/UniswapV3/libraries/LiquidityAmounts.sol";
 import { LiquidityAmountsExtension } from
     "../../../utils/fixtures/uniswap-v3/extensions/libraries/LiquidityAmountsExtension.sol";
+import { SlipstreamFixture } from "../../../utils/fixtures/slipstream/Slipstream.f.sol";
 import { StakedSlipstreamAM } from "../../../../src/asset-modules/Slipstream/StakedSlipstreamAM.sol";
 import { StakedSlipstreamAMExtension } from "../../../utils/extensions/StakedSlipstreamAMExtension.sol";
 import { TickMath } from "../../../../src/asset-modules/UniswapV3/libraries/TickMath.sol";
@@ -45,6 +43,7 @@ abstract contract StakedSlipstreamAM_Fuzz_Test is Fuzz_Test, SlipstreamFixture {
                             TEST CONTRACTS
     /////////////////////////////////////////////////////////////// */
 
+    /// forge-lint: disable-next-line(mixed-case-variable)
     StakedSlipstreamAMExtension internal stakedSlipstreamAM;
 
     /* ///////////////////////////////////////////////////////////////
@@ -69,11 +68,14 @@ abstract contract StakedSlipstreamAM_Fuzz_Test is Fuzz_Test, SlipstreamFixture {
     /*////////////////////////////////////////////////////////////////
                         HELPER FUNCTIONS
     ////////////////////////////////////////////////////////////////*/
+
+    /// forge-lint: disable-next-item(mixed-case-function)
     function deployStakedSlipstreamAM() internal {
         // Deploy StakedSlipstreamAM.
         vm.startPrank(users.owner);
-        stakedSlipstreamAM =
-            new StakedSlipstreamAMExtension(address(registry), address(slipstreamPositionManager), address(voter), AERO);
+        stakedSlipstreamAM = new StakedSlipstreamAMExtension(
+            users.owner, address(registry), address(slipstreamPositionManager), address(voter), AERO
+        );
 
         // Add the Asset Module to the Registry.
         registry.addAssetModule(address(stakedSlipstreamAM));
@@ -106,7 +108,7 @@ abstract contract StakedSlipstreamAM_Fuzz_Test is Fuzz_Test, SlipstreamFixture {
 
     function givenValidPosition(StakedSlipstreamAM.PositionState memory position, int24 tickSpacing)
         internal
-        view
+        pure
         returns (StakedSlipstreamAM.PositionState memory)
     {
         // Given: Ticks are within allowed ranges.

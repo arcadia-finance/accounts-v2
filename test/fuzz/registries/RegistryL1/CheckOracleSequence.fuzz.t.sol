@@ -2,9 +2,10 @@
  * Created by Pragma Labs
  * SPDX-License-Identifier: BUSL-1.1
  */
-pragma solidity ^0.8.22;
+pragma solidity ^0.8.0;
 
-import { RegistryL1_Fuzz_Test, RegistryErrors } from "./_RegistryL1.fuzz.t.sol";
+import { RegistryErrors } from "../../../../src/libraries/Errors.sol";
+import { RegistryL1_Fuzz_Test } from "./_RegistryL1.fuzz.t.sol";
 
 import { BitPackingLib } from "../../../../src/libraries/BitPackingLib.sol";
 import { OracleModuleMock } from "../../../utils/mocks/oracle-modules/OracleModuleMock.sol";
@@ -20,7 +21,7 @@ contract CheckOracleSequence_RegistryL1_Fuzz_Test is RegistryL1_Fuzz_Test {
     function setUp() public override {
         RegistryL1_Fuzz_Test.setUp();
 
-        oracleModule = new OracleModuleMock(address(registry_));
+        oracleModule = new OracleModuleMock(users.owner, address(registry_));
     }
 
     /*//////////////////////////////////////////////////////////////

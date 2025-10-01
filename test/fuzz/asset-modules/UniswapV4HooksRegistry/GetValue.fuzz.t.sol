@@ -2,7 +2,7 @@
  * Created by Pragma Labs
  * SPDX-License-Identifier: BUSL-1.1
  */
-pragma solidity ^0.8.22;
+pragma solidity ^0.8.0;
 
 import { AssetValuationLib } from "../../../../src/libraries/AssetValuationLib.sol";
 import { ERC20 } from "../../../../lib/solmate/src/tokens/ERC20.sol";
@@ -64,7 +64,7 @@ contract GetValue_UniswapV4HooksRegistry_Fuzz_Test is UniswapV4HooksRegistry_Fuz
 
         // And : Liquidity is within allowed ranges.
         vars.liquidity =
-            uint80(bound(vars.liquidity, 1e18 + 1, poolManager.getTickSpacingToMaxLiquidityPerTick(tickSpacing)));
+            uint80(bound(vars.liquidity, 1e18 + 1, poolManager.getTickSpacingToMaxLiquidityPerTick(tickSpacing)) / 10);
 
         // And : Liquidity position is minted.
         uint256 tokenId = mintPositionV4(

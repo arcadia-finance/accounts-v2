@@ -2,14 +2,14 @@
  * Created by Pragma Labs
  * SPDX-License-Identifier: BUSL-1.1
  */
-pragma solidity ^0.8.22;
+pragma solidity ^0.8.0;
 
 import { AssetValueAndRiskFactors } from "../../../src/libraries/AssetValuationLib.sol";
 import { SlipstreamAM } from "../../../src/asset-modules/Slipstream/SlipstreamAM.sol";
 
 contract SlipstreamAMExtension is SlipstreamAM {
-    constructor(address registry_, address nonfungiblePositionManager)
-        SlipstreamAM(registry_, nonfungiblePositionManager)
+    constructor(address owner_, address registry_, address nonfungiblePositionManager)
+        SlipstreamAM(owner_, registry_, nonfungiblePositionManager)
     { }
 
     function getAssetExposureLast(address creditor, bytes32 assetKey)

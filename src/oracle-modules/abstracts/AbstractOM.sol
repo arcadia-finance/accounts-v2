@@ -2,7 +2,7 @@
  * Created by Pragma Labs
  * SPDX-License-Identifier: BUSL-1.1
  */
-pragma solidity ^0.8.22;
+pragma solidity ^0.8.0;
 
 import { Owned } from "../../../lib/solmate/src/auth/Owned.sol";
 
@@ -48,9 +48,10 @@ abstract contract OracleModule is Owned {
     ////////////////////////////////////////////////////////////// */
 
     /**
+     * @param owner_ The address of the Owner.
      * @param registry_ The contract address of the Registry.
      */
-    constructor(address registry_) Owned(msg.sender) {
+    constructor(address owner_, address registry_) Owned(owner_) {
         REGISTRY = registry_;
     }
 

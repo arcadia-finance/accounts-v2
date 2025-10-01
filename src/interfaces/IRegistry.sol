@@ -2,7 +2,7 @@
  * Created by Pragma Labs
  * SPDX-License-Identifier: MIT
  */
-pragma solidity ^0.8.22;
+pragma solidity ^0.8.0;
 
 import { AssetValueAndRiskFactors } from "../libraries/AssetValuationLib.sol";
 
@@ -11,6 +11,7 @@ interface IRegistry {
      * @notice Returns the Arcadia Accounts Factory.
      * @return factory The contract address of the Arcadia Accounts Factory.
      */
+    /// forge-lint: disable-next-item(mixed-case-function)
     function FACTORY() external view returns (address);
 
     /**

@@ -2,7 +2,7 @@
  * Created by Pragma Labs
  * SPDX-License-Identifier: BUSL-1.1
  */
-pragma solidity ^0.8.22;
+pragma solidity ^0.8.0;
 
 import { ERC20PrimaryAM_Fuzz_Test } from "./_ERC20PrimaryAM.fuzz.t.sol";
 
@@ -21,7 +21,7 @@ contract GetAssetFromKey_ERC20PrimaryAM_Fuzz_Test is ERC20PrimaryAM_Fuzz_Test {
     /*//////////////////////////////////////////////////////////////
                               TESTS
     //////////////////////////////////////////////////////////////*/
-    function testFuzz_Success_getAssetFromKey(address asset, uint96 assetId) public {
+    function testFuzz_Success_getAssetFromKey(address asset, uint96 assetId) public view {
         bytes32 key = bytes32(abi.encodePacked(assetId, asset));
         (address actualAsset, uint256 actualAssetId) = erc20AM.getAssetFromKey(key);
 

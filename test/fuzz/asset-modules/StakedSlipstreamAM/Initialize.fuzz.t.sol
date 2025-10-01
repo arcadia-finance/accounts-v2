@@ -2,7 +2,7 @@
  * Created by Pragma Labs
  * SPDX-License-Identifier: BUSL-1.1
  */
-pragma solidity ^0.8.22;
+pragma solidity ^0.8.0;
 
 import { StakedSlipstreamAM_Fuzz_Test } from "./_StakedSlipstreamAM.fuzz.t.sol";
 
@@ -31,8 +31,9 @@ contract Initialize_StakedSlipstreamAM_Fuzz_Test is StakedSlipstreamAM_Fuzz_Test
 
         // And : Asset Module is deployed.
         vm.prank(users.owner);
-        StakedSlipstreamAM assetModule =
-            new StakedSlipstreamAM(address(registry), address(slipstreamPositionManager), address(voter), address(AERO));
+        StakedSlipstreamAM assetModule = new StakedSlipstreamAM(
+            users.owner, address(registry), address(slipstreamPositionManager), address(voter), address(AERO)
+        );
 
         // When : Calling initialize().
         // Then : It should revert.
@@ -47,8 +48,9 @@ contract Initialize_StakedSlipstreamAM_Fuzz_Test is StakedSlipstreamAM_Fuzz_Test
 
         // And : Asset Module is deployed.
         vm.prank(users.owner);
-        StakedSlipstreamAM assetModule =
-            new StakedSlipstreamAM(address(registry), address(slipstreamPositionManager), address(voter), address(AERO));
+        StakedSlipstreamAM assetModule = new StakedSlipstreamAM(
+            users.owner, address(registry), address(slipstreamPositionManager), address(voter), address(AERO)
+        );
 
         // When : Calling initialize().
         // Then : It should revert.
@@ -60,8 +62,9 @@ contract Initialize_StakedSlipstreamAM_Fuzz_Test is StakedSlipstreamAM_Fuzz_Test
     function testFuzz_Revert_initialize_AlreadyInitialized() public {
         // Given : Asset Module is deployed.
         vm.prank(users.owner);
-        StakedSlipstreamAM assetModule =
-            new StakedSlipstreamAM(address(registry), address(slipstreamPositionManager), address(voter), address(AERO));
+        StakedSlipstreamAM assetModule = new StakedSlipstreamAM(
+            users.owner, address(registry), address(slipstreamPositionManager), address(voter), address(AERO)
+        );
 
         // And : Asset Module is added to the Registry.
         vm.prank(users.owner);
@@ -81,8 +84,9 @@ contract Initialize_StakedSlipstreamAM_Fuzz_Test is StakedSlipstreamAM_Fuzz_Test
     function testFuzz_success_initialize() public {
         // Given : Asset Module is deployed.
         vm.prank(users.owner);
-        StakedSlipstreamAM assetModule =
-            new StakedSlipstreamAM(address(registry), address(slipstreamPositionManager), address(voter), address(AERO));
+        StakedSlipstreamAM assetModule = new StakedSlipstreamAM(
+            users.owner, address(registry), address(slipstreamPositionManager), address(voter), address(AERO)
+        );
 
         // And : Asset Module is added to the Registry.
         vm.prank(users.owner);

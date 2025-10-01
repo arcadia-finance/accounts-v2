@@ -2,12 +2,14 @@
  * Created by Pragma Labs
  * SPDX-License-Identifier: BUSL-1.1
  */
-pragma solidity ^0.8.22;
+pragma solidity ^0.8.0;
 
 import { RegistryL2 } from "../../../src/registries/RegistryL2.sol";
 
 contract RegistryL2Extension is RegistryL2 {
-    constructor(address factory, address sequencerUptimeOracle_) RegistryL2(factory, sequencerUptimeOracle_) { }
+    constructor(address owner_, address factory, address sequencerUptimeOracle_)
+        RegistryL2(owner_, factory, sequencerUptimeOracle_)
+    { }
 
     function isSequencerDown(address creditor) public view returns (bool success, bool sequencerDown) {
         return _isSequencerDown(creditor);

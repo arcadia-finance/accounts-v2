@@ -2,7 +2,7 @@
  * Created by Pragma Labs
  * SPDX-License-Identifier: BUSL-1.1
  */
-pragma solidity ^0.8.22;
+pragma solidity ^0.8.0;
 
 import { StandardERC4626AM_Fuzz_Test } from "./_StandardERC4626AM.fuzz.t.sol";
 
@@ -25,7 +25,8 @@ contract Constructor_StandardERC4626AM_Fuzz_Test is StandardERC4626AM_Fuzz_Test 
     //////////////////////////////////////////////////////////////*/
     function testFuzz_Success_deployment(address registry_) public {
         vm.startPrank(users.owner);
-        ERC4626AMExtension erc4626AM_ = new ERC4626AMExtension(registry_);
+        /// forge-lint: disable-next-line(mixed-case-variable)
+        ERC4626AMExtension erc4626AM_ = new ERC4626AMExtension(users.owner, registry_);
         vm.stopPrank();
 
         assertEq(erc4626AM_.REGISTRY(), registry_);

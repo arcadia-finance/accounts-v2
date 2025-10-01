@@ -2,14 +2,14 @@
  * Created by Pragma Labs
  * SPDX-License-Identifier: BUSL-1.1
  */
-pragma solidity ^0.8.22;
+pragma solidity ^0.8.0;
 
 import { AssetValueAndRiskFactors } from "../../../src/libraries/AssetValuationLib.sol";
 import { UniswapV3AM } from "../../../src/asset-modules/UniswapV3/UniswapV3AM.sol";
 
 contract UniswapV3AMExtension is UniswapV3AM {
-    constructor(address registry_, address nonfungiblePositionManager)
-        UniswapV3AM(registry_, nonfungiblePositionManager)
+    constructor(address owner_, address registry_, address nonfungiblePositionManager)
+        UniswapV3AM(owner_, registry_, nonfungiblePositionManager)
     { }
 
     function getAssetExposureLast(address creditor, bytes32 assetKey)

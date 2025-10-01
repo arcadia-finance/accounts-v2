@@ -2,7 +2,7 @@
  * Created by Pragma Labs
  * SPDX-License-Identifier: BUSL-1.1
  */
-pragma solidity ^0.8.22;
+pragma solidity ^0.8.0;
 
 import { StakedStargateAM_Fuzz_Test } from "./_StakedStargateAM.fuzz.t.sol";
 
@@ -22,7 +22,7 @@ contract GetCurrentReward_StakedStargateAM_Fuzz_Test is StakedStargateAM_Fuzz_Te
                               TESTS
     /////////////////////////////////////////////////////////////// */
 
-    // Note : This will mainly be tested via fork testing to ensure pendingEmissionToken() function works as intended in lpStakingTime.sol.
+    // Note : This will mainly be tested via fork testing to ensure pendingEmissionToken() function works as intended in LP_STAKING_TIME.sol.
     function testFuzz_success_getCurrentReward(uint256 pid, uint256 pendingEmissions) public {
         // Given : The pool id is set for the asset in the AM.
         stakedStargateAM.setAssetToPoolId(address(poolMock), pid);

@@ -2,7 +2,7 @@
  * Created by Pragma Labs
  * SPDX-License-Identifier: BUSL-1.1
  */
-pragma solidity ^0.8.22;
+pragma solidity ^0.8.0;
 
 import { GuardianErrors } from "../libraries/Errors.sol";
 import { Owned } from "../../lib/solmate/src/auth/Owned.sol";
@@ -58,7 +58,10 @@ abstract contract BaseGuardian is Owned {
                                 CONSTRUCTOR
     ////////////////////////////////////////////////////////////// */
 
-    constructor() Owned(msg.sender) { }
+    /**
+     * @param owner_ The address of the Owner.
+     */
+    constructor(address owner_) Owned(owner_) { }
 
     /* //////////////////////////////////////////////////////////////
                             GUARDIAN LOGIC

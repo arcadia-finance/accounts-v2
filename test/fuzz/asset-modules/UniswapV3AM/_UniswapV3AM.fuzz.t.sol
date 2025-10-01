@@ -2,7 +2,7 @@
  * Created by Pragma Labs
  * SPDX-License-Identifier: BUSL-1.1
  */
-pragma solidity ^0.8.22;
+pragma solidity ^0.8.0;
 
 import { Base_Test } from "../../../Base.t.sol";
 import { Fuzz_Test } from "../../Fuzz.t.sol";
@@ -104,7 +104,7 @@ abstract contract UniswapV3AM_Fuzz_Test is Fuzz_Test, UniswapV3Fixture, UniswapV
 
     function givenValidPosition(NonfungiblePositionManagerMock.Position memory position)
         internal
-        view
+        pure
         returns (NonfungiblePositionManagerMock.Position memory)
     {
         // Given: poolId is non zero (=position is initialised).

@@ -2,7 +2,7 @@
  * Created by Pragma Labs
  * SPDX-License-Identifier: BUSL-1.1
  */
-pragma solidity ^0.8.22;
+pragma solidity ^0.8.0;
 
 import { RegistryL2_Fuzz_Test } from "./_RegistryL2.fuzz.t.sol";
 
@@ -21,7 +21,7 @@ contract IsAllowed_RegistryL2_Fuzz_Test is RegistryL2_Fuzz_Test {
     /*//////////////////////////////////////////////////////////////
                               TESTS
     //////////////////////////////////////////////////////////////*/
-    function testFuzz_Success_isAllowed_Negative_UnknownAsset(address randomAsset, uint256 assetId) public {
+    function testFuzz_Success_isAllowed_Negative_UnknownAsset(address randomAsset, uint256 assetId) public view {
         vm.assume(randomAsset != address(mockERC20.stable1));
         vm.assume(randomAsset != address(mockERC20.stable2));
         vm.assume(randomAsset != address(mockERC20.token1));
@@ -32,11 +32,11 @@ contract IsAllowed_RegistryL2_Fuzz_Test is RegistryL2_Fuzz_Test {
         assertFalse(registry.isAllowed(randomAsset, assetId));
     }
 
-    function testFuzz_Success_isAllowed_Negative_NonAllowedAsset() public {
+    function testFuzz_Success_isAllowed_Negative_NonAllowedAsset() public view {
         assertFalse(registry.isAllowed(address(mockERC1155.sft1), 2));
     }
 
-    function testFuzz_Success_isAllowed_Positive(uint256 assetId) public {
+    function testFuzz_Success_isAllowed_Positive(uint256 assetId) public view {
         assertTrue(registry.isAllowed(address(mockERC20.stable1), assetId));
     }
 }

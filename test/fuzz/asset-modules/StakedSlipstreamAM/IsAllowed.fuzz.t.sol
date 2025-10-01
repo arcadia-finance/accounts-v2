@@ -2,7 +2,7 @@
  * Created by Pragma Labs
  * SPDX-License-Identifier: BUSL-1.1
  */
-pragma solidity ^0.8.22;
+pragma solidity ^0.8.0;
 
 import { StakedSlipstreamAM_Fuzz_Test } from "./_StakedSlipstreamAM.fuzz.t.sol";
 
@@ -24,7 +24,7 @@ contract IsAllowed_StakedSlipstreamAM_Fuzz_Test is StakedSlipstreamAM_Fuzz_Test 
                               TESTS
     /////////////////////////////////////////////////////////////// */
 
-    function testFuzz_Success_isAllowed_False_BadAsset(address randomAddress, uint256 positionId) public {
+    function testFuzz_Success_isAllowed_False_BadAsset(address randomAddress, uint256 positionId) public view {
         // Given : randomAddress is not the stakingAM.
         vm.assume(randomAddress != address(stakedSlipstreamAM));
 
@@ -35,7 +35,7 @@ contract IsAllowed_StakedSlipstreamAM_Fuzz_Test is StakedSlipstreamAM_Fuzz_Test 
         assertFalse(allowed);
     }
 
-    function testFuzz_Success_isAllowed_False_BadId(uint256 positionId) public {
+    function testFuzz_Success_isAllowed_False_BadId(uint256 positionId) public view {
         // Given: positionId is not minted.
 
         // When : Calling isAllowed()

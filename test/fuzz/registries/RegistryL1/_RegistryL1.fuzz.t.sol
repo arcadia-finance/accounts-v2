@@ -2,21 +2,21 @@
  * Created by Pragma Labs
  * SPDX-License-Identifier: BUSL-1.1
  */
-pragma solidity ^0.8.22;
+pragma solidity ^0.8.0;
 
-import { AccountV1 } from "../../../../src/accounts/AccountV1.sol";
+import { AccountsGuardExtension } from "../../../utils/extensions/AccountsGuardExtension.sol";
+import { AccountV3 } from "../../../../src/accounts/AccountV3.sol";
 import { ArcadiaOracle } from "../../../utils/mocks/oracles/ArcadiaOracle.sol";
 import { BitPackingLib } from "../../../../src/libraries/BitPackingLib.sol";
 import { ChainlinkOMExtension } from "../../../utils/extensions/ChainlinkOMExtension.sol";
 import { Constants, Fuzz_Test } from "../../Fuzz.t.sol";
 import { DerivedAMMock } from "../../../utils/mocks/asset-modules/DerivedAMMock.sol";
 import { ERC20PrimaryAMExtension } from "../../../utils/extensions/ERC20PrimaryAMExtension.sol";
-import { Factory } from "../../../../src/Factory.sol";
+import { FactoryExtension } from "../../../utils/extensions/FactoryExtension.sol";
 import { FloorERC721AMExtension } from "../../../utils/extensions/FloorERC721AMExtension.sol";
 import { FloorERC1155AMExtension } from "../../../utils/extensions/FloorERC1155AMExtension.sol";
 import { OracleModuleMock } from "../../../utils/mocks/oracle-modules/OracleModuleMock.sol";
 import { PrimaryAMMock } from "../../../utils/mocks/asset-modules/PrimaryAMMock.sol";
-import { RegistryErrors } from "../../../../src/registries/RegistryL1.sol";
 import { RegistryL1Extension } from "../../../utils/extensions/RegistryL1Extension.sol";
 
 /**
@@ -31,8 +31,10 @@ abstract contract RegistryL1_Fuzz_Test is Fuzz_Test {
                             TEST CONTRACTS
     /////////////////////////////////////////////////////////////// */
 
+    /// forge-lint: disable-start(mixed-case-variable)
     PrimaryAMMock internal primaryAM;
     DerivedAMMock internal derivedAM;
+    /// forge-lint: disable-end(mixed-case-variable)
 
     OracleModuleMock internal oracleModule;
 
@@ -46,15 +48,17 @@ abstract contract RegistryL1_Fuzz_Test is Fuzz_Test {
         Fuzz_Test.setUp();
 
         vm.startPrank(users.owner);
-        factory = new Factory();
-        registry_ = new RegistryL1Extension(address(factory));
-        chainlinkOM = new ChainlinkOMExtension(address(registry_));
-        erc20AM = new ERC20PrimaryAMExtension(address(registry_));
-        floorERC721AM = new FloorERC721AMExtension(address(registry_));
-        floorERC1155AM = new FloorERC1155AMExtension(address(registry_));
+        factory = new FactoryExtension(users.owner);
+        registry_ = new RegistryL1Extension(users.owner, address(factory));
+        chainlinkOM = new ChainlinkOMExtension(users.owner, address(registry_));
+        erc20AM = new ERC20PrimaryAMExtension(users.owner, address(registry_));
+        floorERC721AM = new FloorERC721AMExtension(users.owner, address(registry_));
+        floorERC1155AM = new FloorERC1155AMExtension(users.owner, address(registry_));
 
-        accountV1Logic = new AccountV1(address(factory));
-        factory.setNewAccountInfo(address(registry_), address(accountV1Logic), Constants.upgradeProof1To2, "");
+        accountsGuard = new AccountsGuardExtension(users.owner, address(factory));
+        accountLogic = new AccountV3(address(factory), address(accountsGuard), address(0));
+        factory.setLatestAccountVersion(2);
+        factory.setNewAccountInfo(address(registry_), address(accountLogic), Constants.ROOT, "");
 
         // Set the Guardians.
         factory.changeGuardian(users.guardian);
@@ -86,17 +90,17 @@ abstract contract RegistryL1_Fuzz_Test is Fuzz_Test {
             address(mockERC1155.sft1), 1, BitPackingLib.pack(BA_TO_QA_DOUBLE, oracleSft1ToToken1ToUsd)
         );
 
-        primaryAM = new PrimaryAMMock(address(registry_), 0);
+        primaryAM = new PrimaryAMMock(users.owner, address(registry_), 0);
         registry_.addAssetModule(address(primaryAM));
 
-        derivedAM = new DerivedAMMock(address(registry_), 0);
+        derivedAM = new DerivedAMMock(users.owner, address(registry_), 0);
         registry_.addAssetModule(address(derivedAM));
         vm.stopPrank();
 
         // Deploy an initial Account with all inputs to zero
         vm.prank(users.accountOwner);
         address proxyAddress = factory.createAccount(0, 0, address(0));
-        account = AccountV1(proxyAddress);
+        account = AccountV3(proxyAddress);
 
         // Set Risk Variables.
         vm.startPrank(users.riskManager);
@@ -109,24 +113,24 @@ abstract contract RegistryL1_Fuzz_Test is Fuzz_Test {
             address(mockERC20.stable1),
             0,
             type(uint112).max,
-            Constants.stableToStableCollFactor,
-            Constants.stableToStableLiqFactor
+            Constants.STABLE_TO_STABLE_COLL_FACTOR,
+            Constants.STABLE_TO_STABLE_LIQ_FACTOR
         );
         registry_.setRiskParametersOfPrimaryAsset(
             address(creditorStable1),
             address(mockERC20.stable1),
             0,
             type(uint112).max,
-            Constants.stableToStableCollFactor,
-            Constants.stableToStableLiqFactor
+            Constants.STABLE_TO_STABLE_COLL_FACTOR,
+            Constants.STABLE_TO_STABLE_LIQ_FACTOR
         );
         registry_.setRiskParametersOfPrimaryAsset(
             address(creditorToken1),
             address(mockERC20.stable1),
             0,
             type(uint112).max,
-            Constants.tokenToStableCollFactor,
-            Constants.tokenToStableLiqFactor
+            Constants.TOKEN_TO_STABLE_COLL_FACTOR,
+            Constants.TOKEN_TO_STABLE_LIQ_FACTOR
         );
 
         registry_.setRiskParametersOfPrimaryAsset(
@@ -134,24 +138,24 @@ abstract contract RegistryL1_Fuzz_Test is Fuzz_Test {
             address(mockERC20.stable2),
             0,
             type(uint112).max,
-            Constants.stableToStableCollFactor,
-            Constants.stableToStableLiqFactor
+            Constants.STABLE_TO_STABLE_COLL_FACTOR,
+            Constants.STABLE_TO_STABLE_LIQ_FACTOR
         );
         registry_.setRiskParametersOfPrimaryAsset(
             address(creditorStable1),
             address(mockERC20.stable2),
             0,
             type(uint112).max,
-            Constants.stableToStableCollFactor,
-            Constants.stableToStableLiqFactor
+            Constants.STABLE_TO_STABLE_COLL_FACTOR,
+            Constants.STABLE_TO_STABLE_LIQ_FACTOR
         );
         registry_.setRiskParametersOfPrimaryAsset(
             address(creditorToken1),
             address(mockERC20.stable2),
             0,
             type(uint112).max,
-            Constants.tokenToStableCollFactor,
-            Constants.tokenToStableLiqFactor
+            Constants.TOKEN_TO_STABLE_COLL_FACTOR,
+            Constants.TOKEN_TO_STABLE_LIQ_FACTOR
         );
 
         registry_.setRiskParametersOfPrimaryAsset(
@@ -159,24 +163,24 @@ abstract contract RegistryL1_Fuzz_Test is Fuzz_Test {
             address(mockERC20.token1),
             0,
             type(uint112).max,
-            Constants.tokenToStableCollFactor,
-            Constants.tokenToStableLiqFactor
+            Constants.TOKEN_TO_STABLE_COLL_FACTOR,
+            Constants.TOKEN_TO_STABLE_LIQ_FACTOR
         );
         registry_.setRiskParametersOfPrimaryAsset(
             address(creditorStable1),
             address(mockERC20.token1),
             0,
             type(uint112).max,
-            Constants.tokenToStableCollFactor,
-            Constants.tokenToStableLiqFactor
+            Constants.TOKEN_TO_STABLE_COLL_FACTOR,
+            Constants.TOKEN_TO_STABLE_LIQ_FACTOR
         );
         registry_.setRiskParametersOfPrimaryAsset(
             address(creditorToken1),
             address(mockERC20.token1),
             0,
             type(uint112).max,
-            Constants.tokenToTokenCollFactor,
-            Constants.tokenToTokenLiqFactor
+            Constants.TOKEN_TO_TOKEN_COLL_FACTOR,
+            Constants.TOKEN_TO_TOKEN_LIQ_FACTOR
         );
 
         registry_.setRiskParametersOfPrimaryAsset(
@@ -184,24 +188,24 @@ abstract contract RegistryL1_Fuzz_Test is Fuzz_Test {
             address(mockERC20.token2),
             0,
             type(uint112).max,
-            Constants.tokenToStableCollFactor,
-            Constants.tokenToStableLiqFactor
+            Constants.TOKEN_TO_STABLE_COLL_FACTOR,
+            Constants.TOKEN_TO_STABLE_LIQ_FACTOR
         );
         registry_.setRiskParametersOfPrimaryAsset(
             address(creditorStable1),
             address(mockERC20.token2),
             0,
             type(uint112).max,
-            Constants.tokenToStableCollFactor,
-            Constants.tokenToStableLiqFactor
+            Constants.TOKEN_TO_STABLE_COLL_FACTOR,
+            Constants.TOKEN_TO_STABLE_LIQ_FACTOR
         );
         registry_.setRiskParametersOfPrimaryAsset(
             address(creditorToken1),
             address(mockERC20.token2),
             0,
             type(uint112).max,
-            Constants.tokenToTokenCollFactor,
-            Constants.tokenToTokenLiqFactor
+            Constants.TOKEN_TO_TOKEN_COLL_FACTOR,
+            Constants.TOKEN_TO_TOKEN_LIQ_FACTOR
         );
 
         registry_.setRiskParametersOfPrimaryAsset(

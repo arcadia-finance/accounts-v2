@@ -2,11 +2,10 @@
  * Created by Pragma Labs
  * SPDX-License-Identifier: BUSL-1.1
  */
-pragma solidity ^0.8.22;
+pragma solidity ^0.8.0;
 
-import { StargateAM_Fuzz_Test, Constants } from "./_StargateAM.fuzz.t.sol";
-
-import { AssetValuationLib, AssetValueAndRiskFactors } from "../../../../src/libraries/AssetValuationLib.sol";
+import { StargateAM_Fuzz_Test } from "./_StargateAM.fuzz.t.sol";
+import { AssetValuationLib } from "../../../../src/libraries/AssetValuationLib.sol";
 
 /**
  * @notice Fuzz tests for the function "getRiskFactors" of contract "StargateAM".

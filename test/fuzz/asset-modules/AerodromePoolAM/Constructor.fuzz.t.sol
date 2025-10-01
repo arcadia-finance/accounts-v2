@@ -2,10 +2,9 @@
  * Created by Pragma Labs
  * SPDX-License-Identifier: BUSL-1.1
  */
-pragma solidity ^0.8.22;
+pragma solidity ^0.8.0;
 
 import { AerodromePoolAM_Fuzz_Test } from "./_AerodromePoolAM.fuzz.t.sol";
-
 import { AerodromePoolAMExtension } from "../../../utils/extensions/AerodromePoolAMExtension.sol";
 
 /**
@@ -25,7 +24,8 @@ contract Constructor_AerodromePoolAM_Fuzz_Test is AerodromePoolAM_Fuzz_Test {
     /////////////////////////////////////////////////////////////// */
 
     function testFuzz_success_constructor(address aerodromeFactory) public {
-        AerodromePoolAMExtension assetModule = new AerodromePoolAMExtension(address(registry), aerodromeFactory);
+        AerodromePoolAMExtension assetModule =
+            new AerodromePoolAMExtension(users.owner, address(registry), aerodromeFactory);
 
         assertEq(address(assetModule.AERO_FACTORY()), aerodromeFactory);
         assertEq(assetModule.ASSET_TYPE(), 1);

@@ -2,7 +2,7 @@
  * Created by Pragma Labs
  * SPDX-License-Identifier: BUSL-1.1
  */
-pragma solidity ^0.8.22;
+pragma solidity ^0.8.0;
 
 import { AerodromePoolAM_Fuzz_Test } from "./_AerodromePoolAM.fuzz.t.sol";
 import { stdStorage, StdStorage } from "../../../../lib/forge-std/src/StdStorage.sol";
@@ -24,7 +24,7 @@ contract IsAllowed_AerodromePoolAM_Fuzz_Test is AerodromePoolAM_Fuzz_Test {
                               TESTS
     /////////////////////////////////////////////////////////////// */
 
-    function testFuzz_Success_isAllowed_False(address asset, uint256 id) public {
+    function testFuzz_Success_isAllowed_False(address asset, uint256 id) public view {
         // When : Calling isAllowed()
         bool allowed = aeroPoolAM.isAllowed(asset, id);
 

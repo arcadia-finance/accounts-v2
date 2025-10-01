@@ -2,7 +2,7 @@
  * Created by Pragma Labs
  * SPDX-License-Identifier: BUSL-1.1
  */
-pragma solidity ^0.8.22;
+pragma solidity ^0.8.0;
 
 import { DefaultUniswapV4AM_Fuzz_Test } from "./_DefaultUniswapV4AM.fuzz.t.sol";
 import { DefaultUniswapV4AMExtension } from "../../../utils/extensions/DefaultUniswapV4AMExtension.sol";
@@ -25,7 +25,7 @@ contract Constructor_DefaultUniswapV4AM_Fuzz_Test is DefaultUniswapV4AM_Fuzz_Tes
     function testFuzz_Success_deployment(address registry_) public {
         vm.startPrank(users.owner);
         DefaultUniswapV4AMExtension uniV4AssetModule_ =
-            new DefaultUniswapV4AMExtension(registry_, address(positionManagerV4));
+            new DefaultUniswapV4AMExtension(users.owner, registry_, address(positionManagerV4));
         vm.stopPrank();
 
         assertEq(uniV4AssetModule_.REGISTRY(), registry_);

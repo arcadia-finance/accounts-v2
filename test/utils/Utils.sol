@@ -2,12 +2,13 @@
  * Created by Pragma Labs
  * SPDX-License-Identifier: BUSL-1.1
  */
-pragma solidity ^0.8.22;
+pragma solidity ^0.8.0;
 
 import { Vm } from "../../lib/forge-std/src/Vm.sol";
-import { IPermit2 } from "./Interfaces.sol";
+import { IPermit2 } from "./interfaces/IPermit2.sol";
 
 library Utils {
+    /// forge-lint: disable-next-line(screaming-snake-case-const)
     Vm private constant vm = Vm(address(uint160(uint256(keccak256("hevm cheat code")))));
 
     bytes32 public constant _TOKEN_PERMISSIONS_TYPEHASH = keccak256("TokenPermissions(address token,uint256 amount)");
@@ -46,6 +47,7 @@ library Utils {
         return bytes.concat(r, s, bytes1(v));
     }
 
+    /// forge-lint: disable-next-item(mixed-case-function)
     function defaultERC20PermitMultiple(
         address[] memory tokens,
         uint256[] memory amounts,
@@ -191,6 +193,38 @@ library Utils {
         revert();
     }
 
+    function veryBadBytesReplacerNoReverts(bytes memory bytecode, bytes memory target, bytes memory replacement)
+        internal
+        pure
+        returns (bytes memory result)
+    {
+        uint256 lengthTarget = target.length;
+        uint256 lengthBytecode = bytecode.length - lengthTarget + 1;
+        uint256 i;
+        for (i; i < lengthBytecode;) {
+            uint256 j = 0;
+            for (j; j < lengthTarget;) {
+                if (bytecode[i + j] == target[j]) {
+                    if (j == lengthTarget - 1) {
+                        // Target found, replace with replacement, and return result.
+                        return result = replaceBytes(bytecode, replacement, i);
+                    }
+                } else {
+                    break;
+                }
+                unchecked {
+                    ++j;
+                }
+            }
+
+            unchecked {
+                ++i;
+            }
+        }
+        // If no match found, return original bytecode.
+        return bytecode;
+    }
+
     function veryBadBytesReplacer(
         bytes memory bytecode,
         bytes memory target,
@@ -236,5 +270,17 @@ library Utils {
             }
         }
         return bytecode;
+    }
+
+    function commutativeKeccak256(bytes32 a, bytes32 b) internal pure returns (bytes32) {
+        return a < b ? efficientKeccak256(a, b) : efficientKeccak256(b, a);
+    }
+
+    function efficientKeccak256(bytes32 a, bytes32 b) internal pure returns (bytes32 value) {
+        assembly ("memory-safe") {
+            mstore(0x00, a)
+            mstore(0x20, b)
+            value := keccak256(0x00, 0x40)
+        }
     }
 }

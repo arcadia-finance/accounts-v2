@@ -2,16 +2,18 @@
  * Created by Pragma Labs
  * SPDX-License-Identifier: BUSL-1.1
  */
-pragma solidity ^0.8.22;
+pragma solidity ^0.8.0;
 
 import { AerodromeGauges, AerodromePools, Assets, Oracles, Safes } from "../utils/constants/Base.sol";
 import { Asset, Oracle } from "../utils/constants/Base.sol";
 import { Base_Script } from "../Base.s.sol";
 
 contract AddAsset is Base_Script {
+    /// forge-lint: disable-start(mixed-case-variable)
     Asset internal ASSET = Assets.VVV();
     Oracle internal ORACLE = Oracles.VVV_USD();
     address internal SAFE = Safes.OWNER;
+    /// forge-lint: disable-end(mixed-case-variable)
 
     constructor() { }
 

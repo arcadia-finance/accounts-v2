@@ -2,7 +2,7 @@
  * Created by Pragma Labs
  * SPDX-License-Identifier: BUSL-1.1
  */
-pragma solidity ^0.8.22;
+pragma solidity ^0.8.0;
 
 import { DerivedAM, FixedPointMathLib, IRegistry } from "../../../../src/asset-modules/abstracts/AbstractDerivedAM.sol";
 import { IERC4626 } from "../../../../src/interfaces/IERC4626.sol";
@@ -33,10 +33,11 @@ contract StandardERC4626AM is DerivedAM {
     ////////////////////////////////////////////////////////////// */
 
     /**
+     * @param owner_ The address of the Owner.
      * @param registry_ The address of the Registry.
      * @dev The ASSET_TYPE, necessary for the deposit and withdraw logic in the Accounts, is "1" for ERC20 tokens.
      */
-    constructor(address registry_) DerivedAM(registry_, 1) { }
+    constructor(address owner_, address registry_) DerivedAM(owner_, registry_, 1) { }
 
     /*///////////////////////////////////////////////////////////////
                         ASSET MANAGEMENT

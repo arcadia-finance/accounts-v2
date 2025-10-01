@@ -2,7 +2,7 @@
  * Created by Pragma Labs
  * SPDX-License-Identifier: BUSL-1.1
  */
-pragma solidity ^0.8.22;
+pragma solidity ^0.8.0;
 
 import { AssetModule } from "./AbstractAM.sol";
 import { FixedPointMathLib } from "../../../lib/solmate/src/utils/FixedPointMathLib.sol";
@@ -62,6 +62,7 @@ abstract contract DerivedAM is AssetModule {
     ////////////////////////////////////////////////////////////// */
 
     /**
+     * @param owner_ The address of the Owner.
      * @param registry_ The contract address of the Registry.
      * @param assetType_ Identifier for the token standard of the asset.
      * 0 = Unknown asset.
@@ -70,7 +71,7 @@ abstract contract DerivedAM is AssetModule {
      * 3 = ERC1155.
      * ...
      */
-    constructor(address registry_, uint256 assetType_) AssetModule(registry_, assetType_) { }
+    constructor(address owner_, address registry_, uint256 assetType_) AssetModule(owner_, registry_, assetType_) { }
 
     /*///////////////////////////////////////////////////////////////
                         ASSET INFORMATION

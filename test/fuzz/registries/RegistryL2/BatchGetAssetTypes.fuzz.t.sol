@@ -2,10 +2,10 @@
  * Created by Pragma Labs
  * SPDX-License-Identifier: BUSL-1.1
  */
-pragma solidity ^0.8.22;
+pragma solidity ^0.8.0;
 
-import { RegistryL2_Fuzz_Test, RegistryErrors } from "./_RegistryL2.fuzz.t.sol";
-import { AssetModule } from "../../../../src/asset-modules/abstracts/AbstractAM.sol";
+import { RegistryErrors } from "../../../../src/libraries/Errors.sol";
+import { RegistryL2_Fuzz_Test } from "./_RegistryL2.fuzz.t.sol";
 
 /**
  * @notice Fuzz tests for the function "batchGetAssetTypes" of contract "RegistryL2".

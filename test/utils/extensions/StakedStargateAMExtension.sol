@@ -2,13 +2,15 @@
  * Created by Pragma Labs
  * SPDX-License-Identifier: BUSL-1.1
  */
-pragma solidity ^0.8.22;
+pragma solidity ^0.8.0;
 
 import { AssetValueAndRiskFactors } from "../../../src/libraries/AssetValuationLib.sol";
 import { StakedStargateAM } from "../../../src/asset-modules/Stargate-Finance/StakedStargateAM.sol";
 
 contract StakedStargateAMExtension is StakedStargateAM {
-    constructor(address registry, address stargateLpStaking_) StakedStargateAM(registry, stargateLpStaking_) { }
+    constructor(address owner_, address registry, address stargateLpStaking_)
+        StakedStargateAM(owner_, registry, stargateLpStaking_)
+    { }
 
     function setAssetToPoolId(address asset, uint256 pid) public {
         assetToPid[asset] = pid;

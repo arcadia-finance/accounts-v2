@@ -2,7 +2,7 @@
  * Created by Pragma Labs
  * SPDX-License-Identifier: BUSL-1.1
  */
-pragma solidity ^0.8.22;
+pragma solidity ^0.8.0;
 
 import { AerodromePoolAM_Fuzz_Test } from "./_AerodromePoolAM.fuzz.t.sol";
 
@@ -46,7 +46,7 @@ contract GetUnderlyingAssets_AerodromePoolAM_Fuzz_Test is AerodromePoolAM_Fuzz_T
         assertEq(actualUnderlyingAssetKeys[1], expectedUnderlyingAssetKeys[1]);
     }
 
-    function testFuzz_Success_getUnderlyingAssets_NotInAssetModule() public {
+    function testFuzz_Success_getUnderlyingAssets_NotInAssetModule() public view {
         bytes32 assetKey = bytes32(abi.encodePacked(uint96(0), address(aeroPool)));
 
         bytes32[] memory underlyingAssetKeys = aeroPoolAM.getUnderlyingAssets(assetKey);

@@ -2,13 +2,13 @@
  * Created by Pragma Labs
  * SPDX-License-Identifier: BUSL-1.1
  */
-pragma solidity ^0.8.22;
+pragma solidity ^0.8.0;
 
-import { AssetValuationLib, AssetValueAndRiskFactors } from "../../../src/libraries/AssetValuationLib.sol";
+import { AssetValueAndRiskFactors } from "../../../src/libraries/AssetValuationLib.sol";
 import { WrappedAerodromeAM } from "../../../src/asset-modules/Aerodrome-Finance/WrappedAerodromeAM.sol";
 
 contract WrappedAerodromeAMExtension is WrappedAerodromeAM {
-    constructor(address registry) WrappedAerodromeAM(registry) { }
+    constructor(address owner_, address registry) WrappedAerodromeAM(owner_, registry) { }
 
     function getKeyFromAsset(address asset, uint256 assetId) public view returns (bytes32 key) {
         key = _getKeyFromAsset(asset, assetId);

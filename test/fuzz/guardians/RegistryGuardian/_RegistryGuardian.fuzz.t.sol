@@ -2,12 +2,11 @@
  * Created by Pragma Labs
  * SPDX-License-Identifier: BUSL-1.1
  */
-pragma solidity ^0.8.22;
+pragma solidity ^0.8.0;
 
 import { Fuzz_Test } from "../../Fuzz.t.sol";
 
 import { RegistryGuardianExtension } from "../../../utils/extensions/RegistryGuardianExtension.sol";
-import { BaseGuardian } from "../../../../src/guardians/BaseGuardian.sol";
 
 /**
  * @notice Common logic needed by all "RegistryGuardian" fuzz tests.
@@ -36,7 +35,7 @@ abstract contract RegistryGuardian_Fuzz_Test is Fuzz_Test {
         Fuzz_Test.setUp();
 
         vm.startPrank(users.owner);
-        registryGuardian = new RegistryGuardianExtension();
+        registryGuardian = new RegistryGuardianExtension(users.owner);
         registryGuardian.changeGuardian(users.guardian);
         vm.stopPrank();
 

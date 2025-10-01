@@ -2,15 +2,14 @@
  * Created by Pragma Labs
  * SPDX-License-Identifier: BUSL-1.1
  */
-pragma solidity ^0.8.22;
+pragma solidity ^0.8.0;
 
 import { UniswapV2AM_Fuzz_Test } from "./_UniswapV2AM.fuzz.t.sol";
 
 import { StdStorage, stdStorage } from "../../../../lib/forge-std/src/Test.sol";
 
 import { Constants } from "../../../utils/Constants.sol";
-import { AssetModule } from "../../../../src/asset-modules/abstracts/AbstractAM.sol";
-import { AssetValuationLib, AssetValueAndRiskFactors } from "../../../../src/libraries/AssetValuationLib.sol";
+import { AssetValueAndRiskFactors } from "../../../../src/libraries/AssetValuationLib.sol";
 
 /**
  * @notice Fuzz tests for the function "_getUnderlyingAssetsAmounts()" of contract "UniswapV2AM".
@@ -44,7 +43,7 @@ contract GetUnderlyingAssetsAmounts_UniswapV2AM_Fuzz_Test is UniswapV2AM_Fuzz_Te
         reserve1 = bound(reserve1, 1, type(uint112).max);
 
         // And: "token0ToToken1" in "_computeProfitMaximizingTrade" does not overflow (unreasonable value + reserve for same token).
-        reserve0 = bound(reserve0, 1, type(uint256).max / (reserve1 * 10 ** (18 - Constants.tokenOracleDecimals)));
+        reserve0 = bound(reserve0, 1, type(uint256).max / (reserve1 * 10 ** (18 - Constants.TOKEN_ORACLE_DECIMALS)));
 
         // And: "totalSupply" is bigger than0 (division by 0).
         totalSupply = bound(totalSupply, 1, type(uint256).max);
@@ -83,8 +82,8 @@ contract GetUnderlyingAssetsAmounts_UniswapV2AM_Fuzz_Test is UniswapV2AM_Fuzz_Te
         assertEq(underlyingAssetsAmounts[1], expectedUnderlyingAssetsAmount1);
 
         // And: The correct "rateUnderlyingAssetsToUsd" are returned.
-        uint256 expectedRateUnderlyingAssetsToUsd0 = priceToken0 * 10 ** (18 - Constants.tokenOracleDecimals);
-        uint256 expectedRateUnderlyingAssetsToUsd1 = priceToken1 * 10 ** (18 - Constants.tokenOracleDecimals);
+        uint256 expectedRateUnderlyingAssetsToUsd0 = priceToken0 * 10 ** (18 - Constants.TOKEN_ORACLE_DECIMALS);
+        uint256 expectedRateUnderlyingAssetsToUsd1 = priceToken1 * 10 ** (18 - Constants.TOKEN_ORACLE_DECIMALS);
         assertEq(rateUnderlyingAssetsToUsd[0].assetValue, expectedRateUnderlyingAssetsToUsd0);
         assertEq(rateUnderlyingAssetsToUsd[1].assetValue, expectedRateUnderlyingAssetsToUsd1);
     }

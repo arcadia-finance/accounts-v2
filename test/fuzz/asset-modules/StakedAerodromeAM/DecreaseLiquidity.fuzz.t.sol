@@ -2,17 +2,11 @@
  * Created by Pragma Labs
  * SPDX-License-Identifier: BUSL-1.1
  */
-pragma solidity ^0.8.22;
+pragma solidity ^0.8.0;
 
-import {
-    StakedAerodromeAM_Fuzz_Test,
-    AbstractStakingAM_Fuzz_Test,
-    StakingAM,
-    ERC20Mock
-} from "./_StakedAerodromeAM.fuzz.t.sol";
+import { StakedAerodromeAM_Fuzz_Test, StakingAM, ERC20Mock } from "./_StakedAerodromeAM.fuzz.t.sol";
 import { FixedPointMathLib } from "../../../../lib/solmate/src/utils/FixedPointMathLib.sol";
 
-import { Fuzz_Test, Constants } from "../../Fuzz.t.sol";
 import { stdError } from "../../../../lib/forge-std/src/StdError.sol";
 
 /**

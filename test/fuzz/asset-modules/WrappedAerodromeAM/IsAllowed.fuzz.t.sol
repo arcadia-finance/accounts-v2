@@ -2,7 +2,7 @@
  * Created by Pragma Labs
  * SPDX-License-Identifier: BUSL-1.1
  */
-pragma solidity ^0.8.22;
+pragma solidity ^0.8.0;
 
 import { WrappedAerodromeAM_Fuzz_Test } from "./_WrappedAerodromeAM.fuzz.t.sol";
 
@@ -22,7 +22,7 @@ contract IsAllowed_WrappedAerodromeAM_Fuzz_Test is WrappedAerodromeAM_Fuzz_Test 
                               TESTS
     /////////////////////////////////////////////////////////////// */
 
-    function testFuzz_Success_isAllowed_False_BadAsset(uint256 positionId, address randomAddress) public {
+    function testFuzz_Success_isAllowed_False_BadAsset(uint256 positionId, address randomAddress) public view {
         // Given : randomAddress is not the stakingAM.
         vm.assume(randomAddress != address(wrappedAerodromeAM));
 

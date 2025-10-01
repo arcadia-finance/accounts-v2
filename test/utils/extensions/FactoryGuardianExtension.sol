@@ -2,12 +2,12 @@
  * Created by Pragma Labs
  * SPDX-License-Identifier: BUSL-1.1
  */
-pragma solidity ^0.8.22;
+pragma solidity ^0.8.0;
 
 import { FactoryGuardian } from "../../../src/guardians/FactoryGuardian.sol";
 
 contract FactoryGuardianExtension is FactoryGuardian {
-    constructor() FactoryGuardian() { }
+    constructor(address owner_) FactoryGuardian(owner_) { }
 
     function setPauseTimestamp(uint96 pauseTimestamp_) public {
         pauseTimestamp = pauseTimestamp_;

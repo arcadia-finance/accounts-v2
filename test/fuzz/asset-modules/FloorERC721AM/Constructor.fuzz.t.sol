@@ -2,7 +2,7 @@
  * Created by Pragma Labs
  * SPDX-License-Identifier: BUSL-1.1
  */
-pragma solidity ^0.8.22;
+pragma solidity ^0.8.0;
 
 import { FloorERC721AM_Fuzz_Test } from "./_FloorERC721AM.fuzz.t.sol";
 
@@ -25,7 +25,8 @@ contract Constructor_FloorERC721AM_Fuzz_Test is FloorERC721AM_Fuzz_Test {
     //////////////////////////////////////////////////////////////*/
     function testFuzz_Success_deployment(address registry_) public {
         vm.startPrank(users.owner);
-        FloorERC721AMExtension floorERC721AM_ = new FloorERC721AMExtension(registry_);
+        /// forge-lint: disable-next-line(mixed-case-variable)
+        FloorERC721AMExtension floorERC721AM_ = new FloorERC721AMExtension(users.owner, registry_);
         vm.stopPrank();
 
         assertEq(floorERC721AM_.REGISTRY(), registry_);

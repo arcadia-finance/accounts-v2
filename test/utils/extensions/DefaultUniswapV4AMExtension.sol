@@ -2,16 +2,17 @@
  * Created by Pragma Labs
  * SPDX-License-Identifier: BUSL-1.1
  */
-pragma solidity ^0.8.22;
+pragma solidity ^0.8.0;
 
 import { AssetValueAndRiskFactors } from "../../../src/libraries/AssetValuationLib.sol";
 import { DefaultUniswapV4AM } from "../../../src/asset-modules/UniswapV4/DefaultUniswapV4AM.sol";
 import { PoolId } from "../../../lib/v4-periphery/lib/v4-core/src/types/PoolId.sol";
-import { PoolKey } from "../../../lib/v4-periphery/lib/v4-core/src/types/PoolKey.sol";
 import { PositionInfo } from "../../../lib/v4-periphery/src/libraries/PositionInfoLibrary.sol";
 
 contract DefaultUniswapV4AMExtension is DefaultUniswapV4AM {
-    constructor(address registry_, address positionManager) DefaultUniswapV4AM(registry_, positionManager) { }
+    constructor(address owner_, address registry_, address positionManager)
+        DefaultUniswapV4AM(owner_, registry_, positionManager)
+    { }
 
     function getAssetExposureLast(address creditor, bytes32 assetKey)
         external

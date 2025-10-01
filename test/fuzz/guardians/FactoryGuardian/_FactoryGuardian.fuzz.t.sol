@@ -2,11 +2,9 @@
  * Created by Pragma Labs
  * SPDX-License-Identifier: BUSL-1.1
  */
-pragma solidity ^0.8.22;
+pragma solidity ^0.8.0;
 
 import { Fuzz_Test } from "../../Fuzz.t.sol";
-
-import { BaseGuardian } from "../../../../src/guardians/BaseGuardian.sol";
 import { FactoryGuardianExtension } from "../../../utils/extensions/FactoryGuardianExtension.sol";
 
 /**
@@ -33,7 +31,7 @@ abstract contract FactoryGuardian_Fuzz_Test is Fuzz_Test {
         Fuzz_Test.setUp();
 
         vm.startPrank(users.owner);
-        factoryGuardian = new FactoryGuardianExtension();
+        factoryGuardian = new FactoryGuardianExtension(users.owner);
         factoryGuardian.changeGuardian(users.guardian);
         vm.stopPrank();
 

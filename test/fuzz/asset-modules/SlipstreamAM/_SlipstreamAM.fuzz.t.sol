@@ -2,13 +2,10 @@
  * Created by Pragma Labs
  * SPDX-License-Identifier: BUSL-1.1
  */
-pragma solidity ^0.8.22;
+pragma solidity ^0.8.0;
 
 import { Fuzz_Test } from "../../Fuzz.t.sol";
 import { SlipstreamFixture } from "../../../utils/fixtures/slipstream/Slipstream.f.sol";
-
-import { ArcadiaOracle } from "../../../utils/mocks/oracles/ArcadiaOracle.sol";
-import { BitPackingLib } from "../../../../src/libraries/BitPackingLib.sol";
 import { FixedPointMathLib } from "../../../../lib/solmate/src/utils/FixedPointMathLib.sol";
 import { ICLPoolExtension } from "../../../utils/fixtures/slipstream/extensions/interfaces/ICLPoolExtension.sol";
 import { NonfungiblePositionManagerMock } from "../../../utils/mocks/Slipstream/NonfungiblePositionManager.sol";
@@ -34,6 +31,7 @@ abstract contract SlipstreamAM_Fuzz_Test is Fuzz_Test, SlipstreamFixture {
                               VARIABLES
     /////////////////////////////////////////////////////////////// */
 
+    /// forge-lint: disable-next-line(mixed-case-variable)
     SlipstreamAMExtension internal slipstreamAM;
     ICLPoolExtension internal poolStable1Stable2;
     NonfungiblePositionManagerMock internal nonfungiblePositionManagerMock;
@@ -85,10 +83,11 @@ abstract contract SlipstreamAM_Fuzz_Test is Fuzz_Test, SlipstreamFixture {
         vm.label({ account: address(nonfungiblePositionManagerMock), newLabel: "NonfungiblePositionManagerMock" });
     }
 
+    /// forge-lint: disable-next-item(mixed-case-function)
     function deploySlipstreamAM(address nonfungiblePositionManager_) internal {
         // Deploy SlipstreamAM.
         vm.startPrank(users.owner);
-        slipstreamAM = new SlipstreamAMExtension(address(registry), nonfungiblePositionManager_);
+        slipstreamAM = new SlipstreamAMExtension(users.owner, address(registry), nonfungiblePositionManager_);
 
         vm.label({ account: address(slipstreamAM), newLabel: "Slipstream Asset Module" });
 
@@ -121,7 +120,7 @@ abstract contract SlipstreamAM_Fuzz_Test is Fuzz_Test, SlipstreamFixture {
 
     function givenValidPosition(NonfungiblePositionManagerMock.Position memory position)
         internal
-        view
+        pure
         returns (NonfungiblePositionManagerMock.Position memory)
     {
         // Given: poolId is non zero (=position is initialised).

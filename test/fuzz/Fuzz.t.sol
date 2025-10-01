@@ -2,14 +2,11 @@
  * Created by Pragma Labs
  * SPDX-License-Identifier: BUSL-1.1
  */
-pragma solidity ^0.8.22;
+pragma solidity ^0.8.0;
 
-import { Base_Test } from "../Base.t.sol";
 import { ArcadiaAccountsFixture } from "../utils/fixtures/arcadia-accounts/ArcadiaAccountsFixture.f.sol";
-
-import { AccountV1 } from "../../src/accounts/AccountV1.sol";
 import { ArcadiaOracle } from "../utils/mocks/oracles/ArcadiaOracle.sol";
-import { AssetModule } from "../../src/asset-modules/abstracts/AbstractAM.sol";
+import { Base_Test } from "../Base.t.sol";
 import { BitPackingLib } from "../../src/libraries/BitPackingLib.sol";
 import { Constants } from "../utils/Constants.sol";
 import { CreditorMock } from "../utils/mocks/creditors/CreditorMock.sol";
@@ -20,7 +17,6 @@ import { FloorERC721AMExtension } from "../utils/extensions/FloorERC721AMExtensi
 import { FloorERC1155AMExtension } from "../utils/extensions/FloorERC1155AMExtension.sol";
 import { MockERC20, MockERC721, MockERC1155, MockOracles, Rates } from "../utils/Types.sol";
 import { NativeTokenAMExtension } from "../utils/extensions/NativeTokenAMExtension.sol";
-import { RegistryL2 } from "../../src/registries/RegistryL2.sol";
 
 /**
  * @notice Common logic needed by all fuzz tests.
@@ -36,6 +32,7 @@ abstract contract Fuzz_Test is Base_Test, ArcadiaAccountsFixture {
                                      VARIABLES
     //////////////////////////////////////////////////////////////////////////*/
 
+    /// forge-lint: disable-start(mixed-case-variable)
     FloorERC721AMExtension internal floorERC721AM;
     FloorERC1155AMExtension internal floorERC1155AM;
     NativeTokenAMExtension internal nativeTokenAM;
@@ -44,6 +41,7 @@ abstract contract Fuzz_Test is Base_Test, ArcadiaAccountsFixture {
     MockERC721 internal mockERC721;
     MockERC1155 internal mockERC1155;
     Rates internal rates;
+    /// forge-lint: disable-end(mixed-case-variable)
 
     // ERC20 oracle arrays
     uint80[] internal oracleStable1ToUsdArr = new uint80[](1);
@@ -71,15 +69,15 @@ abstract contract Fuzz_Test is Base_Test, ArcadiaAccountsFixture {
 
     function setUp() public virtual override {
         Base_Test.setUp();
-        deployArcadiaAccounts();
+        deployArcadiaAccounts(address(0));
 
         // Warp to have a timestamp of at least two days old.
         vm.warp(2 days);
 
         // Deploy mocked Asset Modules.
         vm.startPrank(users.owner);
-        floorERC721AM = new FloorERC721AMExtension(address(registry));
-        floorERC1155AM = new FloorERC1155AMExtension(address(registry));
+        floorERC721AM = new FloorERC721AMExtension(users.owner, address(registry));
+        floorERC1155AM = new FloorERC1155AMExtension(users.owner, address(registry));
         registry.addAssetModule(address(floorERC721AM));
         registry.addAssetModule(address(floorERC1155AM));
         vm.stopPrank();
@@ -91,12 +89,12 @@ abstract contract Fuzz_Test is Base_Test, ArcadiaAccountsFixture {
         vm.startPrank(users.tokenCreator);
 
         mockERC20 = MockERC20({
-            stable1: new ERC20Mock("STABLE1", "S1", uint8(Constants.stableDecimals)),
-            stable2: new ERC20Mock("STABLE2", "S2", uint8(Constants.stableDecimals)),
-            token1: new ERC20Mock("TOKEN1", "T1", uint8(Constants.tokenDecimals)),
-            token2: new ERC20Mock("TOKEN2", "T2", uint8(Constants.tokenDecimals)),
-            token3: new ERC20Mock("TOKEN3", "T3", uint8(Constants.tokenDecimals)),
-            token4: new ERC20Mock("TOKEN4", "T4", uint8(Constants.tokenDecimals))
+            stable1: new ERC20Mock("STABLE1", "S1", uint8(Constants.STABLE_DECIMALS)),
+            stable2: new ERC20Mock("STABLE2", "S2", uint8(Constants.STABLE_DECIMALS)),
+            token1: new ERC20Mock("TOKEN1", "T1", uint8(Constants.TOKEN_DECIMALS)),
+            token2: new ERC20Mock("TOKEN2", "T2", uint8(Constants.TOKEN_DECIMALS)),
+            token3: new ERC20Mock("TOKEN3", "T3", uint8(Constants.TOKEN_DECIMALS)),
+            token4: new ERC20Mock("TOKEN4", "T4", uint8(Constants.TOKEN_DECIMALS))
         });
 
         // Create mock ERC721 tokens for testing
@@ -124,17 +122,17 @@ abstract contract Fuzz_Test is Base_Test, ArcadiaAccountsFixture {
 
         // Set rates
         rates = Rates({
-            stable1ToUsd: 1 * 10 ** Constants.stableOracleDecimals,
-            stable2ToUsd: 1 * 10 ** Constants.stableOracleDecimals,
-            token1ToUsd: 6000 * 10 ** Constants.tokenOracleDecimals,
-            token2ToUsd: 50 * 10 ** Constants.tokenOracleDecimals,
-            token3ToToken4: 4 * 10 ** Constants.tokenOracleDecimals,
-            token4ToUsd: 3 * 10 ** (Constants.tokenOracleDecimals - 2),
-            nft1ToToken1: 50 * 10 ** Constants.nftOracleDecimals,
-            nft2ToUsd: 7 * 10 ** Constants.nftOracleDecimals,
-            nft3ToToken1: 1 * 10 ** (Constants.nftOracleDecimals - 1),
-            sft1ToToken1: 1 * 10 ** (Constants.erc1155OracleDecimals - 2),
-            sft2ToUsd: 1 * 10 ** Constants.erc1155OracleDecimals
+            stable1ToUsd: 1 * 10 ** Constants.STABLE_ORACLE_DECIMALS,
+            stable2ToUsd: 1 * 10 ** Constants.STABLE_ORACLE_DECIMALS,
+            token1ToUsd: 6000 * 10 ** Constants.TOKEN_ORACLE_DECIMALS,
+            token2ToUsd: 50 * 10 ** Constants.TOKEN_ORACLE_DECIMALS,
+            token3ToToken4: 4 * 10 ** Constants.TOKEN_ORACLE_DECIMALS,
+            token4ToUsd: 3 * 10 ** (Constants.TOKEN_ORACLE_DECIMALS - 2),
+            nft1ToToken1: 50 * 10 ** Constants.NFT_ORACLE_DECIMALS,
+            nft2ToUsd: 7 * 10 ** Constants.NFT_ORACLE_DECIMALS,
+            nft3ToToken1: 1 * 10 ** (Constants.NFT_ORACLE_DECIMALS - 1),
+            sft1ToToken1: 1 * 10 ** (Constants.SFT_ORACLE_DECIMALS - 2),
+            sft2ToUsd: 1 * 10 ** Constants.SFT_ORACLE_DECIMALS
         });
 
         // Create a creditor with each Numeraire.
@@ -149,25 +147,27 @@ abstract contract Fuzz_Test is Base_Test, ArcadiaAccountsFixture {
 
         // Initialize the default liquidation cost and liquidator of creditor
         // The numeraire on initialization will depend on the type of test and set at a lower level
-        creditorStable1.setMinimumMargin(Constants.initLiquidationCost);
-        creditorStable1.setLiquidator(Constants.initLiquidator);
+        creditorStable1.setMinimumMargin(Constants.MINIMUM_MARGIN);
+        creditorStable1.setLiquidator(Constants.LIQUIDATOR);
 
         vm.label({ account: address(creditorUsd), newLabel: "USD Creditor" });
         vm.label({ account: address(creditorStable1), newLabel: "Stable1 Creditor" });
 
         // Deploy Oracles
         mockOracles = MockOracles({
-            stable1ToUsd: initMockedOracle(uint8(Constants.stableOracleDecimals), "STABLE1 / USD", rates.stable1ToUsd),
-            stable2ToUsd: initMockedOracle(uint8(Constants.stableOracleDecimals), "STABLE2 / USD", rates.stable2ToUsd),
-            token1ToUsd: initMockedOracle(uint8(Constants.tokenOracleDecimals), "TOKEN1 / USD", rates.token1ToUsd),
-            token2ToUsd: initMockedOracle(uint8(Constants.tokenOracleDecimals), "TOKEN2 / USD", rates.token2ToUsd),
-            token3ToToken4: initMockedOracle(uint8(Constants.tokenOracleDecimals), "TOKEN3 / TOKEN4", rates.token3ToToken4),
-            token4ToUsd: initMockedOracle(uint8(Constants.tokenOracleDecimals), "TOKEN4 / USD", rates.token4ToUsd),
-            nft1ToToken1: initMockedOracle(uint8(Constants.nftOracleDecimals), "NFT1 / TOKEN1", rates.nft1ToToken1),
-            nft2ToUsd: initMockedOracle(uint8(Constants.nftOracleDecimals), "NFT2 / USD", rates.nft2ToUsd),
-            nft3ToToken1: initMockedOracle(uint8(Constants.nftOracleDecimals), "NFT3 / TOKEN1", rates.nft3ToToken1),
-            sft1ToToken1: initMockedOracle(uint8(Constants.erc1155OracleDecimals), "SFT1 / TOKEN1", rates.sft1ToToken1),
-            sft2ToUsd: initMockedOracle(uint8(Constants.erc1155OracleDecimals), "SFT2 / TOKEN1", rates.sft2ToUsd)
+            stable1ToUsd: initMockedOracle(uint8(Constants.STABLE_ORACLE_DECIMALS), "STABLE1 / USD", rates.stable1ToUsd),
+            stable2ToUsd: initMockedOracle(uint8(Constants.STABLE_ORACLE_DECIMALS), "STABLE2 / USD", rates.stable2ToUsd),
+            token1ToUsd: initMockedOracle(uint8(Constants.TOKEN_ORACLE_DECIMALS), "TOKEN1 / USD", rates.token1ToUsd),
+            token2ToUsd: initMockedOracle(uint8(Constants.TOKEN_ORACLE_DECIMALS), "TOKEN2 / USD", rates.token2ToUsd),
+            token3ToToken4: initMockedOracle(
+                uint8(Constants.TOKEN_ORACLE_DECIMALS), "TOKEN3 / TOKEN4", rates.token3ToToken4
+            ),
+            token4ToUsd: initMockedOracle(uint8(Constants.TOKEN_ORACLE_DECIMALS), "TOKEN4 / USD", rates.token4ToUsd),
+            nft1ToToken1: initMockedOracle(uint8(Constants.NFT_ORACLE_DECIMALS), "NFT1 / TOKEN1", rates.nft1ToToken1),
+            nft2ToUsd: initMockedOracle(uint8(Constants.NFT_ORACLE_DECIMALS), "NFT2 / USD", rates.nft2ToUsd),
+            nft3ToToken1: initMockedOracle(uint8(Constants.NFT_ORACLE_DECIMALS), "NFT3 / TOKEN1", rates.nft3ToToken1),
+            sft1ToToken1: initMockedOracle(uint8(Constants.SFT_ORACLE_DECIMALS), "SFT1 / TOKEN1", rates.sft1ToToken1),
+            sft2ToUsd: initMockedOracle(uint8(Constants.SFT_ORACLE_DECIMALS), "SFT2 / TOKEN1", rates.sft2ToUsd)
         });
 
         // Add Chainlink Oracles to the Chainlink Oracles Module.
@@ -222,24 +222,24 @@ abstract contract Fuzz_Test is Base_Test, ArcadiaAccountsFixture {
             address(mockERC20.stable1),
             0,
             type(uint112).max,
-            Constants.stableToStableCollFactor,
-            Constants.stableToStableLiqFactor
+            Constants.STABLE_TO_STABLE_COLL_FACTOR,
+            Constants.STABLE_TO_STABLE_LIQ_FACTOR
         );
         registry.setRiskParametersOfPrimaryAsset(
             address(creditorStable1),
             address(mockERC20.stable1),
             0,
             type(uint112).max,
-            Constants.stableToStableCollFactor,
-            Constants.stableToStableLiqFactor
+            Constants.STABLE_TO_STABLE_COLL_FACTOR,
+            Constants.STABLE_TO_STABLE_LIQ_FACTOR
         );
         registry.setRiskParametersOfPrimaryAsset(
             address(creditorToken1),
             address(mockERC20.stable1),
             0,
             type(uint112).max,
-            Constants.tokenToStableCollFactor,
-            Constants.tokenToStableLiqFactor
+            Constants.TOKEN_TO_STABLE_COLL_FACTOR,
+            Constants.TOKEN_TO_STABLE_LIQ_FACTOR
         );
 
         registry.setRiskParametersOfPrimaryAsset(
@@ -247,24 +247,24 @@ abstract contract Fuzz_Test is Base_Test, ArcadiaAccountsFixture {
             address(mockERC20.stable2),
             0,
             type(uint112).max,
-            Constants.stableToStableCollFactor,
-            Constants.stableToStableLiqFactor
+            Constants.STABLE_TO_STABLE_COLL_FACTOR,
+            Constants.STABLE_TO_STABLE_LIQ_FACTOR
         );
         registry.setRiskParametersOfPrimaryAsset(
             address(creditorStable1),
             address(mockERC20.stable2),
             0,
             type(uint112).max,
-            Constants.stableToStableCollFactor,
-            Constants.stableToStableLiqFactor
+            Constants.STABLE_TO_STABLE_COLL_FACTOR,
+            Constants.STABLE_TO_STABLE_LIQ_FACTOR
         );
         registry.setRiskParametersOfPrimaryAsset(
             address(creditorToken1),
             address(mockERC20.stable2),
             0,
             type(uint112).max,
-            Constants.tokenToStableCollFactor,
-            Constants.tokenToStableLiqFactor
+            Constants.TOKEN_TO_STABLE_COLL_FACTOR,
+            Constants.TOKEN_TO_STABLE_LIQ_FACTOR
         );
 
         registry.setRiskParametersOfPrimaryAsset(
@@ -272,24 +272,24 @@ abstract contract Fuzz_Test is Base_Test, ArcadiaAccountsFixture {
             address(mockERC20.token1),
             0,
             type(uint112).max,
-            Constants.tokenToStableCollFactor,
-            Constants.tokenToStableLiqFactor
+            Constants.TOKEN_TO_STABLE_COLL_FACTOR,
+            Constants.TOKEN_TO_STABLE_LIQ_FACTOR
         );
         registry.setRiskParametersOfPrimaryAsset(
             address(creditorStable1),
             address(mockERC20.token1),
             0,
             type(uint112).max,
-            Constants.tokenToStableCollFactor,
-            Constants.tokenToStableLiqFactor
+            Constants.TOKEN_TO_STABLE_COLL_FACTOR,
+            Constants.TOKEN_TO_STABLE_LIQ_FACTOR
         );
         registry.setRiskParametersOfPrimaryAsset(
             address(creditorToken1),
             address(mockERC20.token1),
             0,
             type(uint112).max,
-            Constants.tokenToTokenCollFactor,
-            Constants.tokenToTokenLiqFactor
+            Constants.TOKEN_TO_TOKEN_COLL_FACTOR,
+            Constants.TOKEN_TO_TOKEN_LIQ_FACTOR
         );
 
         registry.setRiskParametersOfPrimaryAsset(
@@ -297,24 +297,24 @@ abstract contract Fuzz_Test is Base_Test, ArcadiaAccountsFixture {
             address(mockERC20.token2),
             0,
             type(uint112).max,
-            Constants.tokenToStableCollFactor,
-            Constants.tokenToStableLiqFactor
+            Constants.TOKEN_TO_STABLE_COLL_FACTOR,
+            Constants.TOKEN_TO_STABLE_LIQ_FACTOR
         );
         registry.setRiskParametersOfPrimaryAsset(
             address(creditorStable1),
             address(mockERC20.token2),
             0,
             type(uint112).max,
-            Constants.tokenToStableCollFactor,
-            Constants.tokenToStableLiqFactor
+            Constants.TOKEN_TO_STABLE_COLL_FACTOR,
+            Constants.TOKEN_TO_STABLE_LIQ_FACTOR
         );
         registry.setRiskParametersOfPrimaryAsset(
             address(creditorToken1),
             address(mockERC20.token2),
             0,
             type(uint112).max,
-            Constants.tokenToTokenCollFactor,
-            Constants.tokenToTokenLiqFactor
+            Constants.TOKEN_TO_TOKEN_COLL_FACTOR,
+            Constants.TOKEN_TO_TOKEN_LIQ_FACTOR
         );
 
         registry.setRiskParametersOfPrimaryAsset(
@@ -379,9 +379,10 @@ abstract contract Fuzz_Test is Base_Test, ArcadiaAccountsFixture {
         nativeTokenAM.setExposure(address(creditorUsd), asset, initialExposure, maxExposure);
     }
 
+    /// forge-lint: disable-next-item(mixed-case-function)
     function deployNativeTokenAM() internal {
         vm.startPrank(users.owner);
-        nativeTokenAM = new NativeTokenAMExtension(address(registry), 18);
+        nativeTokenAM = new NativeTokenAMExtension(users.owner, address(registry), 18);
         registry.addAssetModule(address(nativeTokenAM));
         vm.stopPrank();
     }

@@ -2,8 +2,9 @@
  * Created by Pragma Labs
  * SPDX-License-Identifier: MIT
  */
-pragma solidity ^0.8.22;
+pragma solidity ^0.8.0;
 
+/// forge-lint: disable-next-item(mixed-case-function)
 interface IAccount {
     /**
      * @notice Returns the Account version.

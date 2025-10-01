@@ -2,7 +2,7 @@
  * Created by Pragma Labs
  * SPDX-License-Identifier: BUSL-1.1
  */
-pragma solidity ^0.8.22;
+pragma solidity ^0.8.0;
 
 import { AbstractDerivedAM_Fuzz_Test } from "./_AbstractDerivedAM.fuzz.t.sol";
 
@@ -27,7 +27,7 @@ contract Constructor_AbstractDerivedAM_Fuzz_Test is AbstractDerivedAM_Fuzz_Test 
         vm.assume(assetType_ > 0);
 
         vm.startPrank(users.owner);
-        DerivedAMMock assetModule_ = new DerivedAMMock(registry_, assetType_);
+        DerivedAMMock assetModule_ = new DerivedAMMock(users.owner, registry_, assetType_);
         vm.stopPrank();
 
         assertEq(assetModule_.REGISTRY(), registry_);

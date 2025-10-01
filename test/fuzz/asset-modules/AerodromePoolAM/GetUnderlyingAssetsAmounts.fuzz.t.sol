@@ -2,14 +2,12 @@
  * Created by Pragma Labs
  * SPDX-License-Identifier: BUSL-1.1
  */
-pragma solidity ^0.8.22;
+pragma solidity ^0.8.0;
 
 import { AerodromePoolAM_Fuzz_Test, FixedPointMathLib, FullMath, ERC20Mock } from "./_AerodromePoolAM.fuzz.t.sol";
-
-import { stdError } from "../../../../lib/forge-std/src/StdError.sol";
 import { AssetValueAndRiskFactors } from "../../../../src/libraries/AssetValuationLib.sol";
+import { stdError } from "../../../../lib/forge-std/src/StdError.sol";
 import { StdStorage, stdStorage } from "../../../../lib/forge-std/src/Test.sol";
-import { AerodromePoolAM } from "../../../../src/asset-modules/Aerodrome-Finance/AerodromePoolAM.sol";
 
 /**
  * @notice Fuzz tests for the function "getUnderlyingAssetsAmounts" of contract "AerodromePoolAM".
@@ -982,6 +980,7 @@ contract GetUnderlyingAssetsAmounts_AerodromePoolAM_Fuzz_Test is AerodromePoolAM
         // And : We swap tokens (but do not change relative price)
         deal(address(token0), users.accountOwner, amount0In);
         vm.prank(users.accountOwner);
+        /// forge-lint: disable-next-line(erc20-unchecked-transfer)
         token0.transfer(address(aeroPool), amount0In);
 
         aeroPool.swap(0, amount1Out, users.accountOwner, "");
@@ -1056,6 +1055,7 @@ contract GetUnderlyingAssetsAmounts_AerodromePoolAM_Fuzz_Test is AerodromePoolAM
             // And : We swap tokens (but do not change relative price)
             deal(address(token0), users.accountOwner, amount0In);
             vm.startPrank(users.accountOwner);
+            /// forge-lint: disable-next-line(erc20-unchecked-transfer)
             token0.transfer(address(aeroPool), amount0In);
 
             aeroPool.swap(0, amount1Out, users.accountOwner, "");

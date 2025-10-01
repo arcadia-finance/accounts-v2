@@ -2,11 +2,10 @@
  * Created by Pragma Labs
  * SPDX-License-Identifier: MIT
  */
-pragma solidity ^0.8.22;
+pragma solidity ^0.8.0;
 
-import { StakedAerodromeAM_Fuzz_Test, StakedAerodromeAM } from "./_StakedAerodromeAM.fuzz.t.sol";
-import { Pool } from "../../../utils/mocks/Aerodrome/AeroPoolMock.sol";
-import { ERC20 } from "../../../../lib/solmate/src/tokens/ERC20.sol";
+import { StakedAerodromeAM } from "../../../../src/asset-modules/Aerodrome-Finance/StakedAerodromeAM.sol";
+import { StakedAerodromeAM_Fuzz_Test } from "./_StakedAerodromeAM.fuzz.t.sol";
 
 /**
  * @notice Fuzz tests for the "addAsset" function of contract "StakedAerodromeAM".
@@ -62,15 +61,15 @@ contract AddAsset_StakedAerodromeAM_Fuzz_Test is StakedAerodromeAM_Fuzz_Test {
         stakedAerodromeAM.addAsset(address(aeroGauge));
     }
 
-    function testFuzz_Revert_AddAsset_RewardTokenNotValid(address notAERO) public {
-        vm.assume(notAERO != AERO);
+    function testFuzz_Revert_AddAsset_RewardTokenNotValid(address notAero) public {
+        vm.assume(notAero != AERO);
         // Given : the aeroPool is allowed in the Registry
         aeroPool = createPoolAerodrome(address(mockERC20.token1), address(mockERC20.stable1), false);
         vm.prank(users.owner);
         aerodromePoolAM.addAsset(address(aeroPool));
 
         // Given : Valid aeroGauge
-        aeroGauge = createGaugeAerodrome(aeroPool, notAERO);
+        aeroGauge = createGaugeAerodrome(aeroPool, notAero);
 
         // When :  Calling addAsset()
         // Then : It should revert

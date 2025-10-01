@@ -2,16 +2,21 @@
  * Created by Pragma Labs
  * SPDX-License-Identifier: BUSL-1.1
  */
-pragma solidity ^0.8.22;
+pragma solidity ^0.8.0;
 
 import { AssetValueAndRiskFactors } from "../../../src/libraries/AssetValuationLib.sol";
 import { StakedSlipstreamAM } from "../../../src/asset-modules/Slipstream/StakedSlipstreamAM.sol";
 
 contract StakedSlipstreamAMExtension is StakedSlipstreamAM {
-    constructor(address registry_, address nonfungiblePositionManager, address aerodromeVoter, address rewardToken)
-        StakedSlipstreamAM(registry_, nonfungiblePositionManager, aerodromeVoter, rewardToken)
-    { }
+    constructor(
+        address owner_,
+        address registry_,
+        address nonfungiblePositionManager,
+        address aerodromeVoter,
+        address rewardToken
+    ) StakedSlipstreamAM(owner_, registry_, nonfungiblePositionManager, aerodromeVoter, rewardToken) { }
 
+    /// forge-lint: disable-next-item(mixed-case-function,mixed-case-variable)
     function getCLFactory() public view returns (address cLFactory) {
         cLFactory = address(CL_FACTORY);
     }

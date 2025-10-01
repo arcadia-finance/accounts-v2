@@ -2,12 +2,11 @@
  * Created by Pragma Labs
  * SPDX-License-Identifier: BUSL-1.1
  */
-pragma solidity ^0.8.22;
+pragma solidity ^0.8.0;
 
 import { RegistryL1_Fuzz_Test } from "./_RegistryL1.fuzz.t.sol";
 
 import { GuardianErrors } from "../../../../src/libraries/Errors.sol";
-import { RegistryL1 } from "../../../../src/registries/RegistryL1.sol";
 import { RegistryErrors } from "../../../../src/libraries/Errors.sol";
 import { StdStorage, stdStorage } from "../../../../lib/forge-std/src/Test.sol";
 
@@ -205,8 +204,6 @@ contract BatchProcessWithdrawal_RegistryL1_Fuzz_Test is RegistryL1_Fuzz_Test {
         // When: zero amounts are withdrawn.
         assetAmounts = new uint256[](3);
         vm.prank(address(account));
-        vm.expectEmit();
-        emit RegistryL1.Withdrawal(address(account));
         uint256[] memory assetTypes =
             registry_.batchProcessWithdrawal(address(0), assetAddresses, assetIds, assetAmounts);
 
@@ -217,16 +214,16 @@ contract BatchProcessWithdrawal_RegistryL1_Fuzz_Test is RegistryL1_Fuzz_Test {
 
         // And: exposures remain zero.
         bytes32 assetKey = bytes32(abi.encodePacked(uint96(0), address(mockERC20.token1)));
-        (uint112 exposureERC20,,,) = erc20AM.riskParams(address(0), assetKey);
-        assertEq(exposureERC20, 0);
+        (uint112 exposureErc20,,,) = erc20AM.riskParams(address(0), assetKey);
+        assertEq(exposureErc20, 0);
 
         assetKey = bytes32(abi.encodePacked(uint96(0), address(mockERC721.nft1)));
-        (uint112 exposureERC721,,,) = floorERC721AM.riskParams(address(0), assetKey);
-        assertEq(exposureERC721, 0);
+        (uint112 exposureErc721,,,) = floorERC721AM.riskParams(address(0), assetKey);
+        assertEq(exposureErc721, 0);
 
         assetKey = bytes32(abi.encodePacked(uint96(1), address(mockERC1155.sft1)));
-        (uint112 exposureERC1155,,,) = floorERC1155AM.riskParams(address(0), assetKey);
-        assertEq(exposureERC1155, 0);
+        (uint112 exposureErc1155,,,) = floorERC1155AM.riskParams(address(0), assetKey);
+        assertEq(exposureErc1155, 0);
     }
 
     function testFuzz_Success_batchProcessWithdrawal_WithCreditor_ZeroAmounts(
@@ -260,8 +257,6 @@ contract BatchProcessWithdrawal_RegistryL1_Fuzz_Test is RegistryL1_Fuzz_Test {
         // When: zero amounts are withdrawn.
         assetAmounts = new uint256[](3);
         vm.prank(address(account));
-        vm.expectEmit();
-        emit RegistryL1.Withdrawal(address(account));
         uint256[] memory assetTypes =
             registry_.batchProcessWithdrawal(address(creditorUsd), assetAddresses, assetIds, assetAmounts);
 
@@ -272,16 +267,16 @@ contract BatchProcessWithdrawal_RegistryL1_Fuzz_Test is RegistryL1_Fuzz_Test {
 
         // And: exposures are not updated.
         bytes32 assetKey = bytes32(abi.encodePacked(uint96(0), address(mockERC20.token1)));
-        (uint112 exposureERC20,,,) = erc20AM.riskParams(address(creditorUsd), assetKey);
-        assertEq(exposureERC20, erc20Amount);
+        (uint112 exposureErc20,,,) = erc20AM.riskParams(address(creditorUsd), assetKey);
+        assertEq(exposureErc20, erc20Amount);
 
         assetKey = bytes32(abi.encodePacked(uint96(0), address(mockERC721.nft1)));
-        (uint112 exposureERC721,,,) = floorERC721AM.riskParams(address(creditorUsd), assetKey);
-        assertEq(exposureERC721, 1);
+        (uint112 exposureErc721,,,) = floorERC721AM.riskParams(address(creditorUsd), assetKey);
+        assertEq(exposureErc721, 1);
 
         assetKey = bytes32(abi.encodePacked(uint96(1), address(mockERC1155.sft1)));
-        (uint112 exposureERC1155,,,) = floorERC1155AM.riskParams(address(creditorUsd), assetKey);
-        assertEq(exposureERC1155, erc1155Amount);
+        (uint112 exposureErc1155,,,) = floorERC1155AM.riskParams(address(creditorUsd), assetKey);
+        assertEq(exposureErc1155, erc1155Amount);
     }
 
     function testFuzz_Success_batchProcessWithdrawal_WithoutCreditor(uint112 amountDeposited, uint112 amountWithdrawn)
@@ -311,8 +306,6 @@ contract BatchProcessWithdrawal_RegistryL1_Fuzz_Test is RegistryL1_Fuzz_Test {
         assetAmounts[0] = amountWithdrawn;
 
         vm.prank(address(account));
-        vm.expectEmit();
-        emit RegistryL1.Withdrawal(address(account));
         uint256[] memory assetTypes =
             registry_.batchProcessWithdrawal(address(0), assetAddresses, assetIds, assetAmounts);
 
@@ -350,8 +343,6 @@ contract BatchProcessWithdrawal_RegistryL1_Fuzz_Test is RegistryL1_Fuzz_Test {
         assetAmounts[0] = amountWithdrawn;
 
         vm.prank(address(account));
-        vm.expectEmit();
-        emit RegistryL1.Withdrawal(address(account));
         uint256[] memory assetTypes =
             registry_.batchProcessWithdrawal(address(creditorUsd), assetAddresses, assetIds, assetAmounts);
 
@@ -380,8 +371,6 @@ contract BatchProcessWithdrawal_RegistryL1_Fuzz_Test is RegistryL1_Fuzz_Test {
         vm.stopPrank();
 
         vm.startPrank(address(account));
-        vm.expectEmit();
-        emit RegistryL1.Withdrawal(address(account));
         registry_.batchProcessWithdrawal(address(creditorUsd), assetAddresses, assetIds, assetAmounts);
         vm.stopPrank();
 

@@ -2,12 +2,12 @@
  * Created by Pragma Labs
  * SPDX-License-Identifier: BUSL-1.1
  */
-pragma solidity ^0.8.22;
+pragma solidity ^0.8.0;
 
 import { NativeTokenAM } from "../../../src/asset-modules/native-token/NativeTokenAM.sol";
 
 contract NativeTokenAMExtension is NativeTokenAM {
-    constructor(address registry_, uint256 decimals) NativeTokenAM(registry_, decimals) { }
+    constructor(address owner_, address registry_, uint256 decimals) NativeTokenAM(owner_, registry_, decimals) { }
 
     function getAssetFromKey(bytes32 key) public pure returns (address asset, uint256 assetId) {
         (asset, assetId) = _getAssetFromKey(key);

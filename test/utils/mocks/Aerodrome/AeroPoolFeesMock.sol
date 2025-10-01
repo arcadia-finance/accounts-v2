@@ -2,7 +2,7 @@
  * Created by Pragma Labs
  * SPDX-License-Identifier: BUSL-1.1
  */
-pragma solidity ^0.8.22;
+pragma solidity ^0.8.0;
 
 import { IERC20 } from "../../mocks/openzeppelin-0.8/IERC20.sol";
 import { SafeERC20 } from "../../mocks/openzeppelin-0.8/SafeERC20.sol";
@@ -10,6 +10,7 @@ import { SafeERC20 } from "../../mocks/openzeppelin-0.8/SafeERC20.sol";
 /// @title PoolFees
 /// @notice Contract used as 1:1 pool relationship to split out fees.
 /// @notice Ensures curve does not need to be modified for LP shares.
+/// forge-lint: disable-next-item(screaming-snake-case-immutable)
 contract PoolFees {
     using SafeERC20 for IERC20;
 

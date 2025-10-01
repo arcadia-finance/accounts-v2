@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: MIT
-pragma solidity ^0.8.22;
+pragma solidity ^0.8.0;
 
 import { ERC721 } from "../../../../lib/solmate/src/tokens/ERC721.sol";
 import { Strings } from "../../../../src/libraries/Strings.sol";
@@ -7,6 +7,7 @@ import { Strings } from "../../../../src/libraries/Strings.sol";
 contract ERC721Mock is ERC721 {
     using Strings for uint256;
 
+    /// forge-lint: disable-next-line(mixed-case-variable)
     string baseURI;
     address owner;
 
@@ -15,7 +16,7 @@ contract ERC721Mock is ERC721 {
         _;
     }
 
-    constructor(string memory name, string memory symbol) ERC721(name, symbol) {
+    constructor(string memory name_, string memory symbol_) ERC721(name_, symbol_) {
         owner = msg.sender;
     }
 
@@ -27,6 +28,7 @@ contract ERC721Mock is ERC721 {
         baseURI = newBaseUri;
     }
 
+    /// forge-lint: disable-next-item(mixed-case-function,mixed-case-variable)
     function tokenURI(uint256 tokenId) public view override returns (string memory) {
         require(_ownerOf[tokenId] != address(0), "ERC721Metadata: URI query for nonexistent token");
         string memory currentBaseURI = baseURI;

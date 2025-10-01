@@ -2,10 +2,9 @@
  * Created by Pragma Labs
  * SPDX-License-Identifier: BUSL-1.1
  */
-pragma solidity 0.8.22;
+pragma solidity ^0.8.30;
 
 import { ERC20 } from "../../../lib/solmate/src/tokens/ERC20.sol";
-import { IAccount } from "../../interfaces/IAccount.sol";
 import { IAccountSpot } from "../../interfaces/IAccountSpot.sol";
 import { IAccountV1 } from "../../interfaces/IAccountV1.sol";
 import { IERC1155 } from "../../interfaces/IERC1155.sol";
@@ -20,6 +19,7 @@ import { SafeTransferLib } from "../../../lib/solmate/src/utils/SafeTransferLib.
  * @notice The upgrade process consists of two steps. First, the Account owner must call upgradeAccount().
  * Second, after any cool-down period in the Spot Account, the owner must call endUpgrade() to receive their Margin Account back.
  */
+/// forge-lint: disable-next-item(all)
 contract SpotToMarginMigrator {
     using SafeTransferLib for ERC20;
 

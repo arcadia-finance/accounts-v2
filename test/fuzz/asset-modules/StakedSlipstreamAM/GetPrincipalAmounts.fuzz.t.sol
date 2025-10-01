@@ -2,7 +2,7 @@
  * Created by Pragma Labs
  * SPDX-License-Identifier: BUSL-1.1
  */
-pragma solidity ^0.8.22;
+pragma solidity ^0.8.0;
 
 import { StakedSlipstreamAM_Fuzz_Test } from "./_StakedSlipstreamAM.fuzz.t.sol";
 
@@ -31,7 +31,7 @@ contract GetPrincipalAmounts_StakedSlipstreamAM_Fuzz_Test is StakedSlipstreamAM_
         StakedSlipstreamAM.PositionState memory position,
         uint256 priceToken0,
         uint256 priceToken1
-    ) public {
+    ) public view {
         // Given: Ticks are within allowed ranges.
         position = givenValidPosition(position, 1);
 

@@ -2,7 +2,7 @@
  * Created by Pragma Labs
  * SPDX-License-Identifier: BUSL-1.1
  */
-pragma solidity ^0.8.22;
+pragma solidity ^0.8.0;
 
 import { AssetValuationLib_Fuzz_Test } from "./_AssetValuationLib.fuzz.t.sol";
 
@@ -28,7 +28,7 @@ contract CalculateLiquidationValue_AssetValuationLib_Fuzz_Test is AssetValuation
         uint128 secondValue,
         uint16 firstLiqFactor,
         uint16 secondLiqFactor
-    ) public {
+    ) public view {
         // Given: 2 Assets with value bigger than zero
         // Values are uint128 to prevent overflow in multiplication
         AssetValueAndRiskFactors[] memory values = new AssetValueAndRiskFactors[](2);

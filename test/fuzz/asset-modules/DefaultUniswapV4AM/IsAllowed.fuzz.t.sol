@@ -2,7 +2,7 @@
  * Created by Pragma Labs
  * SPDX-License-Identifier: BUSL-1.1
  */
-pragma solidity ^0.8.22;
+pragma solidity ^0.8.0;
 
 import { DefaultUniswapV4AM_Fuzz_Test } from "./_DefaultUniswapV4AM.fuzz.t.sol";
 import { TickMath } from "../../../../lib/v4-periphery/lib/v4-core/src/libraries/TickMath.sol";
@@ -22,13 +22,13 @@ contract IsAllowed_DefaultUniswapV4AM_Fuzz_Test is DefaultUniswapV4AM_Fuzz_Test 
     /*//////////////////////////////////////////////////////////////
                               TESTS
     //////////////////////////////////////////////////////////////*/
-    function testFuzz_Success_isAllowed_Negative_UnknownAsset(address asset, uint256 assetId) public {
+    function testFuzz_Success_isAllowed_Negative_UnknownAsset(address asset, uint256 assetId) public view {
         vm.assume(asset != address(positionManagerV4));
 
         assertFalse(uniswapV4AM.isAllowed(asset, assetId));
     }
 
-    function testFuzz_Success_isAllowed_Negative_UnknownId(uint256 assetId) public {
+    function testFuzz_Success_isAllowed_Negative_UnknownId(uint256 assetId) public view {
         assertFalse(uniswapV4AM.isAllowed(address(positionManagerV4), assetId));
     }
 

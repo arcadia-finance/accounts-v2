@@ -2,11 +2,9 @@
  * Created by Pragma Labs
  * SPDX-License-Identifier: MIT
  */
-pragma solidity ^0.8.22;
+pragma solidity ^0.8.0;
 
 import { StakedSlipstreamAM_Fuzz_Test } from "./_StakedSlipstreamAM.fuzz.t.sol";
-
-import { StakedSlipstreamAM } from "../../../../src/asset-modules/Slipstream/StakedSlipstreamAM.sol";
 import { StakedSlipstreamAMExtension } from "../../../utils/extensions/StakedSlipstreamAMExtension.sol";
 
 /**
@@ -27,7 +25,7 @@ contract Constructor_StakedSlipstreamAM_Fuzz_Test is StakedSlipstreamAM_Fuzz_Tes
 
     function testFuzz_success_constructor() public {
         stakedSlipstreamAM = new StakedSlipstreamAMExtension(
-            address(registry), address(slipstreamPositionManager), address(voter), address(AERO)
+            users.owner, address(registry), address(slipstreamPositionManager), address(voter), address(AERO)
         );
 
         assertEq(stakedSlipstreamAM.REGISTRY(), address(registry));

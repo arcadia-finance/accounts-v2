@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: MIT
-pragma solidity ^0.8.22;
+pragma solidity ^0.8.0;
 
 import { ERC1155 } from "../../../../lib/solmate/src/tokens/ERC1155.sol";
 import { Strings } from "../../../../src/libraries/Strings.sol";
@@ -7,6 +7,7 @@ import { Strings } from "../../../../src/libraries/Strings.sol";
 contract ERC1155Mock is ERC1155 {
     using Strings for uint256;
 
+    /// forge-lint: disable-next-line(mixed-case-variable)
     string baseURI;
     address owner;
     mapping(uint256 => string) _uri;

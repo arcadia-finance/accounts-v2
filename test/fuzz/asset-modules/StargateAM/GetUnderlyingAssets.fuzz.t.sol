@@ -2,7 +2,7 @@
  * Created by Pragma Labs
  * SPDX-License-Identifier: BUSL-1.1
  */
-pragma solidity ^0.8.22;
+pragma solidity ^0.8.0;
 
 import { StargateAM_Fuzz_Test } from "./_StargateAM.fuzz.t.sol";
 
@@ -37,7 +37,7 @@ contract GetUnderlyingAssets_StargateAM_Fuzz_Test is StargateAM_Fuzz_Test {
         assertEq(actualUnderlyingAssetKeys[0], expectedUnderlyingAssetKeys[0]);
     }
 
-    function testFuzz_Success_getUnderlyingAssets_NotInAssetModule() public {
+    function testFuzz_Success_getUnderlyingAssets_NotInAssetModule() public view {
         bytes32 assetKey = bytes32(abi.encodePacked(uint96(0), address(poolMock)));
 
         bytes32[] memory underlyingAssetKeys = stargateAssetModule.getUnderlyingAssets(assetKey);

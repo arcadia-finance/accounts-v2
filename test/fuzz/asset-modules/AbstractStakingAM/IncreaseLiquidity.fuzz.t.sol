@@ -2,12 +2,10 @@
  * Created by Pragma Labs
  * SPDX-License-Identifier: BUSL-1.1
  */
-pragma solidity ^0.8.22;
+pragma solidity ^0.8.0;
 
 import { AbstractStakingAM_Fuzz_Test, StakingAM, ERC20Mock } from "./_AbstractStakingAM.fuzz.t.sol";
 import { FixedPointMathLib } from "../../../../lib/solmate/src/utils/FixedPointMathLib.sol";
-
-import { Fuzz_Test, Constants } from "../../Fuzz.t.sol";
 
 /**
  * @notice Fuzz tests for the function "increaseLiquidity" of contract "StakingAM".

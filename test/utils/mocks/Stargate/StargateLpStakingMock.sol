@@ -2,7 +2,7 @@
  * Created by Pragma Labs
  * SPDX-License-Identifier: BUSL-1.1
  */
-pragma solidity ^0.8.22;
+pragma solidity ^0.8.0;
 
 // interfaces
 import { IERC20 } from "../../../../src/interfaces/IERC20.sol";
@@ -37,10 +37,12 @@ contract LPStakingTimeMock {
     }
 
     function deposit(uint256 poolId, uint256 amount) external {
+        /// forge-lint: disable-next-line(erc20-unchecked-transfer)
         poolInfo[poolId].lpToken.transferFrom(msg.sender, address(this), amount);
     }
 
     function withdraw(uint256 poolId, uint256 amount) external {
+        /// forge-lint: disable-next-line(erc20-unchecked-transfer)
         poolInfo[poolId].lpToken.transfer(msg.sender, amount);
     }
 }

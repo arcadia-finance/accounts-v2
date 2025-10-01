@@ -2,7 +2,7 @@
  * Created by Pragma Labs
  * SPDX-License-Identifier: BUSL-1.1
  */
-pragma solidity ^0.8.22;
+pragma solidity ^0.8.0;
 
 import { StargateAM_Fuzz_Test } from "../StargateAM/_StargateAM.fuzz.t.sol";
 
@@ -24,6 +24,7 @@ abstract contract StakedStargateAM_Fuzz_Test is StargateAM_Fuzz_Test {
                             TEST CONTRACTS
     /////////////////////////////////////////////////////////////// */
 
+    /// forge-lint: disable-next-line(mixed-case-variable)
     StakedStargateAMExtension internal stakedStargateAM;
     LPStakingTimeMock internal lpStakingTimeMock;
     ArcadiaOracle internal stargateOracle;
@@ -51,7 +52,7 @@ abstract contract StakedStargateAM_Fuzz_Test is StargateAM_Fuzz_Test {
         erc20AM.addAsset(address(lpStakingTimeMock.eToken()), BitPackingLib.pack(BA_TO_QA_SINGLE, oracleStgToUsdArr));
 
         // Deploy the Staked Stargate AssetModule.
-        stakedStargateAM = new StakedStargateAMExtension(address(registry), address(lpStakingTimeMock));
+        stakedStargateAM = new StakedStargateAMExtension(users.owner, address(registry), address(lpStakingTimeMock));
         registry.addAssetModule(address(stakedStargateAM));
         stakedStargateAM.initialize();
         vm.stopPrank();

@@ -4,13 +4,13 @@
  *
  * SPDX-License-Identifier: MIT
  */
-pragma solidity ^0.8.22;
+pragma solidity ^0.8.0;
 
 interface IAeroGauge {
     function deposit(uint256) external;
     function withdraw(uint256) external;
-    function rewardToken() external returns (address);
+    function rewardToken() external view returns (address);
     function earned(address) external view returns (uint256);
     function getReward(address) external;
-    function stakingToken() external returns (address);
+    function stakingToken() external view returns (address);
 }

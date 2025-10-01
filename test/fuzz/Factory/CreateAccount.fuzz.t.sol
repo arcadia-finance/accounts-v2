@@ -2,16 +2,19 @@
  * Created by Pragma Labs
  * SPDX-License-Identifier: BUSL-1.1
  */
-pragma solidity ^0.8.22;
+pragma solidity ^0.8.0;
 
-import { Factory_Fuzz_Test, FactoryErrors } from "./_Factory.fuzz.t.sol";
-
-import { AccountV1 } from "../../../src/accounts/AccountV1.sol";
+import { AccountV3 } from "../../../src/accounts/AccountV3.sol";
 import { AccountVariableVersion } from "../../utils/mocks/accounts/AccountVariableVersion.sol";
 import { Constants } from "../../utils/Constants.sol";
+import { CreateProxyLib } from "../../../src/libraries/CreateProxyLib.sol";
 import { ERC721 } from "../../../lib/solmate/src/tokens/ERC721.sol";
 import { Factory } from "../../../src/Factory.sol";
+import { Factory_Fuzz_Test } from "./_Factory.fuzz.t.sol";
+import { FactoryErrors } from "../../../src/libraries/Errors.sol";
 import { GuardianErrors } from "../../../src/libraries/Errors.sol";
+import { RevertingProxy } from "../../utils/mocks/proxy/RevertingProxy.sol";
+import { Utils } from "../../utils/Utils.sol";
 
 /**
  * @notice Fuzz tests for the function "createAccount" of contract "Factory".
@@ -62,11 +65,11 @@ contract CreateAccount_Factory_Fuzz_Test is Factory_Fuzz_Test {
         vm.assume(accountVersion <= versionsToMake + 1);
         for (uint256 i; i < versionsToMake; ++i) {
             //create account logic with the right version
-            //the first account version to add is 2, so we add 2 to the index
-            account_.setAccountVersion(uint16(i + 2));
+            //the first account version to add is 4, so we add 4 to the index
+            account_.setAccountVersion(uint16(i + 4));
 
             vm.prank(users.owner);
-            factory.setNewAccountInfo(address(registry), address(account_), Constants.upgradeRoot1To2, "");
+            factory.setNewAccountInfo(address(registry), address(account_), Constants.ROOT, "");
         }
 
         for (uint256 y; y < versionsToBlock.length; ++y) {
@@ -90,59 +93,139 @@ contract CreateAccount_Factory_Fuzz_Test is Factory_Fuzz_Test {
         }
     }
 
-    function testFuzz_Success_createAccount_DeployAccountWithNoCreditor(uint32 salt) public {
+    function testFuzz_Revert_createAccount_RevertingProxy(address sender, uint32 salt) public {
         // We assume that salt > 0 as we already deployed an Account with all inputs to 0
         vm.assume(salt > 0);
-        uint256 amountBefore = factory.allAccountsLength();
+        vm.assume(sender != address(0));
 
-        vm.expectEmit();
-        emit ERC721.Transfer(address(0), address(this), amountBefore + 1);
-        vm.expectEmit(false, true, true, true);
-        emit Factory.AccountUpgraded(address(0), 1);
+        // Get bytecode of Reverting Proxy, need to compile it first.
+        new RevertingProxy(address(0));
+        bytes memory revertingProxyByteCode = vm.getCode("RevertingProxy.sol");
 
-        // Here we create an Account with no specific creditor
-        address actualDeployed = factory.createAccount(salt, 0, address(0));
+        // Get bytecode deployed factory.
+        bytes memory factoryByteCode = address(factory).code;
 
-        assertEq(amountBefore + 1, factory.allAccountsLength());
-        assertEq(actualDeployed, factory.allAccounts(factory.allAccountsLength() - 1));
-        assertEq(factory.accountIndex(actualDeployed), (factory.allAccountsLength()));
-        assertEq(AccountV1(actualDeployed).creditor(), address(0));
-        assertEq(AccountV1(actualDeployed).owner(), address(this));
+        // Override factory bytecode.
+        bytes memory proxyByteCode =
+            hex"608060405260405161017c38038061017c8339810160408190526100229161008d565b7f360894a13ba1a3210667c828492db98dca3e2076cc3735a920a3ca505d382bbc80546001600160a01b0319166001600160a01b0383169081179091556040517fbc7cd75a20ee27fd9adebab32041f755214dbc6bffa90cc0225b39da2e5c2d3b905f90a2506100ba565b5f6020828403121561009d575f80fd5b81516001600160a01b03811681146100b3575f80fd5b9392505050565b60b6806100c65f395ff3fe608060405236603c57603a7f360894a13ba1a3210667c828492db98dca3e2076cc3735a920a3ca505d382bbc5b546001600160a01b03166063565b005b603a7f360894a13ba1a3210667c828492db98dca3e2076cc3735a920a3ca505d382bbc602c565b365f80375f80365f845af43d5f803e808015607c573d5ff35b3d5ffdfea2646970667358221220eeb8a2fa918a2057b66e1d3fa3930647dc7a4e56c99898cd9e280beec9d9ba9f64736f6c63430008160033000000000000000000000000";
+        factoryByteCode = Utils.veryBadBytesReplacerNoReverts(factoryByteCode, proxyByteCode, revertingProxyByteCode);
+
+        // Etch overridden bytecode of deployed factory.
+        vm.etch(address(factory), factoryByteCode);
+
+        vm.broadcast(sender);
+        vm.expectRevert(CreateProxyLib.ProxyCreationFailed.selector);
+        factory.createAccount(salt, 0, address(0));
     }
 
-    function testFuzz_Success_createAccount_DeployAccountWithCreditor(uint32 salt) public {
+    function testFuzz_Revert_createAccount_ContractCollision(address sender, uint32 salt) public {
         // We assume that salt > 0 as we already deployed an Account with all inputs to 0
         vm.assume(salt > 0);
+        vm.assume(sender != address(0));
+
+        vm.broadcast(sender);
+        factory.createAccount(salt, 0, address(0));
+
+        vm.broadcast(sender);
+        vm.expectRevert(CreateProxyLib.ProxyCreationFailed.selector);
+        factory.createAccount(salt, 0, address(0));
+    }
+
+    function testFuzz_Success_ExactDeploymentBase() public {
+        // Given: The actual sender and user Salt of a Proxy Arcadia Account (id 8199)
+        address sender = 0x559458Aac63528fB18893d797FF223dF4D5fa3C9;
+        uint32 salt = 1_987_515_790;
+
+        // When: Sender calls createAccount()
+        vm.broadcast(sender);
+        address proxy = factory.createAccount(salt, 1, address(0));
+
+        // Then: Proxy address matches the actual deployed contract address.
+        assertEq(proxy, 0x11331c538eab48dd7aC6Fccf556B76CF8E49Ac26);
+
+        // And: Proxy address matches the calculated contract address.
+        assertEq(proxy, factory.getAccountAddress(sender, salt, 1));
+
+        // And: Proxy bytecode matches the actual deployed bytecode.
+        assertEq(
+            proxy.code,
+            hex"608060405236603c57603a7f360894a13ba1a3210667c828492db98dca3e2076cc3735a920a3ca505d382bbc5b546001600160a01b03166063565b005b603a7f360894a13ba1a3210667c828492db98dca3e2076cc3735a920a3ca505d382bbc602c565b365f80375f80365f845af43d5f803e808015607c573d5ff35b3d5ffdfea2646970667358221220eeb8a2fa918a2057b66e1d3fa3930647dc7a4e56c99898cd9e280beec9d9ba9f64736f6c63430008160033"
+        );
+    }
+
+    function testFuzz_Success_createAccount_DeployAccountWithNoCreditor(address sender, uint32 salt) public {
+        // We assume that salt > 0 as we already deployed an Account with all inputs to 0
+        vm.assume(salt > 0);
+        vm.assume(sender != address(0));
+
         uint256 amountBefore = factory.allAccountsLength();
+        address proxy_ = factory.getAccountAddress(sender, salt, 0);
 
-        vm.expectEmit();
-        emit ERC721.Transfer(address(0), address(this), amountBefore + 1);
-        vm.expectEmit();
-        emit AccountV1.MarginAccountChanged(address(creditorStable1), Constants.initLiquidator);
-        vm.expectEmit(false, true, true, true);
-        emit Factory.AccountUpgraded(address(0), 1);
+        vm.expectEmit(address(factory));
+        emit ERC721.Transfer(address(0), sender, amountBefore + 1);
+        vm.expectEmit(address(factory));
+        emit Factory.AccountUpgraded(proxy_, 3);
 
-        // Here we create an Account by specifying the creditor address
-        address actualDeployed = factory.createAccount(salt, 0, address(creditorStable1));
+        // Here we create an Account with no specific creditor
+        vm.broadcast(sender);
+        address actualDeployed = factory.createAccount(salt, 0, address(0));
+
+        // And: Proxy address matches the calculated contract address.
+        assertEq(actualDeployed, proxy_);
 
         assertEq(amountBefore + 1, factory.allAccountsLength());
         assertEq(actualDeployed, factory.allAccounts(factory.allAccountsLength() - 1));
         assertEq(factory.accountIndex(actualDeployed), (factory.allAccountsLength()));
-        assertEq(AccountV1(actualDeployed).creditor(), address(creditorStable1));
+        assertEq(AccountV3(actualDeployed).creditor(), address(0));
+        assertEq(AccountV3(actualDeployed).owner(), sender);
+    }
+
+    function testFuzz_Success_createAccount_DeployAccountWithCreditor(address sender, uint32 salt) public {
+        // We assume that salt > 0 as we already deployed an Account with all inputs to 0
+        vm.assume(salt > 0);
+        vm.assume(sender != address(0));
+
+        uint256 amountBefore = factory.allAccountsLength();
+        address proxy_ = factory.getAccountAddress(sender, salt, 0);
+
+        vm.expectEmit(address(factory));
+        emit ERC721.Transfer(address(0), sender, amountBefore + 1);
+        vm.expectEmit(proxy_);
+        emit AccountV3.MarginAccountChanged(address(creditorStable1), Constants.LIQUIDATOR);
+        vm.expectEmit(address(factory));
+        emit Factory.AccountUpgraded(proxy_, 3);
+
+        // Here we create an Account by specifying the creditor address
+        vm.broadcast(sender);
+        address actualDeployed = factory.createAccount(salt, 0, address(creditorStable1));
+
+        // And: Proxy address matches the calculated contract address.
+        assertEq(actualDeployed, proxy_);
+
+        assertEq(amountBefore + 1, factory.allAccountsLength());
+        assertEq(actualDeployed, factory.allAccounts(factory.allAccountsLength() - 1));
+        assertEq(factory.accountIndex(actualDeployed), (factory.allAccountsLength()));
+        assertEq(AccountV3(actualDeployed).creditor(), address(creditorStable1));
     }
 
     function testFuzz_Success_createAccount_DeployNewProxyWithLogicOwner(uint32 salt, address sender) public {
         // We assume that salt > 0 as we already deployed an Account with all inputs to 0
         vm.assume(salt > 0);
         vm.assume(sender != address(0));
+
         uint256 amountBefore = factory.allAccountsLength();
-        vm.prank(sender);
+
+        vm.broadcast(sender);
         address actualDeployed = factory.createAccount(salt, 0, address(0));
+
+        // And: Proxy address matches the calculated contract address.
+        assertEq(actualDeployed, factory.getAccountAddress(sender, salt, 0));
+
         assertEq(amountBefore + 1, factory.allAccountsLength());
-        assertEq(AccountV1(actualDeployed).owner(), address(sender));
+        assertEq(AccountV3(actualDeployed).owner(), sender);
     }
 
-    function testFuzz_Success_createAccount_CreationCannotBeFrontRunnedWithIdenticalSalt(
+    function testFuzz_Success_createAccount_CreationCannotBeFrontRanWithIdenticalSalt(
         uint32 salt,
         address sender0,
         address sender1

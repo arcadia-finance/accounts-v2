@@ -2,12 +2,10 @@
  * Created by Pragma Labs
  * SPDX-License-Identifier: BUSL-1.1
  */
-pragma solidity ^0.8.22;
-
-import { Fuzz_Test } from "../../Fuzz.t.sol";
+pragma solidity ^0.8.0;
 
 import { BitPackingLib } from "../../../../src/libraries/BitPackingLib.sol";
-import { AssetModule } from "../../../../src/asset-modules/abstracts/AbstractAM.sol";
+import { Fuzz_Test } from "../../Fuzz.t.sol";
 
 /**
  * @notice Common logic needed by all "ERC20PrimaryAM" fuzz tests.

@@ -2,7 +2,7 @@
  * Created by Pragma Labs
  * SPDX-License-Identifier: BUSL-1.1
  */
-pragma solidity ^0.8.22;
+pragma solidity ^0.8.0;
 
 import { Fuzz_Test, Constants } from "../../Fuzz.t.sol";
 
@@ -10,7 +10,6 @@ import { ArcadiaOracle } from "../../../utils/mocks/oracles/ArcadiaOracle.sol";
 import { DerivedAMMock } from "../../../utils/mocks/asset-modules/DerivedAMMock.sol";
 import { OracleModuleMock } from "../../../utils/mocks/oracle-modules/OracleModuleMock.sol";
 import { PrimaryAMMock } from "../../../utils/mocks/asset-modules/PrimaryAMMock.sol";
-import { RegistryErrors } from "../../../../src/registries/RegistryL2.sol";
 
 /**
  * @notice Common logic needed by all "RegistryL2" fuzz tests.
@@ -24,8 +23,10 @@ abstract contract RegistryL2_Fuzz_Test is Fuzz_Test {
                             TEST CONTRACTS
     /////////////////////////////////////////////////////////////// */
 
+    /// forge-lint: disable-start(mixed-case-variable)
     PrimaryAMMock internal primaryAM;
     DerivedAMMock internal derivedAM;
+    /// forge-lint: disable-end(mixed-case-variable)
 
     OracleModuleMock internal oracleModule;
 
@@ -37,10 +38,10 @@ abstract contract RegistryL2_Fuzz_Test is Fuzz_Test {
         Fuzz_Test.setUp();
 
         vm.startPrank(users.owner);
-        primaryAM = new PrimaryAMMock(address(registry), 0);
+        primaryAM = new PrimaryAMMock(users.owner, address(registry), 0);
         registry.addAssetModule(address(primaryAM));
 
-        derivedAM = new DerivedAMMock(address(registry), 0);
+        derivedAM = new DerivedAMMock(users.owner, address(registry), 0);
         registry.addAssetModule(address(derivedAM));
         vm.stopPrank();
     }

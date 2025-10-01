@@ -2,7 +2,7 @@
  * Created by Pragma Labs
  * SPDX-License-Identifier: BUSL-1.1
  */
-pragma solidity ^0.8.22;
+pragma solidity ^0.8.0;
 
 import { AbstractPrimaryAM_Fuzz_Test } from "./_AbstractPrimaryAM.fuzz.t.sol";
 
@@ -20,7 +20,7 @@ contract GetValue_AbstractPrimaryAM_Fuzz_Test is AbstractPrimaryAM_Fuzz_Test {
     function setUp() public override {
         AbstractPrimaryAM_Fuzz_Test.setUp();
 
-        oracleModule = new OracleModuleMock(address(registry));
+        oracleModule = new OracleModuleMock(users.owner, address(registry));
     }
 
     /*//////////////////////////////////////////////////////////////
