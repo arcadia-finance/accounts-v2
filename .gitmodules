@@ -34,3 +34,6 @@
 [submodule "lib/merkl-contracts"]
 	path = lib/merkl-contracts
 	url = https://github.com/AngleProtocol/merkl-contracts
+[submodule "lib/solady"]
+	path = lib/solady
+	url = https://github.com/Vectorized/solady
