@@ -11,6 +11,7 @@ library AerodromeGauges {
     address internal constant CL1_CBETH_WETH = 0xF5550F8F0331B8CAA165046667f4E6628E9E3Aac;
     address internal constant CL1_EURC_USDC = 0x85af8D930cB738954d307D6E62F04dd05D839C37;
     address internal constant CL1_EZETH_WETH = 0xC6B4fe83Fb284bDdE1f1d19F0B5beB31011B280A;
+    address internal constant CL1_OUSDT_USDC = 0x2ce6eBFb4E00eE53f7B138C46850F0bD3B33a83B;
     address internal constant CL1_TBTC_CBBTC = 0xB57eC27f68Bd356e300D57079B6cdbe57d50830d;
     address internal constant CL1_USDC_USDBC = 0x4a3E1294d7869567B387FC3d5e5Ccf14BE2Bbe0a;
     address internal constant CL1_USDC_USDT = 0xBd85D45f1636fCEB2359d9Dcf839f12b3cF5AF3F;
@@ -25,7 +26,6 @@ library AerodromeGauges {
     address internal constant CL50_EURC_USDC = 0x1f6c9d116CE22b51b0BC666f86B038a6c19900B8;
     address internal constant CL100_EURC_CBBTC = 0x017a82B26d612cAD89d240206F652E76ae8C4B31;
     address internal constant CL100_OUSDT_CBBTC = 0x5743b100361F2d6b13282C731426215294689a71;
-    address internal constant CL100_OUSDT_USDC = 0x2ce6eBFb4E00eE53f7B138C46850F0bD3B33a83B;
     address internal constant CL100_OUSDT_WETH = 0x3D7981a71dEe2e73656566f3003D3C6a19C45EE6;
     address internal constant CL100_USDC_CBBTC = 0x6399ed6725cC163D019aA64FF55b22149D7179A8;
     address internal constant CL100_USDC_TRUMP = 0x0c1D14b66e74FBB35d53A0c97Dbe93fa8a97BbE7;

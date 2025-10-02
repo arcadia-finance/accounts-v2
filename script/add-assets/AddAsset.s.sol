@@ -35,7 +35,7 @@ contract AddAsset is Base_Script {
         addToBatch(SAFE, address(stakedSlipstreamAM), calldata_);
         calldata_ = abi.encodeCall(stakedSlipstreamAM.addGauge, (AerodromeGauges.CL100_OUSDT_WETH));
         addToBatch(SAFE, address(stakedSlipstreamAM), calldata_);
-        calldata_ = abi.encodeCall(stakedSlipstreamAM.addGauge, (AerodromeGauges.CL100_OUSDT_USDC));
+        calldata_ = abi.encodeCall(stakedSlipstreamAM.addGauge, (AerodromeGauges.CL1_OUSDT_USDC));
         addToBatch(SAFE, address(stakedSlipstreamAM), calldata_);
 
         // Create and write away batched transaction data to be signed with Safe.
