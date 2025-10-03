@@ -10,8 +10,8 @@ import { Base_Script } from "../Base.s.sol";
 
 contract AddAsset is Base_Script {
     /// forge-lint: disable-start(mixed-case-variable)
-    Asset internal ASSET = Assets.VVV();
-    Oracle internal ORACLE = Oracles.VVV_USD();
+    Asset internal ASSET = Assets.OUSDT();
+    Oracle internal ORACLE = Oracles.OUSDT_USD();
     address internal SAFE = Safes.OWNER;
     /// forge-lint: disable-end(mixed-case-variable)
 
@@ -25,17 +25,17 @@ contract AddAsset is Base_Script {
         addToBatch(SAFE, address(erc20PrimaryAM), addAsset(ASSET, ORACLE));
 
         // Add Aerodrome pools to aerodrome AM.
-        bytes memory calldata_ = abi.encodeCall(aerodromePoolAM.addAsset, (AerodromePools.V_WETH_VVV));
-        addToBatch(SAFE, address(aerodromePoolAM), calldata_);
-
-        // Add Aerodrome gauge to staked Aerodrome AM.
-        calldata_ = abi.encodeCall(stakedAerodromeAM.addAsset, (AerodromeGauges.V_WETH_VVV));
-        addToBatch(SAFE, address(stakedAerodromeAM), calldata_);
 
         // Add Aerodrome gauge to Staked Slipstream AM.
-        calldata_ = abi.encodeCall(stakedSlipstreamAM.addGauge, (AerodromeGauges.CL100_WETH_VVV));
+        bytes memory calldata_ = abi.encodeCall(stakedSlipstreamAM.addGauge, (AerodromeGauges.CL1_WETH_CBBTC));
         addToBatch(SAFE, address(stakedSlipstreamAM), calldata_);
-        calldata_ = abi.encodeCall(stakedSlipstreamAM.addGauge, (AerodromeGauges.CL200_WETH_VVV));
+        calldata_ = abi.encodeCall(stakedSlipstreamAM.addGauge, (AerodromeGauges.CL2000_USDC_CBBTC));
+        addToBatch(SAFE, address(stakedSlipstreamAM), calldata_);
+        calldata_ = abi.encodeCall(stakedSlipstreamAM.addGauge, (AerodromeGauges.CL100_OUSDT_CBBTC));
+        addToBatch(SAFE, address(stakedSlipstreamAM), calldata_);
+        calldata_ = abi.encodeCall(stakedSlipstreamAM.addGauge, (AerodromeGauges.CL100_OUSDT_WETH));
+        addToBatch(SAFE, address(stakedSlipstreamAM), calldata_);
+        calldata_ = abi.encodeCall(stakedSlipstreamAM.addGauge, (AerodromeGauges.CL1_OUSDT_USDC));
         addToBatch(SAFE, address(stakedSlipstreamAM), calldata_);
 
         // Create and write away batched transaction data to be signed with Safe.
