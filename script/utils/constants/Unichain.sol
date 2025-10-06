@@ -33,6 +33,10 @@ library ExternalContracts {
     address internal constant UNISWAPV4_POS_MNGR = 0x4529A01c7A0410167c5740C487A8DE60232617bf;
 }
 
+library Merkl {
+    address internal constant DISTRIBUTOR = 0x3Ef3D8bA38EBe18DB133cEc108f4D14CE00Dd9Ae;
+}
+
 library MerkleRoots {
     bytes32 internal constant V1 = 0xcc69885fda6bcc1a4ace058b4a62bf5e179ea78fd58a1ccd71c22cc9b688792f;
     bytes32 internal constant V2 = 0xad3228b676f7d3cd4284a5443f17f1962b36e491b30a40b2405849e597ba5fb5;
