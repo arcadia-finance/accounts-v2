@@ -69,7 +69,7 @@ abstract contract RegistryGuardian is BaseGuardian {
      * - Withdraw assets.
      * - Deposit assets.
      */
-    function pause() external override onlyGuardian afterCoolDownOf(32 days) {
+    function pause() external override onlyGuardian afterCoolDownOf(1441 minutes) {
         pauseTimestamp = uint96(block.timestamp);
         emit PauseFlagsUpdated(withdrawPaused = true, depositPaused = true);
     }
@@ -93,7 +93,7 @@ abstract contract RegistryGuardian is BaseGuardian {
      * @dev This function will unpause the functionality to:
      * - Withdraw assets.
      */
-    function unpause() external override afterCoolDownOf(30 days) {
+    function unpause() external override afterCoolDownOf(1440 minutes) {
         emit PauseFlagsUpdated(withdrawPaused = false, depositPaused);
     }
 }
