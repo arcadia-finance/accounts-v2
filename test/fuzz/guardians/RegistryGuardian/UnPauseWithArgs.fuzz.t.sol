@@ -38,7 +38,7 @@ contract UnPause_WithArgs_RegistryGuardian_Fuzz_Test is RegistryGuardian_Fuzz_Te
         Flags memory initialFlags,
         Flags memory flags
     ) public {
-        lastPauseTimestamp = bound(lastPauseTimestamp, 32 days + 1, type(uint32).max);
+        lastPauseTimestamp = bound(lastPauseTimestamp, 1441 minutes + 1, type(uint32).max);
         timePassed = bound(timePassed, 0, type(uint32).max);
 
         // Given: A random "lastPauseTimestamp".

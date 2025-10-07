@@ -28,18 +28,18 @@ contract UnPause_WithoutArgs_RegistryGuardian_Fuzz_Test is RegistryGuardian_Fuzz
     function testFuzz_Revert_unPause_TimeNotExpired(uint256 lastPauseTimestamp, uint256 timePassed, address sender)
         public
     {
-        lastPauseTimestamp = bound(lastPauseTimestamp, 32 days + 1, type(uint32).max);
-        timePassed = bound(timePassed, 0, 30 days);
+        lastPauseTimestamp = bound(lastPauseTimestamp, 1441 minutes + 1, type(uint32).max);
+        timePassed = bound(timePassed, 0, 1440 minutes);
 
         // Given: A random "lastPauseTimestamp".
         vm.warp(lastPauseTimestamp);
         vm.prank(users.guardian);
         registryGuardian.pause();
 
-        // Given: less than 30 days passed
+        // Given: less than 1440 minutes passed
         vm.warp(lastPauseTimestamp + timePassed);
 
-        // When: A sender un-pauses within 30 days passed from the last pause.
+        // When: A sender un-pauses within 1440 minutes passed from the last pause.
         // Then: The transaction reverts with "G_UP: Cannot unPaus".
         vm.startPrank(sender);
         vm.expectRevert(GuardianErrors.CoolDownPeriodNotPassed.selector);
@@ -53,8 +53,8 @@ contract UnPause_WithoutArgs_RegistryGuardian_Fuzz_Test is RegistryGuardian_Fuzz
         address sender,
         Flags memory initialFlags
     ) public {
-        lastPauseTimestamp = bound(lastPauseTimestamp, 32 days + 1, type(uint32).max - 30 days - 1);
-        timePassed = bound(timePassed, 30 days + 1, type(uint32).max);
+        lastPauseTimestamp = bound(lastPauseTimestamp, 1441 minutes + 1, type(uint32).max - 1440 minutes - 1);
+        timePassed = bound(timePassed, 1440 minutes + 1, type(uint32).max);
 
         // Given: A random "lastPauseTimestamp".
         vm.warp(lastPauseTimestamp);
@@ -64,7 +64,7 @@ contract UnPause_WithoutArgs_RegistryGuardian_Fuzz_Test is RegistryGuardian_Fuzz
         // And: Flags are in random state.
         setFlags(initialFlags);
 
-        // Given: More than 30 days passed.
+        // Given: More than 1440 minutes passed.
         vm.warp(lastPauseTimestamp + timePassed);
 
         // When: A "sender" un-pauses.
