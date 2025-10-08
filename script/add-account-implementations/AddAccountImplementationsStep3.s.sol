@@ -5,7 +5,7 @@
 pragma solidity ^0.8.0;
 
 import { Base_Script } from "../Base.s.sol";
-import { Safes } from "../utils/constants/Base.sol";
+import { Safes } from "../utils/constants/Shared.sol";
 
 contract AddAccountImplementationsStep3 is Base_Script {
     /// forge-lint: disable-next-line(mixed-case-variable)

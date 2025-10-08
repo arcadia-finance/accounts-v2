@@ -545,13 +545,6 @@ library Oracles {
     }
 }
 
-library Safes {
-    address internal constant GUARDIAN = 0xEdD41f9740b06eCBfe1CE9194Ce2715C28263187;
-    address internal constant OWNER = 0xb4d72B1c91e640e4ED7d7397F3244De4D8ACc50B;
-    address internal constant RISK_MANAGER = 0xD5FA6C6e284007743d4263255385eDA78dDa268c;
-    address internal constant TREASURY = 0xFd6db26eDc581D8F381f46eF4a6396A762b66E95;
-}
-
 library StargatePids {
     uint256 internal constant USDBC = 1;
 }

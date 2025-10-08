@@ -4,8 +4,9 @@
  */
 pragma solidity ^0.8.0;
 
-import { AerodromeGauges, AerodromePools, Assets, Oracles, Safes } from "../utils/constants/Base.sol";
+import { AerodromeGauges, AerodromePools, Assets, Oracles } from "../utils/constants/Base.sol";
 import { Base_Script } from "../Base.s.sol";
+import { Safes } from "../utils/constants/Shared.sol";
 
 contract AddAssets is Base_Script {
     /// forge-lint: disable-next-line(mixed-case-variable)

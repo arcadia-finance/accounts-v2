@@ -4,9 +4,8 @@
  */
 pragma solidity ^0.8.0;
 
-import { AccountLogic } from "../utils/constants/Shared.sol";
+import { AccountLogic, Safes } from "../utils/constants/Shared.sol";
 import { Base_Script } from "../Base.s.sol";
-import { Safes } from "../utils/constants/Base.sol";
 import { Utils } from "../../test/utils/Utils.sol";
 
 contract AddAccountImplementationsStep2 is Base_Script {
