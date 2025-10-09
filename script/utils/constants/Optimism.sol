@@ -4,7 +4,7 @@
  */
 pragma solidity ^0.8.0;
 
-import { Asset, Oracle } from "./Shared.sol";
+import { Asset, Oracle, OracleProvider } from "./Shared.sol";
 
 library AerodromeGauges { }
 
@@ -53,11 +53,19 @@ library MerkleRoots {
 /// forge-lint: disable-next-item(mixed-case-function)
 library Oracles {
     function ETH_USD() internal pure returns (Oracle memory) {
-        return Oracle({ oracle: address(0), baseAsset: "ETH", quoteAsset: "USD", cutOffTime: 1 hours, id: 2 });
+        return Oracle({
+            provider: OracleProvider.CHAINLINK,
+            oracle: address(0),
+            baseAsset: "ETH",
+            quoteAsset: "USD",
+            cutOffTime: 1 hours,
+            id: 2
+        });
     }
 
     function OP_USD() internal pure returns (Oracle memory) {
         return Oracle({
+            provider: OracleProvider.CHAINLINK,
             oracle: 0x0D276FC14719f9292D5C1eA2198673d1f4269246,
             baseAsset: "OP",
             quoteAsset: "USD",
@@ -68,6 +76,7 @@ library Oracles {
 
     function VELO_USD() internal pure returns (Oracle memory) {
         return Oracle({
+            provider: OracleProvider.CHAINLINK,
             oracle: 0x0f2Ed59657e391746C1a097BDa98F2aBb94b1120,
             baseAsset: "VELO",
             quoteAsset: "USD",
@@ -77,6 +86,13 @@ library Oracles {
     }
 
     function USDC_USD() internal pure returns (Oracle memory) {
-        return Oracle({ oracle: address(0), baseAsset: "USDC", quoteAsset: "USD", cutOffTime: 25 hours, id: 3 });
+        return Oracle({
+            provider: OracleProvider.CHAINLINK,
+            oracle: address(0),
+            baseAsset: "USDC",
+            quoteAsset: "USD",
+            cutOffTime: 25 hours,
+            id: 3
+        });
     }
 }

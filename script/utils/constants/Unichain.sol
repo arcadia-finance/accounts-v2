@@ -4,7 +4,7 @@
  */
 pragma solidity ^0.8.0;
 
-import { Asset } from "./Shared.sol";
+import { Asset, Oracle, OracleProvider } from "./Shared.sol";
 
 library AerodromeGauges { }
 
@@ -43,4 +43,27 @@ library MerkleRoots {
     bytes32 internal constant V4 = 0x03a8115b458ca7ccb57dc8120b852092dd652c46642e100d332bdf624cd1eaf1;
 }
 
-library Oracles { }
+/// forge-lint: disable-next-item(mixed-case-function)
+library Oracles {
+    function ETH_USD() internal pure returns (Oracle memory) {
+        return Oracle({
+            provider: OracleProvider.REDSTONE,
+            oracle: 0xe8D9FbC10e00ecc9f0694617075fDAF657a76FB2,
+            baseAsset: "ETH",
+            quoteAsset: "USD",
+            cutOffTime: 7 hours,
+            id: 0
+        });
+    }
+
+    function USDC_USD() internal pure returns (Oracle memory) {
+        return Oracle({
+            provider: OracleProvider.REDSTONE,
+            oracle: 0xD15862FC3D5407A03B696548b6902D6464A69b8c,
+            baseAsset: "USDC",
+            quoteAsset: "USD",
+            cutOffTime: 4 hours,
+            id: 1
+        });
+    }
+}

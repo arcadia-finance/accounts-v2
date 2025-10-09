@@ -4,7 +4,7 @@
  */
 pragma solidity ^0.8.0;
 
-import { Asset, Oracle } from "./Shared.sol";
+import { Asset, Oracle, OracleProvider } from "./Shared.sol";
 
 library AerodromeGauges {
     address internal constant CL1_CBBTC_LBTC = 0xc3f97660D0b47F0E05C3c513f73eeff7c1bd6c7a;
@@ -256,6 +256,7 @@ library MerkleRoots {
 library Oracles {
     function AAVE_USD() internal pure returns (Oracle memory) {
         return Oracle({
+            provider: OracleProvider.CHAINLINK,
             oracle: 0x3d6774EF702A10b20FCa8Ed40FC022f7E4938e07,
             baseAsset: "AAVE",
             quoteAsset: "USD",
@@ -266,6 +267,7 @@ library Oracles {
 
     function AERO_USD() internal pure returns (Oracle memory) {
         return Oracle({
+            provider: OracleProvider.CHAINLINK,
             oracle: 0x4EC5970fC728C5f65ba413992CD5fF6FD70fcfF0,
             baseAsset: "AERO",
             quoteAsset: "USD",
@@ -276,6 +278,7 @@ library Oracles {
 
     function CBBTC_USD() internal pure returns (Oracle memory) {
         return Oracle({
+            provider: OracleProvider.CHAINLINK,
             oracle: 0x07DA0E54543a844a80ABE69c8A12F22B3aA59f9D,
             baseAsset: "CBBTC",
             quoteAsset: "USD",
@@ -286,6 +289,7 @@ library Oracles {
 
     function CBETH_USD() internal pure returns (Oracle memory) {
         return Oracle({
+            provider: OracleProvider.CHAINLINK,
             oracle: 0xd7818272B9e248357d13057AAb0B417aF31E817d,
             baseAsset: "CBETH",
             quoteAsset: "USD",
@@ -296,6 +300,7 @@ library Oracles {
 
     function COMP_USD() internal pure returns (Oracle memory) {
         return Oracle({
+            provider: OracleProvider.CHAINLINK,
             oracle: 0x9DDa783DE64A9d1A60c49ca761EbE528C35BA428,
             baseAsset: "COMP",
             quoteAsset: "USD",
@@ -306,6 +311,7 @@ library Oracles {
 
     function DAI_USD() internal pure returns (Oracle memory) {
         return Oracle({
+            provider: OracleProvider.CHAINLINK,
             oracle: 0x591e79239a7d679378eC8c847e5038150364C78F,
             baseAsset: "DAI",
             quoteAsset: "USD",
@@ -316,6 +322,7 @@ library Oracles {
 
     function DEGEN_USD() internal pure returns (Oracle memory) {
         return Oracle({
+            provider: OracleProvider.CHAINLINK,
             oracle: 0xE62BcE5D7CB9d16AB8b4D622538bc0A50A5799c2,
             baseAsset: "DEGEN",
             quoteAsset: "USD",
@@ -326,6 +333,7 @@ library Oracles {
 
     function ETH_USD() internal pure returns (Oracle memory) {
         return Oracle({
+            provider: OracleProvider.CHAINLINK,
             oracle: 0x71041dddad3595F9CEd3DcCFBe3D1F4b0a16Bb70,
             baseAsset: "ETH",
             quoteAsset: "USD",
@@ -336,6 +344,7 @@ library Oracles {
 
     function EURC_USD() internal pure returns (Oracle memory) {
         return Oracle({
+            provider: OracleProvider.CHAINLINK,
             oracle: 0xDAe398520e2B67cd3f27aeF9Cf14D93D927f8250,
             baseAsset: "EURC",
             quoteAsset: "USD",
@@ -346,6 +355,7 @@ library Oracles {
 
     function EZETH_ETH() internal pure returns (Oracle memory) {
         return Oracle({
+            provider: OracleProvider.CHAINLINK,
             oracle: 0x960BDD1dFD20d7c98fa482D793C3dedD73A113a3,
             baseAsset: "EZETH",
             quoteAsset: "ETH",
@@ -356,6 +366,7 @@ library Oracles {
 
     function GHO_USD() internal pure returns (Oracle memory) {
         return Oracle({
+            provider: OracleProvider.CHAINLINK,
             oracle: 0x42868EFcee13C0E71af89c04fF7d96f5bec479b0,
             baseAsset: "GHO",
             quoteAsset: "USD",
@@ -366,6 +377,7 @@ library Oracles {
 
     function LBTC_USD() internal pure returns (Oracle memory) {
         return Oracle({
+            provider: OracleProvider.CHAINLINK,
             oracle: 0x9e07546c9Fe8868855CD04B26051a26D1599E270,
             baseAsset: "LBTC",
             quoteAsset: "USD",
@@ -376,6 +388,7 @@ library Oracles {
 
     function MORPHO_USD() internal pure returns (Oracle memory) {
         return Oracle({
+            provider: OracleProvider.CHAINLINK,
             oracle: 0xe95e258bb6615d47515Fc849f8542dA651f12bF6,
             baseAsset: "MORPHO",
             quoteAsset: "USD",
@@ -386,6 +399,7 @@ library Oracles {
 
     function OUSDT_USD() internal pure returns (Oracle memory) {
         return Oracle({
+            provider: OracleProvider.CHAINLINK,
             oracle: 0x0E230b1077c663f8Fb5e68d84A8e3e33D97d7436,
             baseAsset: "OUSDT",
             quoteAsset: "USD",
@@ -396,6 +410,7 @@ library Oracles {
 
     function RDNT_USD() internal pure returns (Oracle memory) {
         return Oracle({
+            provider: OracleProvider.CHAINLINK,
             oracle: 0xEf2E24ba6def99B5e0b71F6CDeaF294b02163094,
             baseAsset: "RDNT",
             quoteAsset: "USD",
@@ -406,6 +421,7 @@ library Oracles {
 
     function RETH_ETH() internal pure returns (Oracle memory) {
         return Oracle({
+            provider: OracleProvider.CHAINLINK,
             oracle: 0xf397bF97280B488cA19ee3093E81C0a77F02e9a5,
             baseAsset: "RETH",
             quoteAsset: "ETH",
@@ -416,6 +432,7 @@ library Oracles {
 
     function STG_USD() internal pure returns (Oracle memory) {
         return Oracle({
+            provider: OracleProvider.CHAINLINK,
             oracle: 0x63Af8341b62E683B87bB540896bF283D96B4D385,
             baseAsset: "STG",
             quoteAsset: "USD",
@@ -426,6 +443,7 @@ library Oracles {
 
     function TBTC_USD() internal pure returns (Oracle memory) {
         return Oracle({
+            provider: OracleProvider.CHAINLINK,
             oracle: 0x6D75BFB5A5885f841b132198C9f0bE8c872057BF,
             baseAsset: "TBTC",
             quoteAsset: "USD",
@@ -436,6 +454,7 @@ library Oracles {
 
     function TRUMP_USD() internal pure returns (Oracle memory) {
         return Oracle({
+            provider: OracleProvider.CHAINLINK,
             oracle: 0x7bAfa1Af54f17cC0775a1Cf813B9fF5dED2C51E5,
             baseAsset: "TRUMP",
             quoteAsset: "USD",
@@ -446,6 +465,7 @@ library Oracles {
 
     function USDC_USD() internal pure returns (Oracle memory) {
         return Oracle({
+            provider: OracleProvider.CHAINLINK,
             oracle: 0x7e860098F58bBFC8648a4311b374B1D669a2bc6B,
             baseAsset: "USDC",
             quoteAsset: "USD",
@@ -456,6 +476,7 @@ library Oracles {
 
     function USDS_USD() internal pure returns (Oracle memory) {
         return Oracle({
+            provider: OracleProvider.CHAINLINK,
             oracle: 0x2330aaE3bca5F05169d5f4597964D44522F62930,
             baseAsset: "USDS",
             quoteAsset: "USD",
@@ -466,6 +487,7 @@ library Oracles {
 
     function USDT_USD() internal pure returns (Oracle memory) {
         return Oracle({
+            provider: OracleProvider.CHAINLINK,
             oracle: 0xf19d560eB8d2ADf07BD6D13ed03e1D11215721F9,
             baseAsset: "USDT",
             quoteAsset: "USD",
@@ -476,6 +498,7 @@ library Oracles {
 
     function USDZ_USD() internal pure returns (Oracle memory) {
         return Oracle({
+            provider: OracleProvider.CHAINLINK,
             oracle: 0xe25969e2Fa633a0C027fAB8F30Fc9C6A90D60B48,
             baseAsset: "USDZ",
             quoteAsset: "USD",
@@ -486,6 +509,7 @@ library Oracles {
 
     function VIRTUAL_USD() internal pure returns (Oracle memory) {
         return Oracle({
+            provider: OracleProvider.CHAINLINK,
             oracle: 0xEaf310161c9eF7c813A14f8FEF6Fb271434019F7,
             baseAsset: "VIRTUAL",
             quoteAsset: "USD",
@@ -496,6 +520,7 @@ library Oracles {
 
     function VVV_USD() internal pure returns (Oracle memory) {
         return Oracle({
+            provider: OracleProvider.CHAINLINK,
             oracle: 0x8eC6a128a430f7A850165bcF18facc9520a9873F,
             baseAsset: "VVV",
             quoteAsset: "USD",
@@ -506,6 +531,7 @@ library Oracles {
 
     function WEETH_ETH() internal pure returns (Oracle memory) {
         return Oracle({
+            provider: OracleProvider.CHAINLINK,
             oracle: 0xFC1415403EbB0c693f9a7844b92aD2Ff24775C65,
             baseAsset: "WEETH",
             quoteAsset: "ETH",
@@ -516,6 +542,7 @@ library Oracles {
 
     function WELL_USD() internal pure returns (Oracle memory) {
         return Oracle({
+            provider: OracleProvider.CHAINLINK,
             oracle: 0xc15d9944dAefE2dB03e53bef8DDA25a56832C5fe,
             baseAsset: "WELL",
             quoteAsset: "USD",
@@ -526,6 +553,7 @@ library Oracles {
 
     function WRSETH_ETH() internal pure returns (Oracle memory) {
         return Oracle({
+            provider: OracleProvider.CHAINLINK,
             oracle: 0xe8dD07CCf5BC4922424140E44Eb970F5950725ef,
             baseAsset: "WRSETH",
             quoteAsset: "ETH",
@@ -536,6 +564,7 @@ library Oracles {
 
     function WSTETH_ETH() internal pure returns (Oracle memory) {
         return Oracle({
+            provider: OracleProvider.CHAINLINK,
             oracle: 0xa669E5272E60f78299F4824495cE01a3923f4380,
             baseAsset: "WSTETH",
             quoteAsset: "ETH",

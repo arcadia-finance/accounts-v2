@@ -57,7 +57,13 @@ struct Asset {
     uint8 decimals;
 }
 
+enum OracleProvider {
+    CHAINLINK,
+    REDSTONE
+}
+
 struct Oracle {
+    OracleProvider provider;
     address oracle;
     bytes16 baseAsset;
     bytes16 quoteAsset;

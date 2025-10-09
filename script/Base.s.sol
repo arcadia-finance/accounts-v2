@@ -5,12 +5,13 @@
 pragma solidity ^0.8.0;
 
 import { AerodromePoolAM } from "../src/asset-modules/Aerodrome-Finance/AerodromePoolAM.sol";
-import { ArcadiaAccounts, AssetModules, OracleModules } from "./utils/constants/Shared.sol";
+import { ArcadiaAccounts, AssetModules, OracleModules, OracleProvider } from "./utils/constants/Shared.sol";
 import { BitPackingLib } from "../src/libraries/BitPackingLib.sol";
 import { ChainlinkOM } from "../src/oracle-modules/ChainlinkOM.sol";
 import { ERC20PrimaryAM } from "../src/asset-modules/ERC20-Primaries/ERC20PrimaryAM.sol";
 import { Factory } from "../src/Factory.sol";
 import { Asset, Oracle } from "./utils/constants/Shared.sol";
+import { RedStonePushOM } from "../src/oracle-modules/RedStonePushOM.sol";
 import { RegistryL2 } from "../src/registries/RegistryL2.sol";
 import { SafeTransactionBuilder } from "./utils/SafeTransactionBuilder.sol";
 import { SlipstreamAM } from "../src/asset-modules/Slipstream/SlipstreamAM.sol";
@@ -20,7 +21,7 @@ import { Test } from "../lib/forge-std/src/Test.sol";
 import { WrappedAerodromeAM } from "../src/asset-modules/Aerodrome-Finance/WrappedAerodromeAM.sol";
 
 abstract contract Base_Script is Test, SafeTransactionBuilder {
-    uint256 internal deployer = vm.envUint("PRIVATE_KEY_DEPLOYER");
+    uint256 internal deployer;
     uint256 internal manager;
 
     /// forge-lint: disable-start(mixed-case-variable)
@@ -31,6 +32,7 @@ abstract contract Base_Script is Test, SafeTransactionBuilder {
     ChainlinkOM internal chainlinkOM = ChainlinkOM(OracleModules.CHAINLINK);
     ERC20PrimaryAM internal erc20PrimaryAM = ERC20PrimaryAM(AssetModules.ERC20_PRIMARY);
     Factory internal factory = Factory(ArcadiaAccounts.FACTORY);
+    RedStonePushOM internal redStonePushOM;
     RegistryL2 internal registry = RegistryL2(ArcadiaAccounts.REGISTRY);
     SlipstreamAM internal slipstreamAM = SlipstreamAM(AssetModules.SLIPSTREAM);
     StakedAerodromeAM internal stakedAerodromeAM = StakedAerodromeAM(AssetModules.STAKED_AERO);
@@ -45,6 +47,22 @@ abstract contract Base_Script is Test, SafeTransactionBuilder {
     }
 
     function addOracle(Oracle memory oracle) internal pure returns (bytes memory calldata_) {
+        if (oracle.provider == OracleProvider.CHAINLINK) {
+            return addChainlinkOracle(oracle);
+        } else if (oracle.provider == OracleProvider.REDSTONE) {
+            return addRedstonePushOracle(oracle);
+        } else {
+            revert("Unknown Oracle Provider");
+        }
+    }
+
+    function addChainlinkOracle(Oracle memory oracle) internal pure returns (bytes memory calldata_) {
+        calldata_ = abi.encodeCall(
+            ChainlinkOM.addOracle, (oracle.oracle, oracle.baseAsset, oracle.quoteAsset, oracle.cutOffTime)
+        );
+    }
+
+    function addRedstonePushOracle(Oracle memory oracle) internal pure returns (bytes memory calldata_) {
         calldata_ = abi.encodeCall(
             ChainlinkOM.addOracle, (oracle.oracle, oracle.baseAsset, oracle.quoteAsset, oracle.cutOffTime)
         );
