@@ -32,17 +32,24 @@ library AssetModules {
     address internal constant WRAPPED_AERO = 0x17B5826382e3a5257b829cF0546A08Bd77409270;
 }
 
+library Deployers {
+    address constant ARCADIA = EOAs.DEPLOYER_ARCADIA;
+}
+
 library EOAs {
     address constant DEPLOYER_ARCADIA = 0x0f518becFC14125F23b8422849f6393D59627ddB;
     address constant MANAGER = 0x29E923A6DE8761FdBE2a57618a978F1C3cEE6bdF;
 }
 
-library Deployers {
-    address constant ARCADIA = EOAs.DEPLOYER_ARCADIA;
-}
-
 library OracleModules {
     address internal constant CHAINLINK = 0x6a5485E3ce6913890ae5e8bDc08a868D432eEB31;
+}
+
+library Safes {
+    address internal constant GUARDIAN = 0xEdD41f9740b06eCBfe1CE9194Ce2715C28263187;
+    address internal constant OWNER = 0xb4d72B1c91e640e4ED7d7397F3244De4D8ACc50B;
+    address internal constant RISK_MANAGER = 0xD5FA6C6e284007743d4263255385eDA78dDa268c;
+    address internal constant TREASURY = 0xFd6db26eDc581D8F381f46eF4a6396A762b66E95;
 }
 
 struct Asset {
@@ -50,7 +57,13 @@ struct Asset {
     uint8 decimals;
 }
 
+enum OracleProvider {
+    CHAINLINK,
+    REDSTONE
+}
+
 struct Oracle {
+    OracleProvider provider;
     address oracle;
     bytes16 baseAsset;
     bytes16 quoteAsset;

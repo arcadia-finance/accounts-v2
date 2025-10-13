@@ -4,8 +4,8 @@
  */
 pragma solidity ^0.8.0;
 
-import { AerodromeGauges, AerodromePools, Assets, Oracles, Safes } from "../utils/constants/Base.sol";
-import { Asset, Oracle } from "../utils/constants/Base.sol";
+import { AerodromeGauges, Assets, Oracles } from "../utils/constants/Base.sol";
+import { Asset, Oracle, Safes } from "../utils/constants/Shared.sol";
 import { Base_Script } from "../Base.s.sol";
 
 contract AddAsset is Base_Script {

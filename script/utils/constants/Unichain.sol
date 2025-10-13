@@ -4,7 +4,7 @@
  */
 pragma solidity ^0.8.0;
 
-import { Asset } from "./Shared.sol";
+import { Asset, Oracle, OracleProvider } from "./Shared.sol";
 
 library AerodromeGauges { }
 
@@ -40,13 +40,30 @@ library Merkl {
 library MerkleRoots {
     bytes32 internal constant V1 = 0xcc69885fda6bcc1a4ace058b4a62bf5e179ea78fd58a1ccd71c22cc9b688792f;
     bytes32 internal constant V2 = 0xad3228b676f7d3cd4284a5443f17f1962b36e491b30a40b2405849e597ba5fb5;
+    bytes32 internal constant V4 = 0x03a8115b458ca7ccb57dc8120b852092dd652c46642e100d332bdf624cd1eaf1;
 }
 
-library Oracles { }
+/// forge-lint: disable-next-item(mixed-case-function)
+library Oracles {
+    function ETH_USD() internal pure returns (Oracle memory) {
+        return Oracle({
+            provider: OracleProvider.REDSTONE,
+            oracle: 0xe8D9FbC10e00ecc9f0694617075fDAF657a76FB2,
+            baseAsset: "ETH",
+            quoteAsset: "USD",
+            cutOffTime: 7 hours,
+            id: 0
+        });
+    }
 
-library Safes {
-    address internal constant GUARDIAN = 0xEdD41f9740b06eCBfe1CE9194Ce2715C28263187;
-    address internal constant OWNER = 0xb4d72B1c91e640e4ED7d7397F3244De4D8ACc50B;
-    address internal constant RISK_MANAGER = 0xD5FA6C6e284007743d4263255385eDA78dDa268c;
-    address internal constant TREASURY = 0xFd6db26eDc581D8F381f46eF4a6396A762b66E95;
+    function USDC_USD() internal pure returns (Oracle memory) {
+        return Oracle({
+            provider: OracleProvider.REDSTONE,
+            oracle: 0xD15862FC3D5407A03B696548b6902D6464A69b8c,
+            baseAsset: "USDC",
+            quoteAsset: "USD",
+            cutOffTime: 4 hours,
+            id: 1
+        });
+    }
 }
