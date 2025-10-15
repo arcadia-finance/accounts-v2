@@ -4,17 +4,19 @@
  */
 pragma solidity ^0.8.0;
 
-import { Math } from "../../mocks/openzeppelin-0.8/Math.sol";
+import { Math } from "../../../../lib/openzeppelin-contracts-v4.9/contracts/utils/math/Math.sol";
 import { IPool } from "./interfaces/IPool.sol";
 import { IVoter } from "./interfaces/IVoter.sol";
 import { IPoolCallee } from "./interfaces/IPoolCallee.sol";
 import { IPoolFactory } from "./interfaces/IPoolFactory.sol";
 import { PoolFees } from "./AeroPoolFeesMock.sol";
-import { SafeERC20 } from "../../mocks/openzeppelin-0.8/SafeERC20.sol";
-import { ERC20 } from "../../mocks/openzeppelin-0.8/ERC20.sol";
-import { IERC20 } from "../../mocks/openzeppelin-0.8/IERC20.sol";
-import { ERC20Permit } from "../../mocks/openzeppelin-0.8/ERC20Permit.sol";
-import { ReentrancyGuard } from "../../mocks/openzeppelin-0.8/ReentrancyGuard.sol";
+import { SafeERC20 } from "../../../../lib/openzeppelin-contracts-v4.9/contracts/token/ERC20/utils/SafeERC20.sol";
+import { ERC20 } from "../../../../lib/openzeppelin-contracts-v4.9/contracts/token/ERC20/ERC20.sol";
+import { IERC20 } from "../../../../lib/openzeppelin-contracts-v4.9/contracts/token/ERC20/IERC20.sol";
+import {
+    ERC20Permit
+} from "../../../../lib/openzeppelin-contracts-v4.9/contracts/token/ERC20/extensions/ERC20Permit.sol";
+import { ReentrancyGuard } from "../../../../lib/openzeppelin-contracts-v4.9/contracts/security/ReentrancyGuard.sol";
 
 /// @title Pool
 /// @author velodrome.finance, @figs999, @pegahcarter
