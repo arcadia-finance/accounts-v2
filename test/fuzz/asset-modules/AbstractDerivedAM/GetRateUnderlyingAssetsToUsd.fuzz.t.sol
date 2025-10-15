@@ -11,7 +11,7 @@ import { AssetValueAndRiskFactors } from "../../../../src/libraries/AssetValuati
 /**
  * @notice Fuzz tests for the function "_getRateUnderlyingAssetsToUsd" of contract "AbstractDerivedAM".
  */
-/// forge-lint: disable-next-item(mixed-case-variable)
+// forge-lint: disable-next-item(mixed-case-variable)
 contract GetRateUnderlyingAssetsToUsd_AbstractDerivedAM_Fuzz_Test is AbstractDerivedAM_Fuzz_Test {
     /* ///////////////////////////////////////////////////////////////
                               SETUP

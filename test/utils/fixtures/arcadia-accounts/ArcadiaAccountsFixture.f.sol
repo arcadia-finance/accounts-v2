@@ -90,6 +90,7 @@ contract ArcadiaAccountsFixture is Base_Test {
         public
         returns (ArcadiaOracle oracle)
     {
+        // forge-lint: disable-next-line(unsafe-typecast)
         oracle = initMockedOracle(decimals, description, int256(price));
     }
 

@@ -183,6 +183,7 @@ contract UniswapV3Fixture is WETH9Fixture {
     }
 
     function isWithinAllowedRange(int24 tick) internal pure returns (bool) {
+        // forge-lint: disable-next-line(unsafe-typecast)
         return (tick < 0 ? uint256(-int256(tick)) : uint256(int256(tick))) <= uint256(uint24(TickMath.MAX_TICK));
     }
 }

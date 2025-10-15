@@ -146,6 +146,7 @@ contract SetNewAccountInfo_Factory_Fuzz_Test is Factory_Fuzz_Test {
 
         vm.startPrank(users.owner);
         vm.expectEmit(true, true, true, true);
+        // forge-lint: disable-next-line(unsafe-typecast)
         emit Factory.AccountVersionAdded(uint16(latestAccountVersionPre + 1), address(registry2), logic);
         factory.setNewAccountInfo(address(registry2), logic, Constants.ROOT, data);
         vm.stopPrank();

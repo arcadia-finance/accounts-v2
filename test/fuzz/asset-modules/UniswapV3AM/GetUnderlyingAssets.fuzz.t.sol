@@ -9,6 +9,7 @@ import { UniswapV3AM_Fuzz_Test } from "./_UniswapV3AM.fuzz.t.sol";
 /**
  * @notice Fuzz tests for the function "_getUnderlyingAssets" of contract "UniswapV3AM".
  */
+// forge-lint: disable-next-item(unsafe-typecast)
 contract GetUnderlyingAssets_UniswapV3AM_Fuzz_Test is UniswapV3AM_Fuzz_Test {
     /* ///////////////////////////////////////////////////////////////
                               VARIABLES

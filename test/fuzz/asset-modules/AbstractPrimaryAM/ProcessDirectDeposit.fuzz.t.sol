@@ -10,6 +10,7 @@ import { AssetModule } from "../../../../src/asset-modules/abstracts/AbstractAM.
 /**
  * @notice Fuzz tests for the function "processDirectDeposit" of contract "AbstractPrimaryAM".
  */
+// forge-lint: disable-next-item(unsafe-typecast)
 contract ProcessDirectDeposit_AbstractPrimaryAM_Fuzz_Test is AbstractPrimaryAM_Fuzz_Test {
     /* ///////////////////////////////////////////////////////////////
                               SETUP

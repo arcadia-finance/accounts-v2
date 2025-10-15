@@ -24,7 +24,7 @@ abstract contract Base_Script is Test, SafeTransactionBuilder {
     uint256 internal deployer;
     uint256 internal manager;
 
-    /// forge-lint: disable-start(mixed-case-variable)
+    // forge-lint: disable-start(mixed-case-variable)
     bool[] internal BA_TO_QA_SINGLE = new bool[](1);
     bool[] internal BA_TO_QA_DOUBLE = new bool[](2);
 
@@ -38,7 +38,7 @@ abstract contract Base_Script is Test, SafeTransactionBuilder {
     StakedAerodromeAM internal stakedAerodromeAM = StakedAerodromeAM(AssetModules.STAKED_AERO);
     StakedSlipstreamAM internal stakedSlipstreamAM = StakedSlipstreamAM(AssetModules.STAKED_SLIPSTREAM);
     WrappedAerodromeAM internal wrappedAerodromeAM = WrappedAerodromeAM(AssetModules.WRAPPED_AERO);
-    /// forge-lint: disable-end(mixed-case-variable)
+    // forge-lint: disable-end(mixed-case-variable)
 
     constructor() {
         BA_TO_QA_SINGLE[0] = true;

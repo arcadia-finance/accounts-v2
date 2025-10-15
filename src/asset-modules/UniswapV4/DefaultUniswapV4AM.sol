@@ -94,8 +94,9 @@ contract DefaultUniswapV4AM is DerivedAM {
         if (assetId > type(uint96).max) revert InvalidId();
 
         (PoolKey memory poolKey, PositionInfo info) = POSITION_MANAGER.getPoolAndPositionInfo(assetId);
-        bytes32 positionId =
-            keccak256(abi.encodePacked(address(POSITION_MANAGER), info.tickLower(), info.tickUpper(), bytes32(assetId)));
+        bytes32 positionId = keccak256(
+            abi.encodePacked(address(POSITION_MANAGER), info.tickLower(), info.tickUpper(), bytes32(assetId))
+        );
 
         // Liquidity should be greater than zero.
         if (POOL_MANAGER.getPositionLiquidity(poolKey.toId(), positionId) == 0) revert ZeroLiquidity();
@@ -203,8 +204,9 @@ contract DefaultUniswapV4AM is DerivedAM {
         rateUnderlyingAssetsToUsd = _getRateUnderlyingAssetsToUsd(creditor, underlyingAssetKeys);
 
         // Calculate amount0 and amount1 of the principal (the actual liquidity position).
-        bytes32 positionId =
-            keccak256(abi.encodePacked(address(POSITION_MANAGER), info.tickLower(), info.tickUpper(), bytes32(assetId)));
+        bytes32 positionId = keccak256(
+            abi.encodePacked(address(POSITION_MANAGER), info.tickLower(), info.tickUpper(), bytes32(assetId))
+        );
         uint128 liquidity = POOL_MANAGER.getPositionLiquidity(poolKey.toId(), positionId);
         (uint256 principal0, uint256 principal1) = _getPrincipalAmounts(
             info, liquidity, rateUnderlyingAssetsToUsd[0].assetValue, rateUnderlyingAssetsToUsd[1].assetValue
@@ -220,17 +222,23 @@ contract DefaultUniswapV4AM is DerivedAM {
         // Therefore we cap the fee amounts so that this cannot be abused to far exceed the max exposures.
         unchecked {
             fee0 = fee0
-                < principal0
-                    + principal1.mulDivDown(rateUnderlyingAssetsToUsd[1].assetValue, rateUnderlyingAssetsToUsd[0].assetValue)
+                    < principal0
+                        + principal1.mulDivDown(
+                            rateUnderlyingAssetsToUsd[1].assetValue, rateUnderlyingAssetsToUsd[0].assetValue
+                        )
                 ? fee0
                 : principal0
-                    + principal1.mulDivDown(rateUnderlyingAssetsToUsd[1].assetValue, rateUnderlyingAssetsToUsd[0].assetValue);
+                    + principal1.mulDivDown(
+                        rateUnderlyingAssetsToUsd[1].assetValue, rateUnderlyingAssetsToUsd[0].assetValue
+                    );
             fee1 = fee1
-                < principal0.mulDivDown(rateUnderlyingAssetsToUsd[0].assetValue, rateUnderlyingAssetsToUsd[1].assetValue)
-                    + principal1
+                    < principal0.mulDivDown(
+                            rateUnderlyingAssetsToUsd[0].assetValue, rateUnderlyingAssetsToUsd[1].assetValue
+                        ) + principal1
                 ? fee1
-                : principal0.mulDivDown(rateUnderlyingAssetsToUsd[0].assetValue, rateUnderlyingAssetsToUsd[1].assetValue)
-                    + principal1;
+                : principal0.mulDivDown(
+                        rateUnderlyingAssetsToUsd[0].assetValue, rateUnderlyingAssetsToUsd[1].assetValue
+                    ) + principal1;
 
             underlyingAssetsAmounts = new uint256[](2);
             underlyingAssetsAmounts[0] = principal0 + fee0;
@@ -408,7 +416,7 @@ contract DefaultUniswapV4AM is DerivedAM {
             ? riskFactor.mulDivDown(rateUnderlyingAssetsToUsd[0].collateralFactor, AssetValuationLib.ONE_4)
             : riskFactor.mulDivDown(rateUnderlyingAssetsToUsd[1].collateralFactor, AssetValuationLib.ONE_4);
         liquidationFactor = rateUnderlyingAssetsToUsd[0].liquidationFactor
-            < rateUnderlyingAssetsToUsd[1].liquidationFactor
+                < rateUnderlyingAssetsToUsd[1].liquidationFactor
             ? riskFactor.mulDivDown(rateUnderlyingAssetsToUsd[0].liquidationFactor, AssetValuationLib.ONE_4)
             : riskFactor.mulDivDown(rateUnderlyingAssetsToUsd[1].liquidationFactor, AssetValuationLib.ONE_4);
     }

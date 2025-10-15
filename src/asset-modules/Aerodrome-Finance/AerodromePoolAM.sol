@@ -99,6 +99,7 @@ contract AerodromePoolAM is DerivedAM {
         assetToUnderlyingAssets[_getKeyFromAsset(pool, 0)] = underlyingAssetsKey;
 
         // Will revert in Registry if Aerodrome Finance pool was already added.
+        // forge-lint: disable-next-line(unsafe-typecast)
         IRegistry(REGISTRY).addAsset(uint96(ASSET_TYPE), pool);
     }
 
@@ -397,7 +398,7 @@ contract AerodromePoolAM is DerivedAM {
             ? riskFactor.mulDivDown(rateUnderlyingAssetsToUsd[0].collateralFactor, AssetValuationLib.ONE_4)
             : riskFactor.mulDivDown(rateUnderlyingAssetsToUsd[1].collateralFactor, AssetValuationLib.ONE_4);
         liquidationFactor = rateUnderlyingAssetsToUsd[0].liquidationFactor
-            < rateUnderlyingAssetsToUsd[1].liquidationFactor
+                < rateUnderlyingAssetsToUsd[1].liquidationFactor
             ? riskFactor.mulDivDown(rateUnderlyingAssetsToUsd[0].liquidationFactor, AssetValuationLib.ONE_4)
             : riskFactor.mulDivDown(rateUnderlyingAssetsToUsd[1].liquidationFactor, AssetValuationLib.ONE_4);
     }

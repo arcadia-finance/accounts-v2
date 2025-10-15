@@ -11,6 +11,7 @@ import { UniswapV4HooksRegistry_Fuzz_Test } from "./_UniswapV4HooksRegistry.fuzz
 /**
  * @notice Fuzz tests for the function "ProcessIndirectWithdrawal" of contract "UniswapV4HooksRegistry".
  */
+// forge-lint: disable-next-item(unsafe-typecast)
 contract ProcessIndirectWithdrawal_UniswapV4HooksRegistry_Fuzz_Test is UniswapV4HooksRegistry_Fuzz_Test {
     /* ///////////////////////////////////////////////////////////////
                               SETUP

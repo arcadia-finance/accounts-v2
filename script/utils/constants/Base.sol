@@ -107,7 +107,7 @@ library AerodromePools {
     address internal constant V_WETH_WSTETH = 0xA6385c73961dd9C58db2EF0c4EB98cE4B60651e8;
 }
 
-/// forge-lint: disable-next-item(mixed-case-function)
+// forge-lint: disable-next-item(mixed-case-function)
 library Assets {
     function AAVE() internal pure returns (Asset memory) {
         return Asset({ asset: 0x63706e401c06ac8513145b7687A14804d17f814b, decimals: 18 });
@@ -252,7 +252,7 @@ library MerkleRoots {
     bytes32 internal constant V4 = 0x03a8115b458ca7ccb57dc8120b852092dd652c46642e100d332bdf624cd1eaf1;
 }
 
-/// forge-lint: disable-next-item(mixed-case-function)
+// forge-lint: disable-next-item(mixed-case-function)
 library Oracles {
     function AAVE_USD() internal pure returns (Oracle memory) {
         return Oracle({

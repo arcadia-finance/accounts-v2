@@ -5,9 +5,9 @@
 pragma solidity ^0.8.0;
 
 import { IPool } from "./interfaces/IPool.sol";
-import { Clones } from "../../mocks/openzeppelin-0.8/Clones.sol";
+import { Clones } from "../../../../lib/openzeppelin-contracts-v4.9/contracts/proxy/Clones.sol";
 
-/// forge-lint: disable-next-item(screaming-snake-case-immutable)
+// forge-lint: disable-next-item(screaming-snake-case-immutable)
 contract PoolFactory {
     event SetFeeManager(address feeManager);
     event SetPauser(address pauser);

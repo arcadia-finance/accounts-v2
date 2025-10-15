@@ -18,7 +18,7 @@ import { LiquidityAmountsExtension } from "../uniswap-v3/extensions/libraries/Li
 import { TickMath } from "../../../../src/asset-modules/UniswapV3/libraries/TickMath.sol";
 import { Utils } from "../../Utils.sol";
 
-/// forge-lint: disable-next-item(divide-before-multiply,mixed-case-function)
+// forge-lint: disable-next-item(divide-before-multiply,mixed-case-function)
 contract SlipstreamFixture is WETH9Fixture, AerodromeFixture {
     /*//////////////////////////////////////////////////////////////////////////
                                    CONTRACTS
@@ -103,6 +103,7 @@ contract SlipstreamFixture is WETH9Fixture, AerodromeFixture {
     function tickSpacingToMaxLiquidityPerTick(int24 tickSpacing) internal pure returns (uint128) {
         int24 minTick = (TickMath.MIN_TICK / tickSpacing) * tickSpacing;
         int24 maxTick = (TickMath.MAX_TICK / tickSpacing) * tickSpacing;
+        // forge-lint: disable-next-line(unsafe-typecast)
         uint24 numTicks = uint24((maxTick - minTick) / tickSpacing) + 1;
         return type(uint128).max / numTicks;
     }

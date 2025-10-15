@@ -66,12 +66,7 @@ contract DerivedAMMock is DerivedAMExtension {
         return (underlyingAssetsAmount, rateUnderlyingAssetsToUsd);
     }
 
-    function _getUnderlyingAssets(bytes32 assetKey)
-        internal
-        view
-        override
-        returns (bytes32[] memory underlyingAssets)
-    {
+    function _getUnderlyingAssets(bytes32 assetKey) internal view override returns (bytes32[] memory underlyingAssets) {
         underlyingAssets = assetToUnderlyingAssets[assetKey];
     }
 
@@ -135,13 +130,7 @@ contract DerivedAMMock is DerivedAMExtension {
         address creditor,
         uint256[] memory underlyingAssetsAmounts,
         AssetValueAndRiskFactors[] memory rateUnderlyingAssetsToUsd
-    )
-        internal
-        view
-        virtual
-        override
-        returns (uint256 valueInUsd, uint256 collateralFactor, uint256 liquidationFactor)
-    {
+    ) internal view virtual override returns (uint256 valueInUsd, uint256 collateralFactor, uint256 liquidationFactor) {
         // Initialize variables with first elements of array.
         // "rateUnderlyingAssetsToUsd" is the USD value with 18 decimals precision for 10**18 tokens of Underlying Asset.
         // To get the USD value (also with 18 decimals) of the actual amount of underlying assets, we have to multiply

@@ -51,6 +51,7 @@ contract FloorERC1155AM is PrimaryAM {
             if (assetToInformation[_getKeyFromAsset(asset, assetId)].assetUnit != 0) revert AssetAlreadyInAM();
         } else {
             // New contract address.
+            // forge-lint: disable-next-line(unsafe-typecast)
             IRegistry(REGISTRY).addAsset(uint96(ASSET_TYPE), asset);
             inAssetModule[asset] = true;
         }

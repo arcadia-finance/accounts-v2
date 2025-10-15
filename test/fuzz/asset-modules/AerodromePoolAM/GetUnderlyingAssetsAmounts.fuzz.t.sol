@@ -75,9 +75,9 @@ contract GetUnderlyingAssetsAmounts_AerodromePoolAM_Fuzz_Test is AerodromePoolAM
         aeroPoolAM.getUnderlyingAssetsAmounts(address(creditorUsd), assetKey, testVars.assetAmount, underlyingAssetKeys);
     }
 
-    function testFuzz_Revert_getUnderlyingAssetsAmounts_Volatile_OverflowUnderlyingAssetAmount0(
-        TestVariables memory testVars
-    ) public {
+    function testFuzz_Revert_getUnderlyingAssetsAmounts_Volatile_OverflowUnderlyingAssetAmount0(TestVariables memory testVars)
+        public
+    {
         // Given : aeroPool is volatile.
         testVars.stable = false;
 
@@ -127,9 +127,9 @@ contract GetUnderlyingAssetsAmounts_AerodromePoolAM_Fuzz_Test is AerodromePoolAM
         aeroPoolAM.getUnderlyingAssetsAmounts(address(creditorUsd), assetKey, testVars.assetAmount, underlyingAssetKeys);
     }
 
-    function testFuzz_Revert_getUnderlyingAssetsAmounts_Volatile_OverflowUnderlyingAssetAmount1(
-        TestVariables memory testVars
-    ) public {
+    function testFuzz_Revert_getUnderlyingAssetsAmounts_Volatile_OverflowUnderlyingAssetAmount1(TestVariables memory testVars)
+        public
+    {
         // Given : aeroPool is volatile.
         testVars.stable = false;
 
@@ -392,9 +392,9 @@ contract GetUnderlyingAssetsAmounts_AerodromePoolAM_Fuzz_Test is AerodromePoolAM
         aeroPoolAM.getUnderlyingAssetsAmounts(address(creditorUsd), assetKey, testVars.assetAmount, underlyingAssetKeys);
     }
 
-    function testFuzz_Revert_getUnderlyingAssetsAmounts_Stable_OverflowUnderlyingAssetAmount0(
-        TestVariables memory testVars
-    ) public {
+    function testFuzz_Revert_getUnderlyingAssetsAmounts_Stable_OverflowUnderlyingAssetAmount0(TestVariables memory testVars)
+        public
+    {
         // Given : aeroPool is stable.
         testVars.stable = true;
 
@@ -460,9 +460,9 @@ contract GetUnderlyingAssetsAmounts_AerodromePoolAM_Fuzz_Test is AerodromePoolAM
         aeroPoolAM.getUnderlyingAssetsAmounts(address(creditorUsd), assetKey, testVars.assetAmount, underlyingAssetKeys);
     }
 
-    function testFuzz_Revert_getUnderlyingAssetsAmounts_Stable_OverflowUnderlyingAssetAmount1(
-        TestVariables memory testVars
-    ) public {
+    function testFuzz_Revert_getUnderlyingAssetsAmounts_Stable_OverflowUnderlyingAssetAmount1(TestVariables memory testVars)
+        public
+    {
         // Given : aeroPool is stable.
         testVars.stable = true;
 
@@ -550,8 +550,9 @@ contract GetUnderlyingAssetsAmounts_AerodromePoolAM_Fuzz_Test is AerodromePoolAM
         underlyingAssetKeys[1] = bytes32(abi.encodePacked(uint96(0), testVars.token1));
 
         // When : Calling getUnderlyingAssetsAmounts()
-        (uint256[] memory underlyingAssetsAmounts, AssetValueAndRiskFactors[] memory rateUnderlyingAssetsToUsd) =
-        aeroPoolAM.getUnderlyingAssetsAmounts(address(creditorUsd), assetKey, testVars.assetAmount, underlyingAssetKeys);
+        (uint256[] memory underlyingAssetsAmounts, AssetValueAndRiskFactors[] memory rateUnderlyingAssetsToUsd) = aeroPoolAM.getUnderlyingAssetsAmounts(
+            address(creditorUsd), assetKey, testVars.assetAmount, underlyingAssetKeys
+        );
 
         // Then : It should return the correct values
         assertEq(underlyingAssetsAmounts[0], 0);
@@ -581,8 +582,9 @@ contract GetUnderlyingAssetsAmounts_AerodromePoolAM_Fuzz_Test is AerodromePoolAM
         underlyingAssetKeys[1] = bytes32(abi.encodePacked(uint96(0), testVars.token1));
 
         // When : Calling getUnderlyingAssetsAmounts()
-        (uint256[] memory underlyingAssetsAmounts, AssetValueAndRiskFactors[] memory rateUnderlyingAssetsToUsd) =
-        aeroPoolAM.getUnderlyingAssetsAmounts(address(creditorUsd), assetKey, testVars.assetAmount, underlyingAssetKeys);
+        (uint256[] memory underlyingAssetsAmounts, AssetValueAndRiskFactors[] memory rateUnderlyingAssetsToUsd) = aeroPoolAM.getUnderlyingAssetsAmounts(
+            address(creditorUsd), assetKey, testVars.assetAmount, underlyingAssetKeys
+        );
 
         // Then : It should return the correct values
         assertEq(underlyingAssetsAmounts[0], 0);
@@ -595,9 +597,9 @@ contract GetUnderlyingAssetsAmounts_AerodromePoolAM_Fuzz_Test is AerodromePoolAM
         assertEq(rateUnderlyingAssetsToUsd[1].assetValue, token1Value);
     }
 
-    function testFuzz_Success_getUnderlyingAssetsAmounts_Volatile_NonZeroRate_NoPrecisionLoss(
-        TestVariables memory testVars
-    ) public {
+    function testFuzz_Success_getUnderlyingAssetsAmounts_Volatile_NonZeroRate_NoPrecisionLoss(TestVariables memory testVars)
+        public
+    {
         vm.skip(true); // TODO: fix test
         // Given : Valid state
         testVars = givenValidTestVarsVolatile(testVars);
@@ -680,9 +682,9 @@ contract GetUnderlyingAssetsAmounts_AerodromePoolAM_Fuzz_Test is AerodromePoolAM
         }
     }
 
-    function testFuzz_Success_getUnderlyingAssetsAmounts_Volatile_NonZeroRate_WithPrecisionLoss(
-        TestVariables memory testVars
-    ) public {
+    function testFuzz_Success_getUnderlyingAssetsAmounts_Volatile_NonZeroRate_WithPrecisionLoss(TestVariables memory testVars)
+        public
+    {
         // Given : Valid state
         testVars = givenValidTestVarsVolatile(testVars);
 
@@ -749,8 +751,9 @@ contract GetUnderlyingAssetsAmounts_AerodromePoolAM_Fuzz_Test is AerodromePoolAM
         underlyingAssetKeys[1] = bytes32(abi.encodePacked(uint96(0), testVars.token1));
 
         // When : Calling getUnderlyingAssetsAmounts()
-        (uint256[] memory underlyingAssetsAmounts, AssetValueAndRiskFactors[] memory rateUnderlyingAssetsToUsd) =
-        aeroPoolAM.getUnderlyingAssetsAmounts(address(creditorUsd), assetKey, testVars.assetAmount, underlyingAssetKeys);
+        (uint256[] memory underlyingAssetsAmounts, AssetValueAndRiskFactors[] memory rateUnderlyingAssetsToUsd) = aeroPoolAM.getUnderlyingAssetsAmounts(
+            address(creditorUsd), assetKey, testVars.assetAmount, underlyingAssetKeys
+        );
 
         // Then : It should return the correct values
         assertEq(underlyingAssetsAmounts[0], 0);
@@ -780,8 +783,9 @@ contract GetUnderlyingAssetsAmounts_AerodromePoolAM_Fuzz_Test is AerodromePoolAM
         underlyingAssetKeys[1] = bytes32(abi.encodePacked(uint96(0), testVars.token1));
 
         // When : Calling getUnderlyingAssetsAmounts()
-        (uint256[] memory underlyingAssetsAmounts, AssetValueAndRiskFactors[] memory rateUnderlyingAssetsToUsd) =
-        aeroPoolAM.getUnderlyingAssetsAmounts(address(creditorUsd), assetKey, testVars.assetAmount, underlyingAssetKeys);
+        (uint256[] memory underlyingAssetsAmounts, AssetValueAndRiskFactors[] memory rateUnderlyingAssetsToUsd) = aeroPoolAM.getUnderlyingAssetsAmounts(
+            address(creditorUsd), assetKey, testVars.assetAmount, underlyingAssetKeys
+        );
 
         // Then : It should return the correct values
         assertEq(underlyingAssetsAmounts[0], 0);
@@ -794,9 +798,9 @@ contract GetUnderlyingAssetsAmounts_AerodromePoolAM_Fuzz_Test is AerodromePoolAM
         assertEq(rateUnderlyingAssetsToUsd[1].assetValue, token1Value);
     }
 
-    function testFuzz_Success_getUnderlyingAssetsAmounts_Stable_NonZeroRate_NoPrecisionLoss(
-        TestVariables memory testVars
-    ) public {
+    function testFuzz_Success_getUnderlyingAssetsAmounts_Stable_NonZeroRate_NoPrecisionLoss(TestVariables memory testVars)
+        public
+    {
         // Given : Valid state
         testVars = givenValidTestVarsStable(testVars);
 
@@ -890,9 +894,9 @@ contract GetUnderlyingAssetsAmounts_AerodromePoolAM_Fuzz_Test is AerodromePoolAM
         }
     }
 
-    function testFuzz_Success_getUnderlyingAssetsAmounts_Stable_NonZeroRate_WithPrecisionLoss(
-        TestVariables memory testVars
-    ) public {
+    function testFuzz_Success_getUnderlyingAssetsAmounts_Stable_NonZeroRate_WithPrecisionLoss(TestVariables memory testVars)
+        public
+    {
         // Given : Valid state
         testVars = givenValidTestVarsStable(testVars);
 
@@ -980,7 +984,7 @@ contract GetUnderlyingAssetsAmounts_AerodromePoolAM_Fuzz_Test is AerodromePoolAM
         // And : We swap tokens (but do not change relative price)
         deal(address(token0), users.accountOwner, amount0In);
         vm.prank(users.accountOwner);
-        /// forge-lint: disable-next-line(erc20-unchecked-transfer)
+        // forge-lint: disable-next-line(erc20-unchecked-transfer)
         token0.transfer(address(aeroPool), amount0In);
 
         aeroPool.swap(0, amount1Out, users.accountOwner, "");
@@ -1055,7 +1059,7 @@ contract GetUnderlyingAssetsAmounts_AerodromePoolAM_Fuzz_Test is AerodromePoolAM
             // And : We swap tokens (but do not change relative price)
             deal(address(token0), users.accountOwner, amount0In);
             vm.startPrank(users.accountOwner);
-            /// forge-lint: disable-next-line(erc20-unchecked-transfer)
+            // forge-lint: disable-next-line(erc20-unchecked-transfer)
             token0.transfer(address(aeroPool), amount0In);
 
             aeroPool.swap(0, amount1Out, users.accountOwner, "");

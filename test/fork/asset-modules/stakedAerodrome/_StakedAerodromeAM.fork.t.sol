@@ -43,10 +43,10 @@ contract StakedAerodromeAM_Fork_Test is Fork_Test {
                             TEST CONTRACTS
     /////////////////////////////////////////////////////////////// */
 
-    /// forge-lint: disable-start(mixed-case-variable)
+    // forge-lint: disable-start(mixed-case-variable)
     AerodromePoolAM internal aerodromePoolAM;
     StakedAerodromeAMExtension internal stakedAerodromeAM;
-    /// forge-lint: disable-end(mixed-case-variable)
+    // forge-lint: disable-end(mixed-case-variable)
 
     /*///////////////////////////////////////////////////////////////
                             SET-UP FUNCTION
@@ -70,6 +70,7 @@ contract StakedAerodromeAM_Fork_Test is Fork_Test {
         bool[] memory boolValues = new bool[](1);
         boolValues[0] = true;
         uint80[] memory uintValues = new uint80[](1);
+        // forge-lint: disable-next-line(unsafe-typecast)
         uintValues[0] = uint80(oracleId);
         bytes32 oracleSequence = BitPackingLib.pack(boolValues, uintValues);
         erc20AM.addAsset(AERO, oracleSequence);
@@ -111,7 +112,7 @@ contract StakedAerodromeAM_Fork_Test is Fork_Test {
     ) public returns (uint256 lpBalance) {
         // A user adds liquidity in the pool.
         vm.prank(DOLA_USDC_POOL);
-        /// forge-lint: disable-next-line(erc20-unchecked-transfer)
+        // forge-lint: disable-next-line(erc20-unchecked-transfer)
         USDC.transfer(user, amount0);
 
         deal(address(token1), user, amount1);

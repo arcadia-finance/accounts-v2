@@ -13,6 +13,7 @@ import { WrappedAerodromeAM } from "../../../../src/asset-modules/Aerodrome-Fina
 /**
  * @notice Fuzz tests for the function "claimFees" of contract "WrappedAerodromeAM".
  */
+// forge-lint: disable-next-item(unsafe-typecast)
 contract ClaimFees_WrappedAerodromeAM_Fuzz_Test is WrappedAerodromeAM_Fuzz_Test {
     using FixedPointMathLib for uint256;
 
@@ -120,13 +121,13 @@ contract ClaimFees_WrappedAerodromeAM_Fuzz_Test is WrappedAerodromeAM_Fuzz_Test 
         // And: Position state should be updated correctly.
         WrappedAerodromeAM.PositionState memory positionState_;
         (
-            positionState_.fee0PerLiquidity,
-            positionState_.fee1PerLiquidity,
-            positionState_.fee0,
-            positionState_.fee1,
-            positionState_.amountWrapped,
-            positionState_.pool
-        ) = wrappedAerodromeAM.positionState(positionId);
+                positionState_.fee0PerLiquidity,
+                positionState_.fee1PerLiquidity,
+                positionState_.fee0,
+                positionState_.fee1,
+                positionState_.amountWrapped,
+                positionState_.pool
+            ) = wrappedAerodromeAM.positionState(positionId);
 
         uint128 fee0PerLiquidity;
         uint128 fee1PerLiquidity;

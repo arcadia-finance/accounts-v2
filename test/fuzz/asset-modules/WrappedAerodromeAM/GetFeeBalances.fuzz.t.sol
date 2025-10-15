@@ -12,6 +12,7 @@ import { WrappedAerodromeAM } from "../../../../src/asset-modules/Aerodrome-Fina
 /**
  * @notice Fuzz tests for the function "_getFeeBalances" of contract "WrappedAerodromeAM".
  */
+// forge-lint: disable-next-item(unsafe-typecast)
 contract GetFeeBalances_WrappedAerodromeAM_Fuzz_Test is WrappedAerodromeAM_Fuzz_Test {
     using FixedPointMathLib for uint256;
 

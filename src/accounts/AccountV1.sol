@@ -32,7 +32,7 @@ import { IPermit2 } from "../interfaces/IPermit2.sol";
  * Arcadia's Account functions will guarantee you a certain value of the Account.
  * For allowlists or liquidation strategies specific to your protocol, contact pragmalabs.dev
  */
-/// forge-lint: disable-next-item(all)
+// forge-lint: disable-next-item(all)
 contract AccountV1 is AccountStorageV1, IAccount {
     using AssetValuationLib for AssetValueAndRiskFactors[];
     using SafeTransferLib for ERC20;
@@ -245,8 +245,7 @@ contract AccountV1 is AccountStorageV1, IAccount {
      * @dev If upgradeHook() is implemented, it MUST verify that msg.sender == address(this).
      */
     function upgradeHook(address oldImplementation, address oldRegistry, uint256 oldVersion, bytes calldata data)
-        external
-    { }
+        external { }
 
     /* ///////////////////////////////////////////////////////////////
                         OWNERSHIP MANAGEMENT
@@ -749,7 +748,9 @@ contract AccountV1 is AccountStorageV1, IAccount {
         address currentCreditor = creditor;
 
         // The caller has to be or the Creditor of the Account, or an approved Creditor.
-        if (msg.sender != currentCreditor && msg.sender != approvedCreditor[owner]) revert AccountErrors.OnlyCreditor();
+        if (msg.sender != currentCreditor && msg.sender != approvedCreditor[owner]) {
+            revert AccountErrors.OnlyCreditor();
+        }
 
         // Decode flash action data.
         (
@@ -1150,15 +1151,15 @@ contract AccountV1 is AccountStorageV1, IAccount {
             }
 
             if (transferFromOwnerData.assetTypes[i] == 1) {
-                ERC20(transferFromOwnerData.assets[i]).safeTransferFrom(
-                    owner_, to, transferFromOwnerData.assetAmounts[i]
-                );
+                ERC20(transferFromOwnerData.assets[i])
+                    .safeTransferFrom(owner_, to, transferFromOwnerData.assetAmounts[i]);
             } else if (transferFromOwnerData.assetTypes[i] == 2) {
                 IERC721(transferFromOwnerData.assets[i]).safeTransferFrom(owner_, to, transferFromOwnerData.assetIds[i]);
             } else if (transferFromOwnerData.assetTypes[i] == 3) {
-                IERC1155(transferFromOwnerData.assets[i]).safeTransferFrom(
-                    owner_, to, transferFromOwnerData.assetIds[i], transferFromOwnerData.assetAmounts[i], ""
-                );
+                IERC1155(transferFromOwnerData.assets[i])
+                    .safeTransferFrom(
+                        owner_, to, transferFromOwnerData.assetIds[i], transferFromOwnerData.assetAmounts[i], ""
+                    );
             } else {
                 revert AccountErrors.UnknownAssetType();
             }
@@ -1309,7 +1310,7 @@ contract AccountV1 is AccountStorageV1, IAccount {
         }
     }
 
-    /* 
+    /*
     @notice Returns the onERC721Received selector.
     @dev Needed to receive ERC721 tokens.
     */

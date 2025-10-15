@@ -67,6 +67,7 @@ contract FloorERC721AM is PrimaryAM {
         if (idRangeStart > idRangeEnd) revert InvalidRange();
         if (!IRegistry(REGISTRY).checkOracleSequence(oracleSequence)) revert BadOracleSequence();
         // Will revert in Registry if asset was already added.
+        // forge-lint: disable-next-line(unsafe-typecast)
         IRegistry(REGISTRY).addAsset(uint96(ASSET_TYPE), asset);
 
         inAssetModule[asset] = true;

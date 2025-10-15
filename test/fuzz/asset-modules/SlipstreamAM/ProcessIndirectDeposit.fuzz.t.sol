@@ -18,6 +18,7 @@ import { AssetModule } from "../../../../src/asset-modules/abstracts/AbstractAM.
 /**
  * @notice Fuzz tests for the function "processIndirectDeposit" of contract "SlipstreamAM".
  */
+// forge-lint: disable-next-item(unsafe-typecast)
 contract ProcessIndirectDeposit_SlipstreamAM_Fuzz_Test is SlipstreamAM_Fuzz_Test {
     /* ///////////////////////////////////////////////////////////////
                             VARIABLES

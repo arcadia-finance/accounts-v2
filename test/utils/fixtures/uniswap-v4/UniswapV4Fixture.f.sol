@@ -179,6 +179,7 @@ contract UniswapV4Fixture is Test, Permit2Fixture, WETH9Fixture {
             actions[i] = plan.actions[i];
         }
         params[params.length - 1] = param;
+        // forge-lint: disable-next-line(unsafe-typecast)
         actions[params.length - 1] = bytes1(uint8(action));
 
         plan.actions = actions;
@@ -256,6 +257,7 @@ contract UniswapV4Fixture is Test, Permit2Fixture, WETH9Fixture {
             sqrtPriceX96,
             TickMath.getSqrtPriceAtTick(tickLower),
             TickMath.getSqrtPriceAtTick(tickUpper),
+            // forge-lint: disable-next-line(unsafe-typecast)
             uint128(liquidity)
         );
 
@@ -277,6 +279,7 @@ contract UniswapV4Fixture is Test, Permit2Fixture, WETH9Fixture {
     }
 
     function isWithinAllowedRangeV4(int24 tick) internal pure returns (bool) {
+        // forge-lint: disable-next-line(unsafe-typecast)
         return (tick < 0 ? uint256(-int256(tick)) : uint256(int256(tick))) <= uint256(uint24(MAX_TICK));
     }
 }

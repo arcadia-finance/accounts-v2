@@ -11,6 +11,7 @@ import { FixedPointMathLib } from "../../../../lib/solmate/src/utils/FixedPointM
 /**
  * @notice Fuzz tests for the function "_getRewardBalances" of contract "StakingAM".
  */
+// forge-lint: disable-next-item(unsafe-typecast)
 contract GetRewardBalances_AbstractStakingAM_Fuzz_Test is AbstractStakingAM_Fuzz_Test {
     using FixedPointMathLib for uint256;
 
@@ -71,12 +72,11 @@ contract GetRewardBalances_AbstractStakingAM_Fuzz_Test is AbstractStakingAM_Fuzz
         assetState.totalStaked = uint128(bound(assetState.totalStaked, 1, type(uint128).max - 1));
 
         // And: deltaRewardPerToken is bigger as type(uint128).max (overflow safeCastTo128).
-        uint256 lowerBound = 1
-            + (
-                (assetState.totalStaked < 1e18)
+        uint256 lowerBound =
+            1
+            + ((assetState.totalStaked < 1e18)
                     ? uint256(type(uint128).max).mulDivUp(assetState.totalStaked, 1e18)
-                    : uint256(type(uint128).max) * assetState.totalStaked / 1e18 + assetState.totalStaked
-            );
+                    : uint256(type(uint128).max) * assetState.totalStaked / 1e18 + assetState.totalStaked);
         currentRewardGlobal = bound(currentRewardGlobal, lowerBound, type(uint256).max);
 
         // And: State is persisted.

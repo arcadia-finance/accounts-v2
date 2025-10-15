@@ -10,7 +10,7 @@ import { AssetModule } from "../../../../src/asset-modules/abstracts/AbstractAM.
 /**
  * @notice Fuzz tests for the function "processIndirectDeposit" of contract "AbstractDerivedAM".
  */
-/// forge-lint: disable-next-item(mixed-case-variable)
+// forge-lint: disable-next-item(mixed-case-variable,unsafe-typecast)
 contract ProcessIndirectDeposit_AbstractDerivedAM_Fuzz_Test is AbstractDerivedAM_Fuzz_Test {
     /* ///////////////////////////////////////////////////////////////
                               SETUP
@@ -52,8 +52,7 @@ contract ProcessIndirectDeposit_AbstractDerivedAM_Fuzz_Test is AbstractDerivedAM
         int256 deltaExposureUpperAssetToAsset_ = -int256(deltaExposureUpperAssetToAsset);
 
         // And: Deposit does not revert.
-        (protocolState, assetState, underlyingPMState, exposureUpperAssetToAsset, deltaExposureUpperAssetToAsset_) =
-        givenNonRevertingDeposit(
+        (protocolState, assetState, underlyingPMState, exposureUpperAssetToAsset, deltaExposureUpperAssetToAsset_) = givenNonRevertingDeposit(
             protocolState, assetState, underlyingPMState, exposureUpperAssetToAsset, deltaExposureUpperAssetToAsset_
         );
 
@@ -90,8 +89,7 @@ contract ProcessIndirectDeposit_AbstractDerivedAM_Fuzz_Test is AbstractDerivedAM
         underlyingPMState.usdValue = 0;
 
         // And: Deposit does not revert.
-        (protocolState, assetState, underlyingPMState, exposureUpperAssetToAsset, deltaExposureUpperAssetToAsset) =
-        givenNonRevertingDeposit(
+        (protocolState, assetState, underlyingPMState, exposureUpperAssetToAsset, deltaExposureUpperAssetToAsset) = givenNonRevertingDeposit(
             protocolState, assetState, underlyingPMState, exposureUpperAssetToAsset, deltaExposureUpperAssetToAsset
         );
 
@@ -128,8 +126,7 @@ contract ProcessIndirectDeposit_AbstractDerivedAM_Fuzz_Test is AbstractDerivedAM
         underlyingPMState.usdValue = bound(underlyingPMState.usdValue, 1, type(uint112).max);
 
         // And: Deposit does not revert.
-        (protocolState, assetState, underlyingPMState, exposureUpperAssetToAsset, deltaExposureUpperAssetToAsset) =
-        givenNonRevertingDeposit(
+        (protocolState, assetState, underlyingPMState, exposureUpperAssetToAsset, deltaExposureUpperAssetToAsset) = givenNonRevertingDeposit(
             protocolState, assetState, underlyingPMState, exposureUpperAssetToAsset, deltaExposureUpperAssetToAsset
         );
 

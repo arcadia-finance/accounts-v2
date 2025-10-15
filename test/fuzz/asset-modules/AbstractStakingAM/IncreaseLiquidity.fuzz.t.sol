@@ -103,11 +103,11 @@ contract IncreaseLiquidity_AbstractStakingAM_Fuzz_Test is AbstractStakingAM_Fuzz
         // And: Position state should be updated correctly.
         StakingAM.PositionState memory newPositionState;
         (
-            newPositionState.asset,
-            newPositionState.amountStaked,
-            newPositionState.lastRewardPerTokenPosition,
-            newPositionState.lastRewardPosition
-        ) = stakingAM.positionState(positionId);
+                newPositionState.asset,
+                newPositionState.amountStaked,
+                newPositionState.lastRewardPerTokenPosition,
+                newPositionState.lastRewardPosition
+            ) = stakingAM.positionState(positionId);
         assertEq(newPositionState.asset, asset);
         assertEq(newPositionState.amountStaked, positionState.amountStaked + amount);
         uint128 currentRewardPerToken;

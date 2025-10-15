@@ -45,7 +45,7 @@ abstract contract StakingAM is DerivedAM, ERC721, ReentrancyGuard {
     uint256 internal lastPositionId;
 
     // The baseURI of the ERC721 tokens.
-    /// forge-lint: disable-next-item(mixed-case-variable)
+    // forge-lint: disable-next-item(mixed-case-variable)
     string public baseURI;
 
     // Map Asset to its corresponding struct with global state.
@@ -120,6 +120,7 @@ abstract contract StakingAM is DerivedAM, ERC721, ReentrancyGuard {
     function initialize() external onlyOwner {
         inAssetModule[address(this)] = true;
 
+        // forge-lint: disable-next-line(unsafe-typecast)
         IRegistry(REGISTRY).addAsset(uint96(ASSET_TYPE), address(this));
     }
 
@@ -227,6 +228,7 @@ abstract contract StakingAM is DerivedAM, ERC721, ReentrancyGuard {
             _calculateValueAndRiskFactors(creditor, underlyingAssetsAmounts, rateUnderlyingAssetsToUsd);
 
         // Unsafe cast: collateralFactor_ and liquidationFactor_ are smaller than or equal to 1e4.
+        // forge-lint: disable-next-line(unsafe-typecast)
         return (uint16(collateralFactor_), uint16(liquidationFactor_));
     }
 
@@ -244,13 +246,7 @@ abstract contract StakingAM is DerivedAM, ERC721, ReentrancyGuard {
         address creditor,
         uint256[] memory underlyingAssetsAmounts,
         AssetValueAndRiskFactors[] memory rateUnderlyingAssetsToUsd
-    )
-        internal
-        view
-        virtual
-        override
-        returns (uint256 valueInUsd, uint256 collateralFactor, uint256 liquidationFactor)
-    {
+    ) internal view virtual override returns (uint256 valueInUsd, uint256 collateralFactor, uint256 liquidationFactor) {
         // "rateUnderlyingAssetsToUsd" is the USD value with 18 decimals precision for 10**18 tokens of Underlying Asset.
         // To get the USD value (also with 18 decimals) of the actual amount of underlying assets, we have to multiply
         // the actual amount with the rate for 10**18 tokens, and divide by 10**18.
@@ -261,14 +257,14 @@ abstract contract StakingAM is DerivedAM, ERC721, ReentrancyGuard {
         // Calculate weighted risk factors.
         if (valueInUsd > 0) {
             unchecked {
-                collateralFactor = (
-                    valueStakedAsset * rateUnderlyingAssetsToUsd[0].collateralFactor
-                        + valueRewardAsset * rateUnderlyingAssetsToUsd[1].collateralFactor
-                ) / valueInUsd;
-                liquidationFactor = (
-                    valueStakedAsset * rateUnderlyingAssetsToUsd[0].liquidationFactor
-                        + valueRewardAsset * rateUnderlyingAssetsToUsd[1].liquidationFactor
-                ) / valueInUsd;
+                collateralFactor = (valueStakedAsset
+                        * rateUnderlyingAssetsToUsd[0].collateralFactor
+                        + valueRewardAsset
+                        * rateUnderlyingAssetsToUsd[1].collateralFactor) / valueInUsd;
+                liquidationFactor = (valueStakedAsset
+                        * rateUnderlyingAssetsToUsd[0].liquidationFactor
+                        + valueRewardAsset
+                        * rateUnderlyingAssetsToUsd[1].liquidationFactor) / valueInUsd;
             }
         }
 
@@ -416,6 +412,7 @@ abstract contract StakingAM is DerivedAM, ERC721, ReentrancyGuard {
         if (rewards > 0) {
             // Transfer reward
             REWARD_TOKEN.safeTransfer(msg.sender, rewards);
+            // forge-lint: disable-next-line(unsafe-typecast)
             emit RewardPaid(positionId, address(REWARD_TOKEN), uint128(rewards));
         }
 
@@ -456,6 +453,7 @@ abstract contract StakingAM is DerivedAM, ERC721, ReentrancyGuard {
         if (rewards > 0) {
             // Transfer reward
             REWARD_TOKEN.safeTransfer(msg.sender, rewards);
+            // forge-lint: disable-next-line(unsafe-typecast)
             emit RewardPaid(positionId, address(REWARD_TOKEN), uint128(rewards));
         }
     }
@@ -574,7 +572,7 @@ abstract contract StakingAM is DerivedAM, ERC721, ReentrancyGuard {
      * @notice Function that stores a new base URI.
      * @param newBaseURI The new base URI to store.
      */
-    /// forge-lint: disable-next-item(mixed-case-function,mixed-case-variable)
+    // forge-lint: disable-next-item(mixed-case-function,mixed-case-variable)
     function setBaseURI(string calldata newBaseURI) external virtual onlyOwner {
         baseURI = newBaseURI;
     }
@@ -584,7 +582,7 @@ abstract contract StakingAM is DerivedAM, ERC721, ReentrancyGuard {
      * @param tokenId The id of the Account.
      * @return uri The token URI.
      */
-    /// forge-lint: disable-next-item(mixed-case-function,mixed-case-variable)
+    // forge-lint: disable-next-item(mixed-case-function,mixed-case-variable)
     function tokenURI(uint256 tokenId) public view virtual override returns (string memory uri) {
         return bytes(baseURI).length > 0 ? string(abi.encodePacked(baseURI, tokenId.toString())) : "";
     }

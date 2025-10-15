@@ -8,8 +8,9 @@ import { SlipstreamAM_Fuzz_Test } from "./_SlipstreamAM.fuzz.t.sol";
 
 import { ERC20 } from "../../../../lib/solmate/src/tokens/ERC20.sol";
 
-import { INonfungiblePositionManagerExtension } from
-    "../../../utils/fixtures/slipstream/extensions/interfaces/INonfungiblePositionManagerExtension.sol";
+import {
+    INonfungiblePositionManagerExtension
+} from "../../../utils/fixtures/slipstream/extensions/interfaces/INonfungiblePositionManagerExtension.sol";
 
 /**
  * @notice Fuzz tests for the function "isAllowed" of contract "SlipstreamAM".
@@ -118,11 +119,7 @@ contract IsAllowed_SlipstreamAM_Fuzz_Test is SlipstreamAM_Fuzz_Test {
         (,,,,,,, uint128 liquidity,,,,) = slipstreamPositionManager.positions(tokenId);
         slipstreamPositionManager.decreaseLiquidity(
             INonfungiblePositionManagerExtension.DecreaseLiquidityParams({
-                tokenId: tokenId,
-                liquidity: liquidity,
-                amount0Min: 0,
-                amount1Min: 0,
-                deadline: type(uint256).max
+                tokenId: tokenId, liquidity: liquidity, amount0Min: 0, amount1Min: 0, deadline: type(uint256).max
             })
         );
         vm.stopPrank();

@@ -56,8 +56,9 @@ contract GetUnderlyingAssetsAmounts_WrappedAerodromeAM_Fuzz_Test is WrappedAerod
         underlyingAssetKeys[2] = wrappedAerodromeAM.getKeyFromAsset(address(aeroPool.token1()), 0);
 
         // When : Calling getUnderlyingAssetsAmounts.
-        (uint256[] memory underlyingAssetsAmounts, AssetValueAndRiskFactors[] memory rateUnderlyingAssetsToUsd) =
-        wrappedAerodromeAM.getUnderlyingAssetsAmounts(address(creditorToken1), assetKey, amount, underlyingAssetKeys);
+        (uint256[] memory underlyingAssetsAmounts, AssetValueAndRiskFactors[] memory rateUnderlyingAssetsToUsd) = wrappedAerodromeAM.getUnderlyingAssetsAmounts(
+            address(creditorToken1), assetKey, amount, underlyingAssetKeys
+        );
 
         // Then : Asset amounts returned should be correct.
         assertEq(underlyingAssetsAmounts[0], positionState.amountWrapped);

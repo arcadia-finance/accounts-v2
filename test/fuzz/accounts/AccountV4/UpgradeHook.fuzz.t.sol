@@ -113,9 +113,8 @@ contract UpgradeHook_AccountV4_Fuzz_Test is AccountV4_Fuzz_Test {
         accountV3 = AccountV3(proxyAddress);
 
         // And: Accounts can be upgraded from V3 to V4.
-        stdstore.target(address(factory)).sig(factory.versionRoot.selector).checked_write(
-            keccak256(abi.encodePacked(uint256(3), uint256(4)))
-        );
+        stdstore.target(address(factory)).sig(factory.versionRoot.selector)
+            .checked_write(keccak256(abi.encodePacked(uint256(3), uint256(4))));
 
         // And: "exposure" is strictly smaller than "maxExposure".
         erc20Amount = uint112(bound(erc20Amount, 0, type(uint112).max - 1));

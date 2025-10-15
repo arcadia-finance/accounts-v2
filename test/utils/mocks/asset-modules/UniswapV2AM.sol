@@ -45,6 +45,7 @@ contract UniswapV2AM is DerivedAM {
     error Token1_Not_Allowed();
     error Zero_Supply();
     error Zero_Reserves();
+
     /* //////////////////////////////////////////////////////////////
                                 CONSTRUCTOR
     ////////////////////////////////////////////////////////////// */
@@ -94,6 +95,7 @@ contract UniswapV2AM is DerivedAM {
         assetToUnderlyingAssets[_getKeyFromAsset(asset, 0)] = underlyingAssets_;
 
         // Will revert in Registry if asset was already added.
+        // forge-lint: disable-next-line(unsafe-typecast)
         IRegistry(REGISTRY).addAsset(uint96(ASSET_TYPE), asset);
     }
 
@@ -467,7 +469,7 @@ contract UniswapV2AM is DerivedAM {
             ? riskFactor.mulDivDown(rateUnderlyingAssetsToUsd[0].collateralFactor, AssetValuationLib.ONE_4)
             : riskFactor.mulDivDown(rateUnderlyingAssetsToUsd[1].collateralFactor, AssetValuationLib.ONE_4);
         liquidationFactor = rateUnderlyingAssetsToUsd[0].liquidationFactor
-            < rateUnderlyingAssetsToUsd[1].liquidationFactor
+                < rateUnderlyingAssetsToUsd[1].liquidationFactor
             ? riskFactor.mulDivDown(rateUnderlyingAssetsToUsd[0].liquidationFactor, AssetValuationLib.ONE_4)
             : riskFactor.mulDivDown(rateUnderlyingAssetsToUsd[1].liquidationFactor, AssetValuationLib.ONE_4);
     }

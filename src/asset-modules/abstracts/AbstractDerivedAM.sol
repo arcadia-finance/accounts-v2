@@ -30,8 +30,9 @@ abstract contract DerivedAM is AssetModule {
     // Map with the last exposures of each asset for each Creditor.
     mapping(address creditor => mapping(bytes32 assetKey => ExposuresPerAsset)) public lastExposuresAsset;
     // Map with the last amount of exposure of each underlying asset for each asset for each Creditor.
-    mapping(address creditor => mapping(bytes32 assetKey => mapping(bytes32 underlyingAssetKey => uint256 exposure)))
-        public lastExposureAssetToUnderlyingAsset;
+    mapping(
+        address creditor => mapping(bytes32 assetKey => mapping(bytes32 underlyingAssetKey => uint256 exposure))
+    ) public lastExposureAssetToUnderlyingAsset;
 
     // Struct with the risk parameters of the protocol for a specific Creditor.
     struct RiskParameters {
@@ -82,11 +83,7 @@ abstract contract DerivedAM is AssetModule {
      * @param assetKey The unique identifier of the asset.
      * @return underlyingAssetKeys The unique identifiers of the underlying assets.
      */
-    function _getUnderlyingAssets(bytes32 assetKey)
-        internal
-        view
-        virtual
-        returns (bytes32[] memory underlyingAssetKeys);
+    function _getUnderlyingAssets(bytes32 assetKey) internal view virtual returns (bytes32[] memory underlyingAssetKeys);
 
     /**
      * @notice Calculates the USD rate of 10**18 underlying assets.
@@ -248,6 +245,7 @@ abstract contract DerivedAM is AssetModule {
         bytes32 assetKey = _getKeyFromAsset(asset, assetId);
 
         // Calculate and update the new exposure to Asset.
+        // forge-lint: disable-next-line(unsafe-typecast)
         uint256 exposureAsset = _getAndUpdateExposureAsset(creditor, assetKey, int256(amount));
 
         (uint256 underlyingCalls,) = _processDeposit(exposureAsset, creditor, assetKey);
@@ -311,6 +309,7 @@ abstract contract DerivedAM is AssetModule {
         bytes32 assetKey = _getKeyFromAsset(asset, assetId);
 
         // Calculate and update the new exposure to "Asset".
+        // forge-lint: disable-next-line(unsafe-typecast)
         uint256 exposureAsset = _getAndUpdateExposureAsset(creditor, assetKey, -int256(amount));
 
         _processWithdrawal(creditor, assetKey, exposureAsset);
@@ -395,12 +394,12 @@ abstract contract DerivedAM is AssetModule {
                 (underlyingAsset, underlyingId) = _getAssetFromKey(underlyingAssetKeys[i]);
                 (underlyingCalls_, usdExposureToUnderlyingAsset) = IRegistry(REGISTRY)
                     .getUsdValueExposureToUnderlyingAssetAfterDeposit(
-                    creditor,
-                    underlyingAsset,
-                    underlyingId,
-                    exposureAssetToUnderlyingAssets[i],
-                    deltaExposureAssetToUnderlyingAsset
-                );
+                        creditor,
+                        underlyingAsset,
+                        underlyingId,
+                        exposureAssetToUnderlyingAssets[i],
+                        deltaExposureAssetToUnderlyingAsset
+                    );
                 usdExposureAsset += usdExposureToUnderlyingAsset;
                 unchecked {
                     underlyingCalls += underlyingCalls_;
@@ -410,6 +409,7 @@ abstract contract DerivedAM is AssetModule {
             // Cache and update lastUsdExposureAsset.
             uint256 lastUsdExposureAsset = lastExposuresAsset[creditor][assetKey].lastUsdExposureAsset;
             // If usdExposureAsset is bigger than uint112, then check on usdExposureProtocol below will revert.
+            // forge-lint: disable-next-line(unsafe-typecast)
             lastExposuresAsset[creditor][assetKey].lastUsdExposureAsset = uint112(usdExposureAsset);
 
             // Cache lastUsdExposureProtocol.
@@ -431,6 +431,8 @@ abstract contract DerivedAM is AssetModule {
                 revert AssetModule.ExposureNotInLimits();
             }
         }
+        // unsafe cast: usdExposureProtocol is smaller than maxUsdExposureProtocol, which is a uint112.
+        // forge-lint: disable-next-line(unsafe-typecast)
         riskParams[creditor].lastUsdExposureProtocol = uint112(usdExposureProtocol);
     }
 
@@ -478,18 +480,20 @@ abstract contract DerivedAM is AssetModule {
             // Asset Modules will recursively update their respective exposures and return
             // the requested USD value to this Asset Module.
             (underlyingAsset, underlyingId) = _getAssetFromKey(underlyingAssetKeys[i]);
-            usdExposureAsset += IRegistry(REGISTRY).getUsdValueExposureToUnderlyingAssetAfterWithdrawal(
-                creditor,
-                underlyingAsset,
-                underlyingId,
-                exposureAssetToUnderlyingAssets[i],
-                deltaExposureAssetToUnderlyingAsset
-            );
+            usdExposureAsset += IRegistry(REGISTRY)
+                .getUsdValueExposureToUnderlyingAssetAfterWithdrawal(
+                    creditor,
+                    underlyingAsset,
+                    underlyingId,
+                    exposureAssetToUnderlyingAssets[i],
+                    deltaExposureAssetToUnderlyingAsset
+                );
         }
 
         // Cache and update lastUsdExposureAsset.
         uint256 lastUsdExposureAsset = lastExposuresAsset[creditor][assetKey].lastUsdExposureAsset;
         // If usdExposureAsset is bigger than uint112, then safecast on usdExposureProtocol below will revert.
+        // forge-lint: disable-next-line(unsafe-typecast)
         lastExposuresAsset[creditor][assetKey].lastUsdExposureAsset = uint112(usdExposureAsset);
 
         // Cache lastUsdExposureProtocol.
@@ -523,6 +527,7 @@ abstract contract DerivedAM is AssetModule {
         returns (uint256 exposureAsset)
     {
         // Update exposureAssetLast.
+        // forge-lint: disable-next-item(unsafe-typecast)
         if (deltaAsset > 0) {
             exposureAsset = lastExposuresAsset[creditor][assetKey].lastExposureAsset + uint256(deltaAsset);
         } else {

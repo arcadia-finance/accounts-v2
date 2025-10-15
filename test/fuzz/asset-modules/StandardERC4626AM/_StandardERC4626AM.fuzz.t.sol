@@ -23,7 +23,7 @@ abstract contract StandardERC4626AM_Fuzz_Test is Fuzz_Test {
                           TEST CONTRACTS
     /////////////////////////////////////////////////////////////// */
 
-    /// forge-lint: disable-next-line(mixed-case-variable)
+    // forge-lint: disable-next-line(mixed-case-variable)
     ERC4626AMExtension internal erc4626AM;
 
     /* ///////////////////////////////////////////////////////////////

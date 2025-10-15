@@ -9,6 +9,7 @@ import { SlipstreamAM_Fuzz_Test } from "./_SlipstreamAM.fuzz.t.sol";
 /**
  * @notice Fuzz tests for the function "_getUnderlyingAssets" of contract "SlipstreamAM".
  */
+// forge-lint: disable-next-item(unsafe-typecast)
 contract GetUnderlyingAssets_SlipstreamAM_Fuzz_Test is SlipstreamAM_Fuzz_Test {
     /* ///////////////////////////////////////////////////////////////
                               VARIABLES

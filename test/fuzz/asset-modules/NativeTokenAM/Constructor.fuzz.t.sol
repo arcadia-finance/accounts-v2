@@ -35,7 +35,7 @@ contract Constructor_NativeTokenAM_Fuzz_Test is NativeTokenAM_Fuzz_Test {
         decimals_ = bound(decimals_, 0, 18);
 
         vm.prank(users.owner);
-        /// forge-lint: disable-next-line(mixed-case-variable)
+        // forge-lint: disable-next-line(mixed-case-variable)
         NativeTokenAMExtension nativeTokenAM_ = new NativeTokenAMExtension(users.owner, registry_, decimals_);
 
         assertEq(nativeTokenAM_.REGISTRY(), registry_);

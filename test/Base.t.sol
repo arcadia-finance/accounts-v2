@@ -22,10 +22,10 @@ abstract contract Base_Test is Test {
     //////////////////////////////////////////////////////////////////////////*/
 
     // baseToQuoteAsset arrays
-    /// forge-lint: disable-start(mixed-case-variable)
+    // forge-lint: disable-start(mixed-case-variable)
     bool[] internal BA_TO_QA_SINGLE = new bool[](1);
     bool[] internal BA_TO_QA_DOUBLE = new bool[](2);
-    /// forge-lint: disable-end(mixed-case-variable)
+    // forge-lint: disable-end(mixed-case-variable)
 
     /*//////////////////////////////////////////////////////////////////////////
                                      VARIABLES
@@ -37,7 +37,7 @@ abstract contract Base_Test is Test {
                                    TEST CONTRACTS
     //////////////////////////////////////////////////////////////////////////*/
 
-    /// forge-lint: disable-start(mixed-case-variable)
+    // forge-lint: disable-start(mixed-case-variable)
     AccountsGuardExtension internal accountsGuard;
     AccountV3 internal account;
     AccountV3 internal accountLogic;
@@ -46,7 +46,7 @@ abstract contract Base_Test is Test {
     FactoryExtension internal factory;
     RegistryL2Extension internal registry;
     SequencerUptimeOracle internal sequencerUptimeOracle;
-    /// forge-lint: disable-end(mixed-case-variable)
+    // forge-lint: disable-end(mixed-case-variable)
 
     /*//////////////////////////////////////////////////////////////////////////
                                   SET-UP FUNCTION
@@ -86,7 +86,7 @@ abstract contract Base_Test is Test {
         return user;
     }
 
-    /// forge-lint: disable-next-item(mixed-case-function)
+    // forge-lint: disable-next-item(mixed-case-function)
     modifier canReceiveERC721(address to) {
         vm.assume(to != address(0));
         vm.assume(to != 0x4200000000000000000000000000000000000006);

@@ -66,6 +66,7 @@ contract CreateAccount_Factory_Fuzz_Test is Factory_Fuzz_Test {
         for (uint256 i; i < versionsToMake; ++i) {
             //create account logic with the right version
             //the first account version to add is 4, so we add 4 to the index
+            // forge-lint: disable-next-line(unsafe-typecast)
             account_.setAccountVersion(uint16(i + 4));
 
             vm.prank(users.owner);

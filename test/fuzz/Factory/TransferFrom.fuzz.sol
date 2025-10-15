@@ -249,7 +249,7 @@ contract TransferFrom_Factory_Fuzz_Test is Factory_Fuzz_Test {
         uint256 latestId = factory.allAccountsLength();
         vm.prank(owner);
         vm.expectRevert("INVALID_RECIPIENT");
-        /// forge-lint: disable-next-line(erc20-unchecked-transfer)
+        // forge-lint: disable-next-line(erc20-unchecked-transfer)
         factory.transferFrom(owner, address(0), latestId);
     }
 
@@ -269,7 +269,7 @@ contract TransferFrom_Factory_Fuzz_Test is Factory_Fuzz_Test {
         uint256 latestId = factory.allAccountsLength();
         vm.prank(owner);
         vm.expectRevert(FactoryErrors.InvalidRecipient.selector);
-        /// forge-lint: disable-next-line(erc20-unchecked-transfer)
+        // forge-lint: disable-next-line(erc20-unchecked-transfer)
         factory.transferFrom(owner, newAccount, latestId);
     }
 
@@ -296,7 +296,7 @@ contract TransferFrom_Factory_Fuzz_Test is Factory_Fuzz_Test {
         uint256 latestId = factory.allAccountsLength();
         vm.prank(caller);
         vm.expectRevert("NOT_AUTHORIZED");
-        /// forge-lint: disable-next-line(erc20-unchecked-transfer)
+        // forge-lint: disable-next-line(erc20-unchecked-transfer)
         factory.transferFrom(owner, to, latestId);
     }
 
@@ -384,7 +384,7 @@ contract TransferFrom_Factory_Fuzz_Test is Factory_Fuzz_Test {
 
         uint256 latestId = factory.allAccountsLength();
         vm.prank(owner);
-        /// forge-lint: disable-next-line(erc20-unchecked-transfer)
+        // forge-lint: disable-next-line(erc20-unchecked-transfer)
         factory.transferFrom(owner, to, latestId);
 
         assertEq(factory.ownerOfAccount(newAccount), to);

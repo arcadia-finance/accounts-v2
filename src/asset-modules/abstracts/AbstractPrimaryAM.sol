@@ -216,6 +216,7 @@ abstract contract PrimaryAM is AssetModule {
         if (lastExposureAsset + amount >= riskParams[creditor][assetKey].maxExposure) revert ExposureNotInLimits();
 
         unchecked {
+            // forge-lint: disable-next-line(unsafe-typecast)
             riskParams[creditor][assetKey].lastExposureAsset = uint112(lastExposureAsset + amount);
         }
 
@@ -248,6 +249,7 @@ abstract contract PrimaryAM is AssetModule {
 
         // Update lastExposureAsset.
         uint256 exposureAsset;
+        // forge-lint: disable-next-item(unsafe-typecast)
         unchecked {
             if (deltaExposureUpperAssetToAsset > 0) {
                 exposureAsset = lastExposureAsset + uint256(deltaExposureUpperAssetToAsset);
@@ -261,6 +263,7 @@ abstract contract PrimaryAM is AssetModule {
         // This is to ensure that all deposits revert when maxExposure is set to 0, also deposits with 0 amounts.
         if (exposureAsset >= riskParams[creditor][assetKey].maxExposure) revert ExposureNotInLimits();
         // unchecked cast: "RiskParameters.maxExposure" is a uint112.
+        // forge-lint: disable-next-line(unsafe-typecast)
         riskParams[creditor][assetKey].lastExposureAsset = uint112(exposureAsset);
 
         // Get Value in USD.
@@ -291,6 +294,7 @@ abstract contract PrimaryAM is AssetModule {
 
         unchecked {
             lastExposureAsset >= amount
+                // forge-lint: disable-next-line(unsafe-typecast)
                 ? riskParams[creditor][assetKey].lastExposureAsset = uint112(lastExposureAsset - amount)
                 : riskParams[creditor][assetKey].lastExposureAsset = 0;
         }
@@ -327,6 +331,7 @@ abstract contract PrimaryAM is AssetModule {
         uint256 lastExposureAsset = riskParams[creditor][assetKey].lastExposureAsset;
 
         uint256 exposureAsset;
+        // forge-lint: disable-next-item(unsafe-typecast)
         unchecked {
             if (deltaExposureUpperAssetToAsset > 0) {
                 exposureAsset = lastExposureAsset + uint256(deltaExposureUpperAssetToAsset);
@@ -337,6 +342,8 @@ abstract contract PrimaryAM is AssetModule {
                     : 0;
             }
         }
+        // unsafe cast: Already checked that lastExposureAsset is smaller than type(uint112).max.
+        // forge-lint: disable-next-line(unsafe-typecast)
         riskParams[creditor][assetKey].lastExposureAsset = uint112(exposureAsset);
 
         // Get Value in USD.

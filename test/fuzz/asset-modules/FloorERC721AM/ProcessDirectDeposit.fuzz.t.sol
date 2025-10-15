@@ -11,6 +11,7 @@ import { FloorERC721AM_Fuzz_Test } from "./_FloorERC721AM.fuzz.t.sol";
 /**
  * @notice Fuzz tests for the function "processDirectDeposit" of contract "FloorERC721AM".
  */
+// forge-lint: disable-next-item(unsafe-typecast)
 contract ProcessDirectDeposit_FloorERC721AM_Fuzz_Test is FloorERC721AM_Fuzz_Test {
     /* ///////////////////////////////////////////////////////////////
                               SETUP
