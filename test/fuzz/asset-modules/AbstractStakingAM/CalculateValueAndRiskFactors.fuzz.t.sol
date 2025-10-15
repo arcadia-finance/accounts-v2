@@ -55,25 +55,22 @@ contract CalculateValueAndRiskFactors_AbstractStakingAM_Fuzz_Test is AbstractSta
         vm.prank(address(registry));
         stakingAM.setRiskParameters(creditor, 0, riskFactor);
 
-        uint256 expectedCollateralFactor = (value0 * collateralFactors[0] + value1 * collateralFactors[1])
-            / expectedValueInUsd * riskFactor / AssetValuationLib.ONE_4;
-        uint256 expectedLiquidationFactor = (value0 * liquidationFactors[0] + value1 * liquidationFactors[1])
-            / expectedValueInUsd * riskFactor / AssetValuationLib.ONE_4;
+        uint256 expectedCollateralFactor =
+            (value0 * collateralFactors[0] + value1 * collateralFactors[1]) / expectedValueInUsd * riskFactor
+            / AssetValuationLib.ONE_4;
+        uint256 expectedLiquidationFactor =
+            (value0 * liquidationFactors[0] + value1 * liquidationFactors[1]) / expectedValueInUsd * riskFactor
+            / AssetValuationLib.ONE_4;
 
         AssetValueAndRiskFactors[] memory rateUnderlyingAssetsToUsd = new AssetValueAndRiskFactors[](2);
         rateUnderlyingAssetsToUsd[0] = AssetValueAndRiskFactors({
-            assetValue: assetRates[0],
-            collateralFactor: collateralFactors[0],
-            liquidationFactor: liquidationFactors[0]
+            assetValue: assetRates[0], collateralFactor: collateralFactors[0], liquidationFactor: liquidationFactors[0]
         });
         rateUnderlyingAssetsToUsd[1] = AssetValueAndRiskFactors({
-            assetValue: assetRates[1],
-            collateralFactor: collateralFactors[1],
-            liquidationFactor: liquidationFactors[1]
+            assetValue: assetRates[1], collateralFactor: collateralFactors[1], liquidationFactor: liquidationFactors[1]
         });
 
-        (uint256 valueInUsd, uint256 collateralFactor, uint256 liquidationFactor) = stakingAM
-            .calculateValueAndRiskFactors(
+        (uint256 valueInUsd, uint256 collateralFactor, uint256 liquidationFactor) = stakingAM.calculateValueAndRiskFactors(
             creditor, Utils.castArrayStaticToDynamic(underlyingAssetsAmounts), rateUnderlyingAssetsToUsd
         );
         assertEq(valueInUsd, expectedValueInUsd);
@@ -95,18 +92,13 @@ contract CalculateValueAndRiskFactors_AbstractStakingAM_Fuzz_Test is AbstractSta
 
         AssetValueAndRiskFactors[] memory rateUnderlyingAssetsToUsd = new AssetValueAndRiskFactors[](2);
         rateUnderlyingAssetsToUsd[0] = AssetValueAndRiskFactors({
-            assetValue: 0,
-            collateralFactor: collateralFactors[0],
-            liquidationFactor: liquidationFactors[0]
+            assetValue: 0, collateralFactor: collateralFactors[0], liquidationFactor: liquidationFactors[0]
         });
         rateUnderlyingAssetsToUsd[1] = AssetValueAndRiskFactors({
-            assetValue: 0,
-            collateralFactor: collateralFactors[1],
-            liquidationFactor: liquidationFactors[1]
+            assetValue: 0, collateralFactor: collateralFactors[1], liquidationFactor: liquidationFactors[1]
         });
 
-        (uint256 valueInUsd, uint256 collateralFactor, uint256 liquidationFactor) = stakingAM
-            .calculateValueAndRiskFactors(
+        (uint256 valueInUsd, uint256 collateralFactor, uint256 liquidationFactor) = stakingAM.calculateValueAndRiskFactors(
             creditor, Utils.castArrayStaticToDynamic(underlyingAssetsAmounts), rateUnderlyingAssetsToUsd
         );
         assertEq(valueInUsd, 0);

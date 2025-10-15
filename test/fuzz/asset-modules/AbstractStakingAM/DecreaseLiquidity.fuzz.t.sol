@@ -12,6 +12,7 @@ import { stdError } from "../../../../lib/forge-std/src/StdError.sol";
 /**
  * @notice Fuzz tests for the function "decreaseLiquidity" of contract "StakingAM".
  */
+// forge-lint: disable-next-item(unsafe-typecast)
 contract DecreaseLiquidity_AbstractStakingAM_Fuzz_Test is AbstractStakingAM_Fuzz_Test {
     using FixedPointMathLib for uint256;
 
@@ -148,11 +149,11 @@ contract DecreaseLiquidity_AbstractStakingAM_Fuzz_Test is AbstractStakingAM_Fuzz
         // And: Position state should be updated correctly.
         StakingAM.PositionState memory newPositionState;
         (
-            newPositionState.asset,
-            newPositionState.amountStaked,
-            newPositionState.lastRewardPerTokenPosition,
-            newPositionState.lastRewardPosition
-        ) = stakingAM.positionState(positionId);
+                newPositionState.asset,
+                newPositionState.amountStaked,
+                newPositionState.lastRewardPerTokenPosition,
+                newPositionState.lastRewardPosition
+            ) = stakingAM.positionState(positionId);
         assertEq(newPositionState.asset, address(0));
         assertEq(newPositionState.amountStaked, 0);
         assertEq(newPositionState.lastRewardPerTokenPosition, 0);
@@ -235,11 +236,11 @@ contract DecreaseLiquidity_AbstractStakingAM_Fuzz_Test is AbstractStakingAM_Fuzz
         // And: Position state should be updated correctly.
         StakingAM.PositionState memory newPositionState;
         (
-            newPositionState.asset,
-            newPositionState.amountStaked,
-            newPositionState.lastRewardPerTokenPosition,
-            newPositionState.lastRewardPosition
-        ) = stakingAM.positionState(positionId);
+                newPositionState.asset,
+                newPositionState.amountStaked,
+                newPositionState.lastRewardPerTokenPosition,
+                newPositionState.lastRewardPosition
+            ) = stakingAM.positionState(positionId);
         assertEq(newPositionState.asset, asset);
         assertEq(newPositionState.amountStaked, positionState.amountStaked - amount);
         uint128 currentRewardPerToken;
@@ -313,11 +314,11 @@ contract DecreaseLiquidity_AbstractStakingAM_Fuzz_Test is AbstractStakingAM_Fuzz
         // And: Position state should be updated correctly.
         StakingAM.PositionState memory newPositionState;
         (
-            newPositionState.asset,
-            newPositionState.amountStaked,
-            newPositionState.lastRewardPerTokenPosition,
-            newPositionState.lastRewardPosition
-        ) = stakingAM.positionState(positionId);
+                newPositionState.asset,
+                newPositionState.amountStaked,
+                newPositionState.lastRewardPerTokenPosition,
+                newPositionState.lastRewardPosition
+            ) = stakingAM.positionState(positionId);
         assertEq(newPositionState.asset, address(0));
         assertEq(newPositionState.amountStaked, 0);
         assertEq(newPositionState.lastRewardPerTokenPosition, 0);
@@ -392,11 +393,11 @@ contract DecreaseLiquidity_AbstractStakingAM_Fuzz_Test is AbstractStakingAM_Fuzz
         // And: Position state should be updated correctly.
         StakingAM.PositionState memory newPositionState;
         (
-            newPositionState.asset,
-            newPositionState.amountStaked,
-            newPositionState.lastRewardPerTokenPosition,
-            newPositionState.lastRewardPosition
-        ) = stakingAM.positionState(positionId);
+                newPositionState.asset,
+                newPositionState.amountStaked,
+                newPositionState.lastRewardPerTokenPosition,
+                newPositionState.lastRewardPosition
+            ) = stakingAM.positionState(positionId);
         assertEq(newPositionState.asset, asset);
         assertEq(newPositionState.amountStaked, positionState.amountStaked - amount);
         assertEq(newPositionState.lastRewardPerTokenPosition, assetState.lastRewardPerTokenGlobal);

@@ -1,6 +1,7 @@
 // SPDX-License-Identifier: AGPL-3.0-only
 pragma solidity ^0.8.0;
 
+// forge-lint: disable-next-item(unsafe-typecast)
 library Strings {
     /**
      * @dev Converts a `uint256` to its ASCII `string` decimal representation.

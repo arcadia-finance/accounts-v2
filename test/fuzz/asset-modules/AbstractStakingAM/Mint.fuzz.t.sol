@@ -21,7 +21,7 @@ contract Mint_AbstractStakingAM_Fuzz_Test is AbstractStakingAM_Fuzz_Test {
     }
 
     /*//////////////////////////////////////////////////////////////
-                              TESTS 
+                              TESTS
     //////////////////////////////////////////////////////////////*/
 
     function testFuzz_Revert_mint_ZeroAmount(address asset) public {
@@ -102,11 +102,11 @@ contract Mint_AbstractStakingAM_Fuzz_Test is AbstractStakingAM_Fuzz_Test {
         // And: Position state should be updated correctly.
         StakingAM.PositionState memory newPositionState;
         (
-            newPositionState.asset,
-            newPositionState.amountStaked,
-            newPositionState.lastRewardPerTokenPosition,
-            newPositionState.lastRewardPosition
-        ) = stakingAM.positionState(positionId);
+                newPositionState.asset,
+                newPositionState.amountStaked,
+                newPositionState.lastRewardPerTokenPosition,
+                newPositionState.lastRewardPosition
+            ) = stakingAM.positionState(positionId);
         assertEq(newPositionState.asset, asset);
         assertEq(newPositionState.amountStaked, amount);
         uint128 currentRewardPerToken;
@@ -170,11 +170,11 @@ contract Mint_AbstractStakingAM_Fuzz_Test is AbstractStakingAM_Fuzz_Test {
         // And: Position state should be updated correctly.
         StakingAM.PositionState memory newPositionState;
         (
-            newPositionState.asset,
-            newPositionState.amountStaked,
-            newPositionState.lastRewardPerTokenPosition,
-            newPositionState.lastRewardPosition
-        ) = stakingAM.positionState(positionId);
+                newPositionState.asset,
+                newPositionState.amountStaked,
+                newPositionState.lastRewardPerTokenPosition,
+                newPositionState.lastRewardPosition
+            ) = stakingAM.positionState(positionId);
         assertEq(newPositionState.asset, asset);
         assertEq(newPositionState.amountStaked, amount);
         assertEq(newPositionState.lastRewardPerTokenPosition, assetState.lastRewardPerTokenGlobal);

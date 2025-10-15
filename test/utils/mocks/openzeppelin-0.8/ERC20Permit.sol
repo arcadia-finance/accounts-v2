@@ -19,7 +19,7 @@ import { Counters } from "./Counters.sol";
  *
  * _Available since v3.4._
  */
-/// forge-lint: disable-next-item(all)
+// forge-lint: disable-next-item(all)
 abstract contract ERC20Permit is ERC20, EIP712 {
     using Counters for Counters.Counter;
 

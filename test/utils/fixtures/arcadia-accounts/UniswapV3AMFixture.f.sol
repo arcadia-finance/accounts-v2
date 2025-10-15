@@ -14,14 +14,14 @@ contract UniswapV3AMFixture is Base_Test {
                                      VARIABLES
     //////////////////////////////////////////////////////////////////////////*/
 
-    /// forge-lint: disable-next-line(mixed-case-variable)
+    // forge-lint: disable-next-line(mixed-case-variable)
     UniswapV3AMExtension internal uniV3AM;
 
     /*//////////////////////////////////////////////////////////////////////////
                                   HELPER FUNCTIONS
     //////////////////////////////////////////////////////////////////////////*/
 
-    /// forge-lint: disable-next-item(mixed-case-function)
+    // forge-lint: disable-next-item(mixed-case-function)
     function deployUniswapV3AM(address nonfungiblePositionManager_) internal {
         // Get the bytecode of the UniswapV3PoolExtension.
         bytes memory args = abi.encode();

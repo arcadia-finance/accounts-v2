@@ -11,6 +11,7 @@ import { ERC20Mock } from "../../../utils/mocks/tokens/ERC20Mock.sol";
 /**
  * @notice Fuzz tests for the function "processDirectWithdrawal" of contract "DefaultUniswapV4AM".
  */
+// forge-lint: disable-next-item(unsafe-typecast)
 contract ProcessDirectWithdrawal_DefaultUniswapV4AM_Fuzz_Test is DefaultUniswapV4AM_Fuzz_Test {
     /* ///////////////////////////////////////////////////////////////
                               SETUP

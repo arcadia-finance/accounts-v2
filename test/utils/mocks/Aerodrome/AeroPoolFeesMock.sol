@@ -10,7 +10,7 @@ import { SafeERC20 } from "../../mocks/openzeppelin-0.8/SafeERC20.sol";
 /// @title PoolFees
 /// @notice Contract used as 1:1 pool relationship to split out fees.
 /// @notice Ensures curve does not need to be modified for LP shares.
-/// forge-lint: disable-next-item(screaming-snake-case-immutable)
+// forge-lint: disable-next-item(screaming-snake-case-immutable)
 contract PoolFees {
     using SafeERC20 for IERC20;
 

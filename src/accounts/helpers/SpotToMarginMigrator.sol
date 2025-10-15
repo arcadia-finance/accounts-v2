@@ -19,7 +19,7 @@ import { SafeTransferLib } from "../../../lib/solmate/src/utils/SafeTransferLib.
  * @notice The upgrade process consists of two steps. First, the Account owner must call upgradeAccount().
  * Second, after any cool-down period in the Spot Account, the owner must call endUpgrade() to receive their Margin Account back.
  */
-/// forge-lint: disable-next-item(all)
+// forge-lint: disable-next-item(all)
 contract SpotToMarginMigrator {
     using SafeTransferLib for ERC20;
 
@@ -153,7 +153,7 @@ contract SpotToMarginMigrator {
         }
     }
 
-    /* 
+    /*
     @notice Returns the onERC721Received selector.
     @dev Needed to receive ERC721 tokens.
     */

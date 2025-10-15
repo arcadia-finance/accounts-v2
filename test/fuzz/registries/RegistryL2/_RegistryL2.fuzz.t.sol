@@ -23,10 +23,10 @@ abstract contract RegistryL2_Fuzz_Test is Fuzz_Test {
                             TEST CONTRACTS
     /////////////////////////////////////////////////////////////// */
 
-    /// forge-lint: disable-start(mixed-case-variable)
+    // forge-lint: disable-start(mixed-case-variable)
     PrimaryAMMock internal primaryAM;
     DerivedAMMock internal derivedAM;
-    /// forge-lint: disable-end(mixed-case-variable)
+    // forge-lint: disable-end(mixed-case-variable)
 
     OracleModuleMock internal oracleModule;
 
@@ -68,6 +68,7 @@ abstract contract RegistryL2_Fuzz_Test is Fuzz_Test {
         for (uint8 i; i < oracleArr.length; i++) {
             (,, address oracle) = chainlinkOM.getOracleInformation(oracleArr[i]);
             (, int256 answer,,,) = ArcadiaOracle(oracle).latestRoundData();
+            // forge-lint: disable-next-line(unsafe-typecast)
             ratesMultiplied *= uint256(answer);
             sumOfOracleDecimals += ArcadiaOracle(oracle).decimals();
         }

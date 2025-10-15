@@ -165,6 +165,7 @@ contract UpgradeAccount_AccountV3_Fuzz_Test is AccountV3_Fuzz_Test {
 
         vm.startPrank(address(factory));
         vm.expectRevert(AccountErrors.InvalidRegistry.selector);
+        // forge-lint: disable-next-line(unsafe-typecast)
         account.upgradeAccount(newImplementation, address(registry2), uint16(accountVersion), data);
         vm.stopPrank();
     }

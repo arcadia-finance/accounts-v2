@@ -10,7 +10,7 @@ library AerodromeGauges { }
 
 library AerodromePools { }
 
-/// forge-lint: disable-next-item(mixed-case-function)
+// forge-lint: disable-next-item(mixed-case-function)
 library Assets {
     function USDC() internal pure returns (Asset memory) {
         return Asset({ asset: 0x078D782b760474a361dDA0AF3839290b0EF57AD6, decimals: 6 });
@@ -43,7 +43,7 @@ library MerkleRoots {
     bytes32 internal constant V4 = 0x03a8115b458ca7ccb57dc8120b852092dd652c46642e100d332bdf624cd1eaf1;
 }
 
-/// forge-lint: disable-next-item(mixed-case-function)
+// forge-lint: disable-next-item(mixed-case-function)
 library Oracles {
     function ETH_USD() internal pure returns (Oracle memory) {
         return Oracle({

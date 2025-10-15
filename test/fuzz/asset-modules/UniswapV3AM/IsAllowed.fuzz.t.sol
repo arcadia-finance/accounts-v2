@@ -7,8 +7,9 @@ pragma solidity ^0.8.0;
 import { UniswapV3AM_Fuzz_Test } from "./_UniswapV3AM.fuzz.t.sol";
 
 import { ERC20 } from "../../../../lib/solmate/src/tokens/ERC20.sol";
-import { INonfungiblePositionManagerExtension } from
-    "../../../utils/fixtures/uniswap-v3/extensions/interfaces/INonfungiblePositionManagerExtension.sol";
+import {
+    INonfungiblePositionManagerExtension
+} from "../../../utils/fixtures/uniswap-v3/extensions/interfaces/INonfungiblePositionManagerExtension.sol";
 
 /**
  * @notice Fuzz tests for the function "isAllowed" of contract "UniswapV3AM".
@@ -119,11 +120,7 @@ contract IsAllowed_UniswapV3AM_Fuzz_Test is UniswapV3AM_Fuzz_Test {
         (,,,,,,, uint128 liquidity,,,,) = nonfungiblePositionManager.positions(tokenId);
         nonfungiblePositionManager.decreaseLiquidity(
             INonfungiblePositionManagerExtension.DecreaseLiquidityParams({
-                tokenId: tokenId,
-                liquidity: liquidity,
-                amount0Min: 0,
-                amount1Min: 0,
-                deadline: type(uint256).max
+                tokenId: tokenId, liquidity: liquidity, amount0Min: 0, amount1Min: 0, deadline: type(uint256).max
             })
         );
         vm.stopPrank();

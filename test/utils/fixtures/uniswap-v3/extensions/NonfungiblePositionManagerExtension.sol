@@ -5,14 +5,13 @@ pragma abicoder v2;
 import {
     IUniswapV3Factory,
     IUniswapV3Pool,
-    NonfungiblePositionManager,
-    PoolAddress
+    NonfungiblePositionManager
 } from "../../../../../lib/v3-periphery/contracts/NonfungiblePositionManager.sol";
 import { UniswapV3FactoryExtension } from "./UniswapV3FactoryExtension.sol";
 
 contract NonfungiblePositionManagerExtension is NonfungiblePositionManager {
-    constructor(address _factory, address _WETH9, address _tokenDescriptor_)
-        NonfungiblePositionManager(_factory, _WETH9, _tokenDescriptor_)
+    constructor(address factory, address weth, address tokenDescriptor)
+        NonfungiblePositionManager(factory, weth, tokenDescriptor)
     { }
 
     function createAndInitializePoolIfNecessary(address token0, address token1, uint24 fee, uint160 sqrtPriceX96)

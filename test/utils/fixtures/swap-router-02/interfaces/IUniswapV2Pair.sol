@@ -4,7 +4,7 @@
  */
 pragma solidity >=0.5.0;
 
-/// forge-lint: disable-next-item(mixed-case-function)
+// forge-lint: disable-next-item(mixed-case-function)
 interface IUniswapV2Pair {
     event Approval(address indexed owner, address indexed spender, uint256 value);
     event Transfer(address indexed from, address indexed to, uint256 value);

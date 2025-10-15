@@ -48,6 +48,7 @@ contract ERC20PrimaryAM is PrimaryAM {
         // View function, reverts in Registry if sequence is not correct.
         if (!IRegistry(REGISTRY).checkOracleSequence(oracleSequence)) revert BadOracleSequence();
         // Will revert in Registry if asset was already added.
+        // forge-lint: disable-next-line(unsafe-typecast)
         IRegistry(REGISTRY).addAsset(uint96(ASSET_TYPE), asset);
 
         inAssetModule[asset] = true;
@@ -56,6 +57,7 @@ contract ERC20PrimaryAM is PrimaryAM {
         if (assetUnit > 1e18) revert Max18Decimals();
 
         // Can safely cast to uint64, we previously checked it is smaller than 1e18.
+        // forge-lint: disable-next-item(unsafe-typecast)
         assetToInformation[_getKeyFromAsset(asset, 0)] =
             AssetInformation({ assetUnit: uint64(assetUnit), oracleSequence: oracleSequence });
     }

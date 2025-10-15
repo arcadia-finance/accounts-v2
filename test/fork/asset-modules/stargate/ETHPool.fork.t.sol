@@ -12,6 +12,7 @@ import { StargateBase_Fork_Test } from "./StargateBase.fork.t.sol";
 /**
  * @notice Fork tests for "StargateAssetModule - USDBC Pool".
  */
+// forge-lint: disable-next-item(unsafe-typecast)
 contract StargateAM_ETH_Fork_Test is StargateBase_Fork_Test {
     /*///////////////////////////////////////////////////////////////
                             CONSTANTS

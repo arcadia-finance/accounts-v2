@@ -10,7 +10,7 @@ import { AssetModule } from "../../../../src/asset-modules/abstracts/AbstractAM.
 /**
  * @notice Fuzz tests for the function "processIndirectWithdrawal" of contract "AbstractDerivedAM".
  */
-/// forge-lint: disable-next-item(mixed-case-variable)
+// forge-lint: disable-next-item(mixed-case-variable,unsafe-typecast)
 contract ProcessIndirectWithdrawal_AbstractDerivedAM_Fuzz_Test is AbstractDerivedAM_Fuzz_Test {
     /* ///////////////////////////////////////////////////////////////
                               SETUP
@@ -54,8 +54,7 @@ contract ProcessIndirectWithdrawal_AbstractDerivedAM_Fuzz_Test is AbstractDerive
         int256 deltaExposureUpperAssetToAsset_ = -int256(deltaExposureUpperAssetToAsset);
 
         // And: Withdrawal does not revert.
-        (protocolState, assetState, underlyingPMState, exposureUpperAssetToAsset, deltaExposureUpperAssetToAsset_) =
-        givenNonRevertingWithdrawal(
+        (protocolState, assetState, underlyingPMState, exposureUpperAssetToAsset, deltaExposureUpperAssetToAsset_) = givenNonRevertingWithdrawal(
             protocolState, assetState, underlyingPMState, exposureUpperAssetToAsset, deltaExposureUpperAssetToAsset_
         );
 
@@ -89,8 +88,7 @@ contract ProcessIndirectWithdrawal_AbstractDerivedAM_Fuzz_Test is AbstractDerive
         underlyingPMState.usdValue = 0;
 
         // And: Withdrawal does not revert.
-        (protocolState, assetState, underlyingPMState, exposureUpperAssetToAsset, deltaExposureUpperAssetToAsset) =
-        givenNonRevertingWithdrawal(
+        (protocolState, assetState, underlyingPMState, exposureUpperAssetToAsset, deltaExposureUpperAssetToAsset) = givenNonRevertingWithdrawal(
             protocolState, assetState, underlyingPMState, exposureUpperAssetToAsset, deltaExposureUpperAssetToAsset
         );
 
@@ -124,8 +122,7 @@ contract ProcessIndirectWithdrawal_AbstractDerivedAM_Fuzz_Test is AbstractDerive
         underlyingPMState.usdValue = bound(underlyingPMState.usdValue, 1, type(uint112).max);
 
         // And: Withdrawal does not revert.
-        (protocolState, assetState, underlyingPMState, exposureUpperAssetToAsset, deltaExposureUpperAssetToAsset) =
-        givenNonRevertingWithdrawal(
+        (protocolState, assetState, underlyingPMState, exposureUpperAssetToAsset, deltaExposureUpperAssetToAsset) = givenNonRevertingWithdrawal(
             protocolState, assetState, underlyingPMState, exposureUpperAssetToAsset, deltaExposureUpperAssetToAsset
         );
 

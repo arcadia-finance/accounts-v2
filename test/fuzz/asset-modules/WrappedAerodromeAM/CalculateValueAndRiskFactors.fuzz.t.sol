@@ -60,32 +60,25 @@ contract CalculateValueAndRiskFactors_WrappedAerodromeAM_Fuzz_Test is WrappedAer
         vm.prank(address(registry));
         wrappedAerodromeAM.setRiskParameters(creditor, 0, riskFactor);
 
-        uint256 expectedCollateralFactor = (
-            value0 * collateralFactors[0] + value1 * collateralFactors[1] + value2 * collateralFactors[2]
-        ) / expectedValueInUsd * riskFactor / AssetValuationLib.ONE_4;
-        uint256 expectedLiquidationFactor = (
-            value0 * liquidationFactors[0] + value1 * liquidationFactors[1] + value2 * liquidationFactors[2]
-        ) / expectedValueInUsd * riskFactor / AssetValuationLib.ONE_4;
+        uint256 expectedCollateralFactor =
+            (value0 * collateralFactors[0] + value1 * collateralFactors[1] + value2 * collateralFactors[2])
+            / expectedValueInUsd * riskFactor / AssetValuationLib.ONE_4;
+        uint256 expectedLiquidationFactor =
+            (value0 * liquidationFactors[0] + value1 * liquidationFactors[1] + value2 * liquidationFactors[2])
+            / expectedValueInUsd * riskFactor / AssetValuationLib.ONE_4;
 
         AssetValueAndRiskFactors[] memory rateUnderlyingAssetsToUsd = new AssetValueAndRiskFactors[](3);
         rateUnderlyingAssetsToUsd[0] = AssetValueAndRiskFactors({
-            assetValue: assetRates[0],
-            collateralFactor: collateralFactors[0],
-            liquidationFactor: liquidationFactors[0]
+            assetValue: assetRates[0], collateralFactor: collateralFactors[0], liquidationFactor: liquidationFactors[0]
         });
         rateUnderlyingAssetsToUsd[1] = AssetValueAndRiskFactors({
-            assetValue: assetRates[1],
-            collateralFactor: collateralFactors[1],
-            liquidationFactor: liquidationFactors[1]
+            assetValue: assetRates[1], collateralFactor: collateralFactors[1], liquidationFactor: liquidationFactors[1]
         });
         rateUnderlyingAssetsToUsd[2] = AssetValueAndRiskFactors({
-            assetValue: assetRates[2],
-            collateralFactor: collateralFactors[2],
-            liquidationFactor: liquidationFactors[2]
+            assetValue: assetRates[2], collateralFactor: collateralFactors[2], liquidationFactor: liquidationFactors[2]
         });
 
-        (uint256 valueInUsd, uint256 collateralFactor, uint256 liquidationFactor) = wrappedAerodromeAM
-            .calculateValueAndRiskFactors(
+        (uint256 valueInUsd, uint256 collateralFactor, uint256 liquidationFactor) = wrappedAerodromeAM.calculateValueAndRiskFactors(
             creditor, Utils.castArrayStaticToDynamic(underlyingAssetsAmounts), rateUnderlyingAssetsToUsd
         );
         assertEq(valueInUsd, expectedValueInUsd);
@@ -107,23 +100,16 @@ contract CalculateValueAndRiskFactors_WrappedAerodromeAM_Fuzz_Test is WrappedAer
 
         AssetValueAndRiskFactors[] memory rateUnderlyingAssetsToUsd = new AssetValueAndRiskFactors[](3);
         rateUnderlyingAssetsToUsd[0] = AssetValueAndRiskFactors({
-            assetValue: 0,
-            collateralFactor: collateralFactors[0],
-            liquidationFactor: liquidationFactors[0]
+            assetValue: 0, collateralFactor: collateralFactors[0], liquidationFactor: liquidationFactors[0]
         });
         rateUnderlyingAssetsToUsd[1] = AssetValueAndRiskFactors({
-            assetValue: 0,
-            collateralFactor: collateralFactors[1],
-            liquidationFactor: liquidationFactors[1]
+            assetValue: 0, collateralFactor: collateralFactors[1], liquidationFactor: liquidationFactors[1]
         });
         rateUnderlyingAssetsToUsd[2] = AssetValueAndRiskFactors({
-            assetValue: 0,
-            collateralFactor: collateralFactors[2],
-            liquidationFactor: liquidationFactors[2]
+            assetValue: 0, collateralFactor: collateralFactors[2], liquidationFactor: liquidationFactors[2]
         });
 
-        (uint256 valueInUsd, uint256 collateralFactor, uint256 liquidationFactor) = wrappedAerodromeAM
-            .calculateValueAndRiskFactors(
+        (uint256 valueInUsd, uint256 collateralFactor, uint256 liquidationFactor) = wrappedAerodromeAM.calculateValueAndRiskFactors(
             creditor, Utils.castArrayStaticToDynamic(underlyingAssetsAmounts), rateUnderlyingAssetsToUsd
         );
         assertEq(valueInUsd, 0);

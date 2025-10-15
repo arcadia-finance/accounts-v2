@@ -2,7 +2,7 @@
 // SPDX-License-Identifier: GPL-2.0-or-later
 pragma solidity ^0.8.0;
 
-/// forge-lint: disable-next-item(mixed-case-variable)
+// forge-lint: disable-next-item(mixed-case-variable,unsafe-typecast)
 library TickMath {
     /// @dev The minimum tick that may be passed to #getSqrtRatioAtTick computed from log base 1.0001 of 2**-128
     int24 internal constant MIN_TICK = -887_272;

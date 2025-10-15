@@ -31,6 +31,7 @@ type ShortString is bytes32;
  * }
  * ```
  */
+// forge-lint: disable-next-item(unsafe-typecast)
 library ShortStrings {
     error StringTooLong(string str);
 

@@ -25,7 +25,7 @@ contract Constructor_FloorERC721AM_Fuzz_Test is FloorERC721AM_Fuzz_Test {
     //////////////////////////////////////////////////////////////*/
     function testFuzz_Success_deployment(address registry_) public {
         vm.startPrank(users.owner);
-        /// forge-lint: disable-next-line(mixed-case-variable)
+        // forge-lint: disable-next-line(mixed-case-variable)
         FloorERC721AMExtension floorERC721AM_ = new FloorERC721AMExtension(users.owner, registry_);
         vm.stopPrank();
 

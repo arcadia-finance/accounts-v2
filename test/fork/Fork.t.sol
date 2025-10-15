@@ -33,7 +33,7 @@ abstract contract Fork_Test is Base_Test, ArcadiaAccountsFixture {
     // The Chainlink WETH oracle on Base
     address internal constant ORACLE_ETH = 0x71041dddad3595F9CEd3DcCFBe3D1F4b0a16Bb70;
 
-    /// forge-lint: disable-next-line(mixed-case-variable)
+    // forge-lint: disable-next-line(mixed-case-variable)
     string internal RPC_URL = vm.envString("RPC_URL");
 
     /*///////////////////////////////////////////////////////////////
@@ -58,6 +58,7 @@ abstract contract Fork_Test is Base_Test, ArcadiaAccountsFixture {
         bool[] memory boolValues = new bool[](1);
         boolValues[0] = true;
         uint80[] memory uintValues = new uint80[](1);
+        // forge-lint: disable-next-line(unsafe-typecast)
         uintValues[0] = uint80(oracleId);
         bytes32 oracleSequence = BitPackingLib.pack(boolValues, uintValues);
         erc20AM.addAsset(address(USDC), oracleSequence);
@@ -65,12 +66,14 @@ abstract contract Fork_Test is Base_Test, ArcadiaAccountsFixture {
 
         // Add DAI to the protocol.
         oracleId = chainlinkOM.addOracle(ORACLE_DAI, "DAI", "USD", 2 days);
+        // forge-lint: disable-next-line(unsafe-typecast)
         uintValues[0] = uint80(oracleId);
         oracleSequence = BitPackingLib.pack(boolValues, uintValues);
         erc20AM.addAsset(address(DAI), oracleSequence);
 
         // Add WETH to the protocol.
         oracleId = chainlinkOM.addOracle(ORACLE_ETH, "WETH", "USD", 2 days);
+        // forge-lint: disable-next-line(unsafe-typecast)
         uintValues[0] = uint80(oracleId);
         oracleSequence = BitPackingLib.pack(boolValues, uintValues);
         erc20AM.addAsset(address(WETH), oracleSequence);

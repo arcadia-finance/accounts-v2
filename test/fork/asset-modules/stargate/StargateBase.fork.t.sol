@@ -18,6 +18,7 @@ import { StakedStargateAM } from "../../../../src/asset-modules/Stargate-Finance
 /**
  * @notice Base test file for Stargate Asset-Module fork tests.
  */
+// forge-lint: disable-next-item(unsafe-typecast)
 contract StargateBase_Fork_Test is Fork_Test {
     /*///////////////////////////////////////////////////////////////
                             CONSTANTS
@@ -33,7 +34,7 @@ contract StargateBase_Fork_Test is Fork_Test {
     /////////////////////////////////////////////////////////////// */
 
     StargateAM internal stargateAssetModule;
-    /// forge-lint: disable-next-line(mixed-case-variable)
+    // forge-lint: disable-next-line(mixed-case-variable)
     StakedStargateAM internal stakedStargateAM;
 
     /*///////////////////////////////////////////////////////////////

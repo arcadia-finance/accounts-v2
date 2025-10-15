@@ -10,7 +10,7 @@ import { AssetModule } from "../../../../src/asset-modules/abstracts/AbstractAM.
 /**
  * @notice Fuzz tests for the function "processDirectWithdrawal" of contract "AbstractDerivedAM".
  */
-/// forge-lint: disable-next-item(mixed-case-variable)
+// forge-lint: disable-next-item(mixed-case-variable,unsafe-typecast)
 contract ProcessDirectWithdrawal_AbstractDerivedAM_Fuzz_Test is AbstractDerivedAM_Fuzz_Test {
     /* ///////////////////////////////////////////////////////////////
                               SETUP

@@ -46,7 +46,7 @@ abstract contract AerodromePoolAM_Fuzz_Test is Fuzz_Test, AerodromeFixture {
                             TEST CONTRACTS
     /////////////////////////////////////////////////////////////// */
 
-    /// forge-lint: disable-next-line(mixed-case-variable)
+    // forge-lint: disable-next-line(mixed-case-variable)
     AerodromePoolAMExtension internal aeroPoolAM;
     Pool internal aeroPool;
 

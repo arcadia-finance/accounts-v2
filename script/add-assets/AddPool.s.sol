@@ -9,7 +9,7 @@ import { Base_Script } from "../Base.s.sol";
 import { Safes } from "../utils/constants/Shared.sol";
 
 contract AddPool is Base_Script {
-    /// forge-lint: disable-next-line(mixed-case-variable)
+    // forge-lint: disable-next-line(mixed-case-variable)
     address internal SAFE = Safes.OWNER;
 
     constructor() { }

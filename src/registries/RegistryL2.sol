@@ -174,9 +174,8 @@ contract RegistryL2 is IRegistry, RegistryGuardian {
     function _isSequencerDown(address creditor) internal view returns (bool success, bool sequencerDown) {
         // This guarantees that no stale oracles are consumed when the sequencer is down,
         // and that Account owners have time (the grace period) to bring their Account back in a healthy state.
-        try IChainLinkData(sequencerUptimeOracle).latestRoundData() returns (
-            uint80, int256 answer, uint256 startedAt, uint256, uint80
-        ) {
+        try IChainLinkData(sequencerUptimeOracle)
+            .latestRoundData() returns (uint80, int256 answer, uint256 startedAt, uint256, uint80) {
             success = true;
             if (answer == 1 || block.timestamp - startedAt < riskParams[creditor].gracePeriod) {
                 sequencerDown = true;
@@ -350,8 +349,8 @@ contract RegistryL2 is IRegistry, RegistryGuardian {
         liquidationFactors = new uint16[](length);
         for (uint256 i; i < length; ++i) {
             (collateralFactors[i], liquidationFactors[i]) = IAssetModule(
-                assetToAssetInformation[assetAddresses[i]].assetModule
-            ).getRiskFactors(creditor, assetAddresses[i], assetIds[i]);
+                    assetToAssetInformation[assetAddresses[i]].assetModule
+                ).getRiskFactors(creditor, assetAddresses[i], assetIds[i]);
         }
     }
 
@@ -371,8 +370,9 @@ contract RegistryL2 is IRegistry, RegistryGuardian {
         external
         onlyRiskManager(creditor)
     {
-        riskParams[creditor] =
-            RiskParameters({ minUsdValue: minUsdValue, gracePeriod: gracePeriod, maxRecursiveCalls: maxRecursiveCalls });
+        riskParams[creditor] = RiskParameters({
+            minUsdValue: minUsdValue, gracePeriod: gracePeriod, maxRecursiveCalls: maxRecursiveCalls
+        });
     }
 
     /**
@@ -394,9 +394,8 @@ contract RegistryL2 is IRegistry, RegistryGuardian {
         uint16 collateralFactor,
         uint16 liquidationFactor
     ) external onlyRiskManager(creditor) {
-        IPrimaryAM(assetToAssetInformation[asset].assetModule).setRiskParameters(
-            creditor, asset, assetId, maxExposure, collateralFactor, liquidationFactor
-        );
+        IPrimaryAM(assetToAssetInformation[asset].assetModule)
+            .setRiskParameters(creditor, asset, assetId, maxExposure, collateralFactor, liquidationFactor);
     }
 
     /**
@@ -407,7 +406,7 @@ contract RegistryL2 is IRegistry, RegistryGuardian {
      * denominated in USD with 18 decimals precision.
      * @param riskFactor The risk factor of the asset for the Creditor, 4 decimals precision.
      */
-    /// forge-lint: disable-next-item(mixed-case-function)
+    // forge-lint: disable-next-item(mixed-case-function)
     function setRiskParametersOfDerivedAM(
         address creditor,
         address assetModule,
@@ -431,11 +430,7 @@ contract RegistryL2 is IRegistry, RegistryGuardian {
      * 3 = ERC1155.
      * ...
      */
-    function batchGetAssetTypes(address[] calldata assetAddresses)
-        external
-        view
-        returns (uint256[] memory assetTypes)
-    {
+    function batchGetAssetTypes(address[] calldata assetAddresses) external view returns (uint256[] memory assetTypes) {
         uint256 addrLength = assetAddresses.length;
         assetTypes = new uint256[](addrLength);
 
@@ -470,9 +465,8 @@ contract RegistryL2 is IRegistry, RegistryGuardian {
             for (uint256 i; i < addrLength; ++i) {
                 assetAddress = assetAddresses[i];
                 // For unknown assets, assetModule will equal the zero-address and call reverts.
-                if (
-                    !IAssetModule(assetToAssetInformation[assetAddress].assetModule).isAllowed(assetAddress, assetIds[i])
-                ) revert RegistryErrors.AssetNotAllowed();
+                if (!IAssetModule(assetToAssetInformation[assetAddress].assetModule)
+                        .isAllowed(assetAddress, assetIds[i])) revert RegistryErrors.AssetNotAllowed();
             }
         } else {
             uint256 recursiveCalls;
@@ -480,9 +474,8 @@ contract RegistryL2 is IRegistry, RegistryGuardian {
             for (uint256 i; i < addrLength; ++i) {
                 assetAddress = assetAddresses[i];
                 // For unknown assets, assetModule will equal the zero-address and call reverts.
-                recursiveCalls = IAssetModule(assetToAssetInformation[assetAddress].assetModule).processDirectDeposit(
-                    creditor, assetAddress, assetIds[i], amounts[i]
-                );
+                recursiveCalls = IAssetModule(assetToAssetInformation[assetAddress].assetModule)
+                    .processDirectDeposit(creditor, assetAddress, assetIds[i], amounts[i]);
                 if (recursiveCalls > maxRecursiveCalls) revert RegistryErrors.MaxRecursiveCallsReached();
             }
         }
@@ -524,9 +517,8 @@ contract RegistryL2 is IRegistry, RegistryGuardian {
                 assetAddress = assetAddresses[i];
                 // For unknown assets, assetModule will equal the zero-address and call reverts.
                 assetTypes[i] = assetToAssetInformation[assetAddress].assetType;
-                IAssetModule(assetToAssetInformation[assetAddress].assetModule).processDirectWithdrawal(
-                    creditor, assetAddress, assetIds[i], amounts[i]
-                );
+                IAssetModule(assetToAssetInformation[assetAddress].assetModule)
+                    .processDirectWithdrawal(creditor, assetAddress, assetIds[i], amounts[i]);
             }
         }
     }
@@ -552,14 +544,15 @@ contract RegistryL2 is IRegistry, RegistryGuardian {
         int256 deltaExposureAssetToUnderlyingAsset
     ) external onlyAssetModule returns (uint256 recursiveCalls, uint256 usdExposureAssetToUnderlyingAsset) {
         (recursiveCalls, usdExposureAssetToUnderlyingAsset) = IAssetModule(
-            assetToAssetInformation[underlyingAsset].assetModule
-        ).processIndirectDeposit(
-            creditor,
-            underlyingAsset,
-            underlyingAssetId,
-            exposureAssetToUnderlyingAsset,
-            deltaExposureAssetToUnderlyingAsset
-        );
+                assetToAssetInformation[underlyingAsset].assetModule
+            )
+            .processIndirectDeposit(
+                creditor,
+                underlyingAsset,
+                underlyingAssetId,
+                exposureAssetToUnderlyingAsset,
+                deltaExposureAssetToUnderlyingAsset
+            );
     }
 
     /**
@@ -583,12 +576,12 @@ contract RegistryL2 is IRegistry, RegistryGuardian {
     ) external onlyAssetModule returns (uint256 usdExposureAssetToUnderlyingAsset) {
         usdExposureAssetToUnderlyingAsset = IAssetModule(assetToAssetInformation[underlyingAsset].assetModule)
             .processIndirectWithdrawal(
-            creditor,
-            underlyingAsset,
-            underlyingAssetId,
-            exposureAssetToUnderlyingAsset,
-            deltaExposureAssetToUnderlyingAsset
-        );
+                creditor,
+                underlyingAsset,
+                underlyingAssetId,
+                exposureAssetToUnderlyingAsset,
+                deltaExposureAssetToUnderlyingAsset
+            );
     }
 
     /* ///////////////////////////////////////////////////////////////
@@ -652,9 +645,8 @@ contract RegistryL2 is IRegistry, RegistryGuardian {
                 valuesAndRiskFactors[i].assetValue,
                 valuesAndRiskFactors[i].collateralFactor,
                 valuesAndRiskFactors[i].liquidationFactor
-            ) = IAssetModule(assetToAssetInformation[assets[i]].assetModule).getValue(
-                creditor, assets[i], assetIds[i], assetAmounts[i]
-            );
+            ) = IAssetModule(assetToAssetInformation[assets[i]].assetModule)
+                .getValue(creditor, assets[i], assetIds[i], assetAmounts[i]);
         }
     }
 
@@ -684,9 +676,8 @@ contract RegistryL2 is IRegistry, RegistryGuardian {
                 valuesAndRiskFactors[i].assetValue,
                 valuesAndRiskFactors[i].collateralFactor,
                 valuesAndRiskFactors[i].liquidationFactor
-            ) = IAssetModule(assetToAssetInformation[assets[i]].assetModule).getValue(
-                creditor, assets[i], assetIds[i], assetAmounts[i]
-            );
+            ) = IAssetModule(assetToAssetInformation[assets[i]].assetModule)
+                .getValue(creditor, assets[i], assetIds[i], assetAmounts[i]);
             // If asset value is too low, set to zero.
             // This is done to prevent dust attacks which may make liquidations unprofitable.
             if (valuesAndRiskFactors[i].assetValue < minUsdValue) valuesAndRiskFactors[i].assetValue = 0;

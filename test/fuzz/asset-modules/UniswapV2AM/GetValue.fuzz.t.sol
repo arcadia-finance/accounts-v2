@@ -57,9 +57,11 @@ contract GetValue_UniswapV2AM_Fuzz_Test is UniswapV2AM_Fuzz_Test {
         vm.assume(uint256(amountToken2) * amountToken1 > pairToken1Token2.MINIMUM_LIQUIDITY()); //min liquidity in uniswap pool
         pairToken1Token2.mint(users.tokenCreator, amountToken2, amountToken1);
 
-        bool cond0 = uint256(_rateToken2ToUsd)
+        bool cond0 =
+            uint256(_rateToken2ToUsd)
             > type(uint256).max / Constants.WAD / Constants.WAD * 10 ** _oracleToken2ToUsdDecimals; // trustedPriceToken2ToUsd overflows
-        bool cond1 = uint256(_rateToken1ToUsd)
+        bool cond1 =
+            uint256(_rateToken1ToUsd)
             > type(uint256).max / Constants.WAD / Constants.WAD * 10 ** _oracleToken1ToUsdDecimals; // trustedPriceToken1ToUsd overflows
         vm.assume(cond0 || cond1);
 
@@ -100,9 +102,9 @@ contract GetValue_UniswapV2AM_Fuzz_Test is UniswapV2AM_Fuzz_Test {
             uint256(amountToken2) * uint256(_rateToken2ToUsd)
                 < type(uint256).max / 10 ** (_token1Decimals + _oracleToken1ToUsdDecimals)
         ); //Avoid overflow of amountToken1 in next line
-        uint256 amountToken1 = uint256(amountToken2) * uint256(_rateToken2ToUsd)
-            * 10 ** (_token1Decimals + _oracleToken1ToUsdDecimals) / _rateToken1ToUsd
-            / 10 ** (_token2Decimals + _oracleToken2ToUsdDecimals);
+        uint256 amountToken1 =
+            uint256(amountToken2) * uint256(_rateToken2ToUsd) * 10 ** (_token1Decimals + _oracleToken1ToUsdDecimals)
+            / _rateToken1ToUsd / 10 ** (_token2Decimals + _oracleToken2ToUsdDecimals);
         vm.assume(amountToken1 < type(uint112).max); //max reserve in Uniswap pool
         vm.assume(amountToken2 * amountToken1 > pairToken1Token2.MINIMUM_LIQUIDITY()); //min liquidity in uniswap pool
         pairToken1Token2.mint(users.tokenCreator, amountToken2, amountToken1);
@@ -112,14 +114,16 @@ contract GetValue_UniswapV2AM_Fuzz_Test is UniswapV2AM_Fuzz_Test {
             uint256(_rateToken2ToUsd)
                 <= type(uint256).max / Constants.WAD / Constants.WAD * 10 ** _oracleToken2ToUsdDecimals
         ); // trustedPriceToken2ToUsd does not overflow
-        uint256 trustedPriceToken2ToUsd = Constants.WAD * uint256(_rateToken2ToUsd) / 10 ** _oracleToken2ToUsdDecimals
-            * Constants.WAD / 10 ** _token2Decimals;
+        uint256 trustedPriceToken2ToUsd =
+            Constants.WAD * uint256(_rateToken2ToUsd) / 10 ** _oracleToken2ToUsdDecimals * Constants.WAD / 10
+            ** _token2Decimals;
         vm.assume(
             uint256(_rateToken1ToUsd)
                 <= type(uint256).max / Constants.WAD / Constants.WAD * 10 ** _oracleToken1ToUsdDecimals
         ); // trustedPriceToken1ToUsd does not overflow
-        uint256 trustedPriceToken1ToUsd = Constants.WAD * uint256(_rateToken1ToUsd) / 10 ** _oracleToken1ToUsdDecimals
-            * Constants.WAD / 10 ** _token1Decimals;
+        uint256 trustedPriceToken1ToUsd =
+            Constants.WAD * uint256(_rateToken1ToUsd) / 10 ** _oracleToken1ToUsdDecimals * Constants.WAD / 10
+            ** _token1Decimals;
         vm.assume(trustedPriceToken2ToUsd <= type(uint256).max / amountToken2); // _computeProfitMaximizingTrade does not overflow
         vm.assume(trustedPriceToken1ToUsd <= type(uint256).max / 997); // _computeProfitMaximizingTrade does not overflow
 

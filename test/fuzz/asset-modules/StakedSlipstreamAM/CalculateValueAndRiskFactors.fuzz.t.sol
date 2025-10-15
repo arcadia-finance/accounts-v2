@@ -75,23 +75,16 @@ contract CalculateValueAndRiskFactors_StakedSlipstreamAM_Fuzz_Test is StakedSlip
 
         AssetValueAndRiskFactors[] memory rateUnderlyingAssetsToUsd = new AssetValueAndRiskFactors[](3);
         rateUnderlyingAssetsToUsd[0] = AssetValueAndRiskFactors({
-            assetValue: assetRates[0],
-            collateralFactor: collateralFactors[0],
-            liquidationFactor: liquidationFactors[0]
+            assetValue: assetRates[0], collateralFactor: collateralFactors[0], liquidationFactor: liquidationFactors[0]
         });
         rateUnderlyingAssetsToUsd[1] = AssetValueAndRiskFactors({
-            assetValue: assetRates[1],
-            collateralFactor: collateralFactors[1],
-            liquidationFactor: liquidationFactors[1]
+            assetValue: assetRates[1], collateralFactor: collateralFactors[1], liquidationFactor: liquidationFactors[1]
         });
         rateUnderlyingAssetsToUsd[2] = AssetValueAndRiskFactors({
-            assetValue: assetRates[2],
-            collateralFactor: collateralFactors[2],
-            liquidationFactor: liquidationFactors[2]
+            assetValue: assetRates[2], collateralFactor: collateralFactors[2], liquidationFactor: liquidationFactors[2]
         });
 
-        (uint256 valueInUsd, uint256 collateralFactor, uint256 liquidationFactor) = stakedSlipstreamAM
-            .calculateValueAndRiskFactors(
+        (uint256 valueInUsd, uint256 collateralFactor, uint256 liquidationFactor) = stakedSlipstreamAM.calculateValueAndRiskFactors(
             creditor, Utils.castArrayStaticToDynamic(underlyingAssetsAmounts), rateUnderlyingAssetsToUsd
         );
         assertEq(valueInUsd, expectedValueInUsd);
@@ -113,23 +106,16 @@ contract CalculateValueAndRiskFactors_StakedSlipstreamAM_Fuzz_Test is StakedSlip
 
         AssetValueAndRiskFactors[] memory rateUnderlyingAssetsToUsd = new AssetValueAndRiskFactors[](3);
         rateUnderlyingAssetsToUsd[0] = AssetValueAndRiskFactors({
-            assetValue: 0,
-            collateralFactor: collateralFactors[0],
-            liquidationFactor: liquidationFactors[0]
+            assetValue: 0, collateralFactor: collateralFactors[0], liquidationFactor: liquidationFactors[0]
         });
         rateUnderlyingAssetsToUsd[1] = AssetValueAndRiskFactors({
-            assetValue: 0,
-            collateralFactor: collateralFactors[1],
-            liquidationFactor: liquidationFactors[1]
+            assetValue: 0, collateralFactor: collateralFactors[1], liquidationFactor: liquidationFactors[1]
         });
         rateUnderlyingAssetsToUsd[2] = AssetValueAndRiskFactors({
-            assetValue: 0,
-            collateralFactor: collateralFactors[2],
-            liquidationFactor: liquidationFactors[2]
+            assetValue: 0, collateralFactor: collateralFactors[2], liquidationFactor: liquidationFactors[2]
         });
 
-        (uint256 valueInUsd, uint256 collateralFactor, uint256 liquidationFactor) = stakedSlipstreamAM
-            .calculateValueAndRiskFactors(
+        (uint256 valueInUsd, uint256 collateralFactor, uint256 liquidationFactor) = stakedSlipstreamAM.calculateValueAndRiskFactors(
             creditor, Utils.castArrayStaticToDynamic(underlyingAssetsAmounts), rateUnderlyingAssetsToUsd
         );
         assertEq(valueInUsd, 0);

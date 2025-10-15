@@ -60,8 +60,9 @@ contract UniswapV2AMExtension is UniswapV2AM {
         uint256 trustedPriceToken1,
         uint256 liquidityAmount
     ) public view returns (uint256 token0Amount, uint256 token1Amount) {
-        (token0Amount, token1Amount) =
-            _getTrustedTokenAmounts(pair, trustedPriceToken0, trustedPriceToken1, liquidityAmount);
+        (token0Amount, token1Amount) = _getTrustedTokenAmounts(
+            pair, trustedPriceToken0, trustedPriceToken1, liquidityAmount
+        );
     }
 
     function getTrustedReserves(address pair, uint256 trustedPriceToken0, uint256 trustedPriceToken1)

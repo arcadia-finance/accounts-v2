@@ -17,9 +17,7 @@ contract FactoryRegistryMock {
         gaugeFactory = poolFactoryToGaugeFactory[poolFactory];
     }
 
-    function setFactoriesToPoolFactory(address poolFactory, address votingRewardsFactory, address gaugeFactory)
-        public
-    {
+    function setFactoriesToPoolFactory(address poolFactory, address votingRewardsFactory, address gaugeFactory) public {
         poolFactoryToVotingRewardsFactory[poolFactory] = votingRewardsFactory;
         poolFactoryToGaugeFactory[poolFactory] = gaugeFactory;
     }

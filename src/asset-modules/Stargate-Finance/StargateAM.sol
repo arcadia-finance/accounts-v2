@@ -74,6 +74,7 @@ contract StargateAM is DerivedAM {
         assetToUnderlyingAssets[_getKeyFromAsset(asset, 0)] = underlyingAssets_;
 
         // Will revert in Registry if asset was already added.
+        // forge-lint: disable-next-line(unsafe-typecast)
         IRegistry(REGISTRY).addAsset(uint96(ASSET_TYPE), asset);
     }
 

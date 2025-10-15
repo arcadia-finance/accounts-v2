@@ -9,8 +9,9 @@ import { Fuzz_Test } from "../../Fuzz.t.sol";
 import { ICLGauge } from "../../../../src/asset-modules/Slipstream/interfaces/ICLGauge.sol";
 import { ICLPoolExtension } from "../../../utils/fixtures/slipstream/extensions/interfaces/ICLPoolExtension.sol";
 import { LiquidityAmounts } from "../../../../src/asset-modules/UniswapV3/libraries/LiquidityAmounts.sol";
-import { LiquidityAmountsExtension } from
-    "../../../utils/fixtures/uniswap-v3/extensions/libraries/LiquidityAmountsExtension.sol";
+import {
+    LiquidityAmountsExtension
+} from "../../../utils/fixtures/uniswap-v3/extensions/libraries/LiquidityAmountsExtension.sol";
 import { SlipstreamFixture } from "../../../utils/fixtures/slipstream/Slipstream.f.sol";
 import { StakedSlipstreamAM } from "../../../../src/asset-modules/Slipstream/StakedSlipstreamAM.sol";
 import { StakedSlipstreamAMExtension } from "../../../utils/extensions/StakedSlipstreamAMExtension.sol";
@@ -43,7 +44,7 @@ abstract contract StakedSlipstreamAM_Fuzz_Test is Fuzz_Test, SlipstreamFixture {
                             TEST CONTRACTS
     /////////////////////////////////////////////////////////////// */
 
-    /// forge-lint: disable-next-line(mixed-case-variable)
+    // forge-lint: disable-next-line(mixed-case-variable)
     StakedSlipstreamAMExtension internal stakedSlipstreamAM;
 
     /* ///////////////////////////////////////////////////////////////
@@ -69,7 +70,7 @@ abstract contract StakedSlipstreamAM_Fuzz_Test is Fuzz_Test, SlipstreamFixture {
                         HELPER FUNCTIONS
     ////////////////////////////////////////////////////////////////*/
 
-    /// forge-lint: disable-next-item(mixed-case-function)
+    // forge-lint: disable-next-item(mixed-case-function)
     function deployStakedSlipstreamAM() internal {
         // Deploy StakedSlipstreamAM.
         vm.startPrank(users.owner);

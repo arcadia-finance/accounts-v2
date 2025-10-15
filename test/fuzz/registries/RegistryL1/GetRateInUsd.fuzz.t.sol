@@ -12,6 +12,7 @@ import { OracleModuleMock } from "../../../utils/mocks/oracle-modules/OracleModu
 /**
  * @notice Fuzz tests for the function "getRateInUsd" of contract "RegistryL1".
  */
+// forge-lint: disable-next-item(unsafe-typecast)
 contract GetRateInUsd_RegistryL1_Fuzz_Test is RegistryL1_Fuzz_Test {
     /* ///////////////////////////////////////////////////////////////
                               SETUP

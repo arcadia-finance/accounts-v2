@@ -13,6 +13,7 @@ import { OracleModuleMock } from "../../../utils/mocks/oracle-modules/OracleModu
 /**
  * @notice Fuzz tests for the function "checkOracleSequence" of contract "RegistryL1".
  */
+// forge-lint: disable-next-item(unsafe-typecast)
 contract CheckOracleSequence_RegistryL1_Fuzz_Test is RegistryL1_Fuzz_Test {
     /* ///////////////////////////////////////////////////////////////
                               SETUP

@@ -1,8 +1,9 @@
 // SPDX-License-Identifier: GPL-2.0-or-later
 pragma solidity ^0.8.0;
 
-import { INonfungiblePositionManager } from
-    "../../../../../../src/asset-modules/UniswapV3/interfaces/INonfungiblePositionManager.sol";
+import {
+    INonfungiblePositionManager
+} from "../../../../../../src/asset-modules/UniswapV3/interfaces/INonfungiblePositionManager.sol";
 
 interface INonfungiblePositionManagerExtension is INonfungiblePositionManager {
     struct MintParams {

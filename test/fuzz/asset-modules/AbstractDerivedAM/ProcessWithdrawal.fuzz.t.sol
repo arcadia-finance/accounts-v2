@@ -9,7 +9,7 @@ import { AbstractDerivedAM_Fuzz_Test } from "./_AbstractDerivedAM.fuzz.t.sol";
 /**
  * @notice Fuzz tests for the function "_processWithdrawal" of contract "AbstractDerivedAM".
  */
-/// forge-lint: disable-next-item(mixed-case-variable)
+// forge-lint: disable-next-item(mixed-case-variable)
 contract ProcessWithdrawal_AbstractDerivedAM_Fuzz_Test is AbstractDerivedAM_Fuzz_Test {
     /* ///////////////////////////////////////////////////////////////
                               SETUP
@@ -100,7 +100,8 @@ contract ProcessWithdrawal_AbstractDerivedAM_Fuzz_Test is AbstractDerivedAM_Fuzz
         setUnderlyingAssetModuleState(assetState, underlyingPMState);
 
         // And: Underlying Asset is properly added to an underlying Asset Module.
-        int256 deltaExposureAssetToUnderlyingAsset = int256(assetState.exposureAssetToUnderlyingAsset)
+        int256 deltaExposureAssetToUnderlyingAsset =
+            int256(assetState.exposureAssetToUnderlyingAsset)
             - int256(uint256(assetState.lastExposureAssetToUnderlyingAsset));
         bytes memory data = abi.encodeCall(
             registry.getUsdValueExposureToUnderlyingAssetAfterWithdrawal,
@@ -172,7 +173,8 @@ contract ProcessWithdrawal_AbstractDerivedAM_Fuzz_Test is AbstractDerivedAM_Fuzz
         setUnderlyingAssetModuleState(assetState, underlyingPMState);
 
         // And: Underlying Asset is properly added to an underlying Asset Module.
-        int256 deltaExposureAssetToUnderlyingAsset = int256(assetState.exposureAssetToUnderlyingAsset)
+        int256 deltaExposureAssetToUnderlyingAsset =
+            int256(assetState.exposureAssetToUnderlyingAsset)
             - int256(uint256(assetState.lastExposureAssetToUnderlyingAsset));
         bytes memory data = abi.encodeCall(
             registry.getUsdValueExposureToUnderlyingAssetAfterWithdrawal,
@@ -240,7 +242,8 @@ contract ProcessWithdrawal_AbstractDerivedAM_Fuzz_Test is AbstractDerivedAM_Fuzz
         setUnderlyingAssetModuleState(assetState, underlyingPMState);
 
         // And: Underlying Asset is properly added to an underlying Asset Module.
-        int256 deltaExposureAssetToUnderlyingAsset = int256(assetState.exposureAssetToUnderlyingAsset)
+        int256 deltaExposureAssetToUnderlyingAsset =
+            int256(assetState.exposureAssetToUnderlyingAsset)
             - int256(uint256(assetState.lastExposureAssetToUnderlyingAsset));
         bytes memory data = abi.encodeCall(
             registry.getUsdValueExposureToUnderlyingAssetAfterWithdrawal,

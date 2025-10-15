@@ -7,6 +7,7 @@ pragma solidity ^0.8.0;
 /**
  * @dev Standard signed math utilities missing in the Solidity language.
  */
+// forge-lint: disable-next-item(unsafe-typecast)
 library SignedMath {
     /**
      * @dev Returns the largest of two signed numbers.

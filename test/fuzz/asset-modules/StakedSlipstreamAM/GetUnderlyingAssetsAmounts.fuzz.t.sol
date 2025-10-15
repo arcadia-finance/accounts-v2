@@ -18,6 +18,7 @@ import { TickMath } from "../../../../src/asset-modules/UniswapV3/libraries/Tick
 /**
  * @notice Fuzz tests for the function "getUnderlyingAssetsAmounts" of contract "StakedSlipstreamAM".
  */
+// forge-lint: disable-next-item(unsafe-typecast)
 contract GetUnderlyingAssetsAmounts_StakedSlipstreamAM_Fuzz_Test is StakedSlipstreamAM_Fuzz_Test {
     using stdStorage for StdStorage;
     /* ///////////////////////////////////////////////////////////////
@@ -78,9 +79,8 @@ contract GetUnderlyingAssetsAmounts_StakedSlipstreamAM_Fuzz_Test is StakedSlipst
         }
 
         // And : An initial rewardGrowthGlobalX128.
-        stdstore.target(address(pool)).sig(pool.rewardGrowthGlobalX128.selector).checked_write(
-            rewardGrowthGlobalX128Last
-        );
+        stdstore.target(address(pool)).sig(pool.rewardGrowthGlobalX128.selector)
+            .checked_write(rewardGrowthGlobalX128Last);
 
         uint256[] memory underlyingAssetsAmounts;
         AssetValueAndRiskFactors[] memory rateUnderlyingAssetsToUsd;
@@ -98,9 +98,8 @@ contract GetUnderlyingAssetsAmounts_StakedSlipstreamAM_Fuzz_Test is StakedSlipst
             vm.warp(block.timestamp + 1);
             deal(AERO, address(gauge), type(uint256).max, true);
             stdstore.target(address(pool)).sig(pool.rewardReserve.selector).checked_write(type(uint256).max);
-            stdstore.target(address(pool)).sig(pool.rewardGrowthGlobalX128.selector).checked_write(
-                rewardGrowthGlobalX128Current
-            );
+            stdstore.target(address(pool)).sig(pool.rewardGrowthGlobalX128.selector)
+                .checked_write(rewardGrowthGlobalX128Current);
 
             // When : getUnderlyingAssetsAmounts is called with amount 0.
             bytes32 assetKey = bytes32(abi.encodePacked(uint96(assetId), address(stakedSlipstreamAM)));
@@ -163,9 +162,8 @@ contract GetUnderlyingAssetsAmounts_StakedSlipstreamAM_Fuzz_Test is StakedSlipst
         }
 
         // And : An initial rewardGrowthGlobalX128.
-        stdstore.target(address(pool)).sig(pool.rewardGrowthGlobalX128.selector).checked_write(
-            rewardGrowthGlobalX128Last
-        );
+        stdstore.target(address(pool)).sig(pool.rewardGrowthGlobalX128.selector)
+            .checked_write(rewardGrowthGlobalX128Last);
 
         uint256[] memory underlyingAssetsAmounts;
         AssetValueAndRiskFactors[] memory rateUnderlyingAssetsToUsd;
@@ -183,9 +181,8 @@ contract GetUnderlyingAssetsAmounts_StakedSlipstreamAM_Fuzz_Test is StakedSlipst
             vm.warp(block.timestamp + 1);
             deal(AERO, address(gauge), type(uint256).max, true);
             stdstore.target(address(pool)).sig(pool.rewardReserve.selector).checked_write(type(uint256).max);
-            stdstore.target(address(pool)).sig(pool.rewardGrowthGlobalX128.selector).checked_write(
-                rewardGrowthGlobalX128Current
-            );
+            stdstore.target(address(pool)).sig(pool.rewardGrowthGlobalX128.selector)
+                .checked_write(rewardGrowthGlobalX128Current);
 
             // When : getUnderlyingAssetsAmounts is called with amount 1.
             bytes32 assetKey = bytes32(abi.encodePacked(uint96(assetId), address(stakedSlipstreamAM)));

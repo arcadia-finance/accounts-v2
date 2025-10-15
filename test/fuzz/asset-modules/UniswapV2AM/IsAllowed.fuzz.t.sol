@@ -32,9 +32,7 @@ contract IsAllowed_UniswapV2AM_Fuzz_Test is UniswapV2AM_Fuzz_Test {
         assertFalse(uniswapV2AM.isAllowed(asset, assetId));
     }
 
-    function testFuzz_Success_isAllowed_Negative_MaliciousPool(address token0, address token1, uint256 assetId)
-        public
-    {
+    function testFuzz_Success_isAllowed_Negative_MaliciousPool(address token0, address token1, uint256 assetId) public {
         UniswapV2PairMalicious pool = new UniswapV2PairMalicious(token0, token1);
 
         assertFalse(uniswapV2AM.isAllowed(address(pool), assetId));

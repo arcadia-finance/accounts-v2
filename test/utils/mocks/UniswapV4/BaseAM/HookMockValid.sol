@@ -10,7 +10,8 @@ import { BeforeSwapDelta } from "../../../../../lib/v4-periphery/lib/v4-core/src
 import { Hooks } from "../../../../../lib/v4-periphery/lib/v4-core/src/libraries/Hooks.sol";
 import { IPoolManager } from "../../../../../lib/v4-periphery/lib/v4-core/src/interfaces/IPoolManager.sol";
 import {
-    ModifyLiquidityParams, SwapParams
+    ModifyLiquidityParams,
+    SwapParams
 } from "../../../../../lib/v4-periphery/lib/v4-core/src/types/PoolOperation.sol";
 import { PoolKey } from "../../../../../lib/v4-periphery/lib/v4-core/src/types/PoolKey.sol";
 

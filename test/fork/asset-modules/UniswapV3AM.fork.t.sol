@@ -8,14 +8,17 @@ import { ERC20 } from "../../../lib/solmate/src/tokens/ERC20.sol";
 import { ERC721 } from "../../../lib/solmate/src/tokens/ERC721.sol";
 import { Fork_Test } from "../Fork.t.sol";
 import { LiquidityAmounts } from "../../../src/asset-modules/UniswapV3/libraries/LiquidityAmounts.sol";
-import { LiquidityAmountsExtension } from
-    "../../utils/fixtures/uniswap-v3/extensions/libraries/LiquidityAmountsExtension.sol";
-import { INonfungiblePositionManagerExtension } from
-    "../../utils/fixtures/uniswap-v3/extensions/interfaces/INonfungiblePositionManagerExtension.sol";
+import {
+    LiquidityAmountsExtension
+} from "../../utils/fixtures/uniswap-v3/extensions/libraries/LiquidityAmountsExtension.sol";
+import {
+    INonfungiblePositionManagerExtension
+} from "../../utils/fixtures/uniswap-v3/extensions/interfaces/INonfungiblePositionManagerExtension.sol";
 import { ISwapRouter } from "../../utils/fixtures/uniswap-v3/extensions/interfaces/ISwapRouter.sol";
 import { IUniswapV3Factory } from "../../utils/fixtures/uniswap-v3/extensions/interfaces/IUniswapV3Factory.sol";
-import { IUniswapV3PoolExtension } from
-    "../../utils/fixtures/uniswap-v3/extensions/interfaces/IUniswapV3PoolExtension.sol";
+import {
+    IUniswapV3PoolExtension
+} from "../../utils/fixtures/uniswap-v3/extensions/interfaces/IUniswapV3PoolExtension.sol";
 import { TickMath } from "../../../src/asset-modules/UniswapV3/libraries/TickMath.sol";
 import { UniswapV3AM } from "../../../src/asset-modules/UniswapV3/UniswapV3AM.sol";
 
@@ -39,7 +42,7 @@ contract UniswapV3AM_Fork_Test is Fork_Test {
                             TEST CONTRACTS
     ///////////////////////////////////////////////////////////////*/
 
-    /// forge-lint: disable-next-line(mixed-case-variable)
+    // forge-lint: disable-next-line(mixed-case-variable)
     UniswapV3AM internal uniV3AM_;
     IUniswapV3PoolExtension internal pool;
 
@@ -65,6 +68,7 @@ contract UniswapV3AM_Fork_Test is Fork_Test {
     /*////////////////////////////////////////////////////////////////
                         HELPER FUNCTIONS
     ////////////////////////////////////////////////////////////////*/
+    // forge-lint: disable-next-item(unsafe-typecast)
     function givenTickWithinAllowedRange(int24 tick) internal pure returns (int24) {
         uint256 tick_;
         if (tick < 0) {

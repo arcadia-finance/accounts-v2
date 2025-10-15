@@ -9,8 +9,9 @@ import { UniswapV3AM_Fuzz_Test } from "./_UniswapV3AM.fuzz.t.sol";
 import { AssetModule } from "../../../../src/asset-modules/abstracts/AbstractAM.sol";
 import { ERC20 } from "../../../../lib/solmate/src/tokens/ERC20.sol";
 import { ERC20Mock } from "../../../utils/mocks/tokens/ERC20Mock.sol";
-import { IUniswapV3PoolExtension } from
-    "../../../utils/fixtures/uniswap-v3/extensions/interfaces/IUniswapV3PoolExtension.sol";
+import {
+    IUniswapV3PoolExtension
+} from "../../../utils/fixtures/uniswap-v3/extensions/interfaces/IUniswapV3PoolExtension.sol";
 import { LiquidityAmounts } from "../../../../src/asset-modules/UniswapV3/libraries/LiquidityAmounts.sol";
 import { TickMath } from "../../../../src/asset-modules/UniswapV3/libraries/TickMath.sol";
 import { UniswapV3AM } from "../../../../src/asset-modules/UniswapV3/UniswapV3AM.sol";
@@ -18,6 +19,7 @@ import { UniswapV3AM } from "../../../../src/asset-modules/UniswapV3/UniswapV3AM
 /**
  * @notice Fuzz tests for the function "processIndirectDeposit" of contract "UniswapV3AM".
  */
+// forge-lint: disable-next-item(unsafe-typecast)
 contract ProcessIndirectDeposit_UniswapV3AM_Fuzz_Test is UniswapV3AM_Fuzz_Test {
     /* ///////////////////////////////////////////////////////////////
                             VARIABLES

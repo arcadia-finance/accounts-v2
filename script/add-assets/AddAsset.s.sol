@@ -9,11 +9,11 @@ import { Asset, Oracle, Safes } from "../utils/constants/Shared.sol";
 import { Base_Script } from "../Base.s.sol";
 
 contract AddAsset is Base_Script {
-    /// forge-lint: disable-start(mixed-case-variable)
+    // forge-lint: disable-start(mixed-case-variable)
     Asset internal ASSET = Assets.OUSDT();
     Oracle internal ORACLE = Oracles.OUSDT_USD();
     address internal SAFE = Safes.OWNER;
-    /// forge-lint: disable-end(mixed-case-variable)
+    // forge-lint: disable-end(mixed-case-variable)
 
     constructor() { }
 

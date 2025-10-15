@@ -77,9 +77,8 @@ contract ClaimReward_StakedSlipstreamAM_Fuzz_Test is StakedSlipstreamAM_Fuzz_Tes
         deployAndAddGauge(tick);
 
         // Given : An initial rewardGrowthGlobalX128.
-        stdstore.target(address(pool)).sig(pool.rewardGrowthGlobalX128.selector).checked_write(
-            rewardGrowthGlobalX128Last
-        );
+        stdstore.target(address(pool)).sig(pool.rewardGrowthGlobalX128.selector)
+            .checked_write(rewardGrowthGlobalX128Last);
 
         // And : assetId is minted.
         uint256 assetId = addLiquidity(position);
@@ -94,9 +93,8 @@ contract ClaimReward_StakedSlipstreamAM_Fuzz_Test is StakedSlipstreamAM_Fuzz_Tes
         vm.warp(block.timestamp + 1);
         deal(AERO, address(gauge), type(uint256).max, true);
         stdstore.target(address(pool)).sig(pool.rewardReserve.selector).checked_write(type(uint256).max);
-        stdstore.target(address(pool)).sig(pool.rewardGrowthGlobalX128.selector).checked_write(
-            rewardGrowthGlobalX128Current
-        );
+        stdstore.target(address(pool)).sig(pool.rewardGrowthGlobalX128.selector)
+            .checked_write(rewardGrowthGlobalX128Current);
 
         // And : Rewards amount is not zero.
         uint256 rewardGrowthInsideX128;
@@ -111,6 +109,7 @@ contract ClaimReward_StakedSlipstreamAM_Fuzz_Test is StakedSlipstreamAM_Fuzz_Tes
         // Then : correct event is emitted.
         vm.prank(users.liquidityProvider);
         vm.expectEmit();
+        // forge-lint: disable-next-line(unsafe-typecast)
         emit StakedSlipstreamAM.RewardPaid(assetId, AERO, uint128(rewardsExpected));
         uint256 rewards = stakedSlipstreamAM.claimReward(assetId);
 

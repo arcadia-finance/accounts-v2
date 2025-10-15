@@ -178,8 +178,7 @@ contract GetUnderlyingAssetsAmounts_SlipstreamAM_Fuzz_Test is SlipstreamAM_Fuzz_
         // And: The correct "underlyingAssetsAmounts" rates are returned.
         uint160 sqrtPriceX96 =
             slipstreamAM.getSqrtPriceX96(expectedRateUnderlyingAssetsToUsd0, expectedRateUnderlyingAssetsToUsd1);
-        (uint256 expectedUnderlyingAssetsAmount0, uint256 expectedUnderlyingAssetsAmount1) = LiquidityAmounts
-            .getAmountsForLiquidity(
+        (uint256 expectedUnderlyingAssetsAmount0, uint256 expectedUnderlyingAssetsAmount1) = LiquidityAmounts.getAmountsForLiquidity(
             sqrtPriceX96,
             TickMath.getSqrtRatioAtTick(position.tickLower),
             TickMath.getSqrtRatioAtTick(position.tickUpper),

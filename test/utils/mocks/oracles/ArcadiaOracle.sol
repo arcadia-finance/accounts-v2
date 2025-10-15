@@ -20,13 +20,12 @@ contract ArcadiaOracle is Owned {
         uint64 timestamp;
     }
 
-    mapping(uint32 => Transmission) /* aggregator round ID */ internal transmissions;
+    mapping(uint32 => Transmission) internal /* aggregator round ID */ transmissions;
 
     enum Role {
         Unset, // unset
         Transmitter, // Offchain data transmissions to the oracle
         Validator // Offchain data validator for the setted values
-
     }
 
     struct OffchainConnector {
@@ -80,7 +79,7 @@ contract ArcadiaOracle is Owned {
         unchecked {
             latestRoundId++;
         }
-        transmissions[latestRoundId] = Transmission(_answer, uint64(block.timestamp));
+        transmissions[latestRoundId] = Transmission({ answer: _answer, timestamp: uint64(block.timestamp) });
     }
 
     /**
@@ -91,6 +90,7 @@ contract ArcadiaOracle is Owned {
      * @return updatedAt timestamp of block containing latest report
      * @return answeredInRound aggregator round of latest report
      */
+    // forge-lint: disable-next-item(unsafe-typecast)
     function latestRoundData()
         public
         view

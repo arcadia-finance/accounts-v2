@@ -12,6 +12,7 @@ import { stdError } from "../../../../lib/forge-std/src/StdError.sol";
 /**
  * @notice Fuzz tests for the function "decreaseLiquidity" of contract "StakedAerodromeAM".
  */
+// forge-lint: disable-next-item(unsafe-typecast)
 contract DecreaseLiquidity_StakedAerodromeAM_Fuzz_Test is StakedAerodromeAM_Fuzz_Test {
     using FixedPointMathLib for uint256;
     /* ///////////////////////////////////////////////////////////////
@@ -178,11 +179,11 @@ contract DecreaseLiquidity_StakedAerodromeAM_Fuzz_Test is StakedAerodromeAM_Fuzz
         // And: Position state should be updated correctly.
         StakingAM.PositionState memory newPositionState;
         (
-            newPositionState.asset,
-            newPositionState.amountStaked,
-            newPositionState.lastRewardPerTokenPosition,
-            newPositionState.lastRewardPosition
-        ) = stakedAerodromeAM.positionState(positionId);
+                newPositionState.asset,
+                newPositionState.amountStaked,
+                newPositionState.lastRewardPerTokenPosition,
+                newPositionState.lastRewardPosition
+            ) = stakedAerodromeAM.positionState(positionId);
         assertEq(newPositionState.asset, address(0));
         assertEq(newPositionState.amountStaked, 0);
         assertEq(newPositionState.lastRewardPerTokenPosition, 0);
@@ -283,11 +284,11 @@ contract DecreaseLiquidity_StakedAerodromeAM_Fuzz_Test is StakedAerodromeAM_Fuzz
         // And: Position state should be updated correctly.
         StakingAM.PositionState memory newPositionState;
         (
-            newPositionState.asset,
-            newPositionState.amountStaked,
-            newPositionState.lastRewardPerTokenPosition,
-            newPositionState.lastRewardPosition
-        ) = stakedAerodromeAM.positionState(positionId);
+                newPositionState.asset,
+                newPositionState.amountStaked,
+                newPositionState.lastRewardPerTokenPosition,
+                newPositionState.lastRewardPosition
+            ) = stakedAerodromeAM.positionState(positionId);
         assertEq(newPositionState.asset, address(aeroPool));
         assertEq(newPositionState.amountStaked, positionState.amountStaked - amount);
         uint128 currentRewardPerToken;
@@ -373,11 +374,11 @@ contract DecreaseLiquidity_StakedAerodromeAM_Fuzz_Test is StakedAerodromeAM_Fuzz
         // And: Position state should be updated correctly.
         StakingAM.PositionState memory newPositionState;
         (
-            newPositionState.asset,
-            newPositionState.amountStaked,
-            newPositionState.lastRewardPerTokenPosition,
-            newPositionState.lastRewardPosition
-        ) = stakedAerodromeAM.positionState(positionId);
+                newPositionState.asset,
+                newPositionState.amountStaked,
+                newPositionState.lastRewardPerTokenPosition,
+                newPositionState.lastRewardPosition
+            ) = stakedAerodromeAM.positionState(positionId);
         assertEq(newPositionState.asset, address(0));
         assertEq(newPositionState.amountStaked, 0);
         assertEq(newPositionState.lastRewardPerTokenPosition, 0);
@@ -464,11 +465,11 @@ contract DecreaseLiquidity_StakedAerodromeAM_Fuzz_Test is StakedAerodromeAM_Fuzz
         // And: Position state should be updated correctly.
         StakingAM.PositionState memory newPositionState;
         (
-            newPositionState.asset,
-            newPositionState.amountStaked,
-            newPositionState.lastRewardPerTokenPosition,
-            newPositionState.lastRewardPosition
-        ) = stakedAerodromeAM.positionState(positionId);
+                newPositionState.asset,
+                newPositionState.amountStaked,
+                newPositionState.lastRewardPerTokenPosition,
+                newPositionState.lastRewardPosition
+            ) = stakedAerodromeAM.positionState(positionId);
         assertEq(newPositionState.asset, address(aeroPool));
         assertEq(newPositionState.amountStaked, positionState.amountStaked - amount);
         assertEq(newPositionState.lastRewardPerTokenPosition, assetState.lastRewardPerTokenGlobal);
@@ -506,9 +507,7 @@ contract DecreaseLiquidity_StakedAerodromeAM_Fuzz_Test is StakedAerodromeAM_Fuzz
 
         // Given : Valid state
         StakingAMStateForAsset memory assetState = StakingAMStateForAsset({
-            currentRewardGlobal: 123_456 * 1e18,
-            lastRewardPerTokenGlobal: 0,
-            totalStaked: 1_111_111 * 1e18
+            currentRewardGlobal: 123_456 * 1e18, lastRewardPerTokenGlobal: 0, totalStaked: 1_111_111 * 1e18
         });
 
         StakingAM.PositionState memory positionState = StakingAM.PositionState({
@@ -551,7 +550,8 @@ contract DecreaseLiquidity_StakedAerodromeAM_Fuzz_Test is StakedAerodromeAM_Fuzz
         assertEq(aeroPool.balanceOf(account_), positionState.amountStaked);
         assertEq(ERC20Mock(AERO).balanceOf(account_), currentRewardAccount);
 
-        uint256 checkCurrentRewardAccount = positionState.lastRewardPosition
+        uint256 checkCurrentRewardAccount =
+            positionState.lastRewardPosition
             + uint256(positionState.amountStaked).mulDivDown(assetState.currentRewardGlobal, assetState.totalStaked);
         assertApproxEqAbs(checkCurrentRewardAccount, currentRewardAccount, 12_840); // 12_840 wei rounding errors on 14_936 * 1e18 currentRewards, minor
 
@@ -564,11 +564,11 @@ contract DecreaseLiquidity_StakedAerodromeAM_Fuzz_Test is StakedAerodromeAM_Fuzz
         // And: Position state should be updated correctly.
         StakingAM.PositionState memory newPositionState;
         (
-            newPositionState.asset,
-            newPositionState.amountStaked,
-            newPositionState.lastRewardPerTokenPosition,
-            newPositionState.lastRewardPosition
-        ) = stakedAerodromeAM.positionState(positionId);
+                newPositionState.asset,
+                newPositionState.amountStaked,
+                newPositionState.lastRewardPerTokenPosition,
+                newPositionState.lastRewardPosition
+            ) = stakedAerodromeAM.positionState(positionId);
         assertEq(newPositionState.asset, address(0));
         assertEq(newPositionState.amountStaked, 0);
         assertEq(newPositionState.lastRewardPerTokenPosition, 0);

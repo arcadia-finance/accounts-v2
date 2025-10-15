@@ -31,7 +31,7 @@ abstract contract SlipstreamAM_Fuzz_Test is Fuzz_Test, SlipstreamFixture {
                               VARIABLES
     /////////////////////////////////////////////////////////////// */
 
-    /// forge-lint: disable-next-line(mixed-case-variable)
+    // forge-lint: disable-next-line(mixed-case-variable)
     SlipstreamAMExtension internal slipstreamAM;
     ICLPoolExtension internal poolStable1Stable2;
     NonfungiblePositionManagerMock internal nonfungiblePositionManagerMock;
@@ -68,8 +68,9 @@ abstract contract SlipstreamAM_Fuzz_Test is Fuzz_Test, SlipstreamFixture {
         // Deploy mock for the Nonfungibleposition manager for tests where state of position must be fuzzed.
         deployNonfungiblePositionManagerMock();
 
-        poolStable1Stable2 =
-            createPoolCL(address(mockERC20.stable1), address(mockERC20.stable2), 1, TickMath.getSqrtRatioAtTick(0), 300);
+        poolStable1Stable2 = createPoolCL(
+            address(mockERC20.stable1), address(mockERC20.stable2), 1, TickMath.getSqrtRatioAtTick(0), 300
+        );
     }
 
     /*////////////////////////////////////////////////////////////////
@@ -83,7 +84,7 @@ abstract contract SlipstreamAM_Fuzz_Test is Fuzz_Test, SlipstreamFixture {
         vm.label({ account: address(nonfungiblePositionManagerMock), newLabel: "NonfungiblePositionManagerMock" });
     }
 
-    /// forge-lint: disable-next-item(mixed-case-function)
+    // forge-lint: disable-next-item(mixed-case-function)
     function deploySlipstreamAM(address nonfungiblePositionManager_) internal {
         // Deploy SlipstreamAM.
         vm.startPrank(users.owner);
@@ -134,6 +135,7 @@ abstract contract SlipstreamAM_Fuzz_Test is Fuzz_Test, SlipstreamFixture {
     }
 
     function isWithinAllowedRange(int24 tick) internal pure returns (bool) {
+        // forge-lint: disable-next-line(unsafe-typecast)
         return (tick < 0 ? uint256(-int256(tick)) : uint256(int256(tick))) <= uint256(uint24(TickMath.MAX_TICK));
     }
 }
