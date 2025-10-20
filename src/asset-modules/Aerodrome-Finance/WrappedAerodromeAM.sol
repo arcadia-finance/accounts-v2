@@ -256,18 +256,20 @@ contract WrappedAerodromeAM is DerivedAM, ERC721, ReentrancyGuard {
         // Calculate weighted risk factors.
         if (valueInUsd > 0) {
             unchecked {
-                collateralFactor = (valuePool
-                        * rateUnderlyingAssetsToUsd[0].collateralFactor
-                        + valueToken0
-                        * rateUnderlyingAssetsToUsd[1].collateralFactor
-                        + valueToken1
-                        * rateUnderlyingAssetsToUsd[2].collateralFactor) / valueInUsd;
-                liquidationFactor = (valuePool
-                        * rateUnderlyingAssetsToUsd[0].liquidationFactor
-                        + valueToken0
-                        * rateUnderlyingAssetsToUsd[1].liquidationFactor
-                        + valueToken1
-                        * rateUnderlyingAssetsToUsd[2].liquidationFactor) / valueInUsd;
+                collateralFactor =
+                    (valuePool
+                            * rateUnderlyingAssetsToUsd[0].collateralFactor
+                            + valueToken0
+                            * rateUnderlyingAssetsToUsd[1].collateralFactor
+                            + valueToken1
+                            * rateUnderlyingAssetsToUsd[2].collateralFactor) / valueInUsd;
+                liquidationFactor =
+                    (valuePool
+                            * rateUnderlyingAssetsToUsd[0].liquidationFactor
+                            + valueToken0
+                            * rateUnderlyingAssetsToUsd[1].liquidationFactor
+                            + valueToken1
+                            * rateUnderlyingAssetsToUsd[2].liquidationFactor) / valueInUsd;
             }
         }
 

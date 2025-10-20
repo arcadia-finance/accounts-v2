@@ -72,8 +72,7 @@ contract GetRewardBalances_AbstractStakingAM_Fuzz_Test is AbstractStakingAM_Fuzz
         assetState.totalStaked = uint128(bound(assetState.totalStaked, 1, type(uint128).max - 1));
 
         // And: deltaRewardPerToken is bigger as type(uint128).max (overflow safeCastTo128).
-        uint256 lowerBound =
-            1
+        uint256 lowerBound = 1
             + ((assetState.totalStaked < 1e18)
                     ? uint256(type(uint128).max).mulDivUp(assetState.totalStaked, 1e18)
                     : uint256(type(uint128).max) * assetState.totalStaked / 1e18 + assetState.totalStaked);

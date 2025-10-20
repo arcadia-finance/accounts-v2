@@ -58,9 +58,8 @@ contract GetValue_ERC20PrimaryAM_Fuzz_Test is ERC20PrimaryAM_Fuzz_Test {
         vm.prank(users.transmitter);
         mockOracles.token1ToUsd.transmit(int256(rateToken1ToUsdNew));
 
-        uint256 expectedValueInUsd =
-            amountToken1 * rateToken1ToUsdNew * 10 ** (18 - Constants.TOKEN_ORACLE_DECIMALS) / 10
-            ** Constants.TOKEN_DECIMALS;
+        uint256 expectedValueInUsd = amountToken1 * rateToken1ToUsdNew * 10 ** (18 - Constants.TOKEN_ORACLE_DECIMALS)
+            / 10 ** Constants.TOKEN_DECIMALS;
 
         (uint256 actualValueInUsd,,) =
             erc20AM.getValue(address(creditorUsd), address(mockERC20.token1), 0, amountToken1);

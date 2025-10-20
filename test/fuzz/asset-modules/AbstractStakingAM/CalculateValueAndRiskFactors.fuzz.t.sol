@@ -55,12 +55,10 @@ contract CalculateValueAndRiskFactors_AbstractStakingAM_Fuzz_Test is AbstractSta
         vm.prank(address(registry));
         stakingAM.setRiskParameters(creditor, 0, riskFactor);
 
-        uint256 expectedCollateralFactor =
-            (value0 * collateralFactors[0] + value1 * collateralFactors[1]) / expectedValueInUsd * riskFactor
-            / AssetValuationLib.ONE_4;
-        uint256 expectedLiquidationFactor =
-            (value0 * liquidationFactors[0] + value1 * liquidationFactors[1]) / expectedValueInUsd * riskFactor
-            / AssetValuationLib.ONE_4;
+        uint256 expectedCollateralFactor = (value0 * collateralFactors[0] + value1 * collateralFactors[1])
+            / expectedValueInUsd * riskFactor / AssetValuationLib.ONE_4;
+        uint256 expectedLiquidationFactor = (value0 * liquidationFactors[0] + value1 * liquidationFactors[1])
+            / expectedValueInUsd * riskFactor / AssetValuationLib.ONE_4;
 
         AssetValueAndRiskFactors[] memory rateUnderlyingAssetsToUsd = new AssetValueAndRiskFactors[](2);
         rateUnderlyingAssetsToUsd[0] = AssetValueAndRiskFactors({

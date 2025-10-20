@@ -133,13 +133,13 @@ contract Burn_WrappedAerodromeAM_Fuzz_Test is WrappedAerodromeAM_Fuzz_Test {
         // And: Position state should be updated correctly.
         WrappedAerodromeAM.PositionState memory positionState_;
         (
-                positionState_.fee0PerLiquidity,
-                positionState_.fee1PerLiquidity,
-                positionState_.fee0,
-                positionState_.fee1,
-                positionState_.amountWrapped,
-                positionState_.pool
-            ) = wrappedAerodromeAM.positionState(positionId);
+            positionState_.fee0PerLiquidity,
+            positionState_.fee1PerLiquidity,
+            positionState_.fee0,
+            positionState_.fee1,
+            positionState_.amountWrapped,
+            positionState_.pool
+        ) = wrappedAerodromeAM.positionState(positionId);
 
         assertEq(positionState_.fee0PerLiquidity, 0);
         assertEq(positionState_.fee1PerLiquidity, 0);

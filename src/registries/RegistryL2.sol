@@ -174,8 +174,9 @@ contract RegistryL2 is IRegistry, RegistryGuardian {
     function _isSequencerDown(address creditor) internal view returns (bool success, bool sequencerDown) {
         // This guarantees that no stale oracles are consumed when the sequencer is down,
         // and that Account owners have time (the grace period) to bring their Account back in a healthy state.
-        try IChainLinkData(sequencerUptimeOracle)
-            .latestRoundData() returns (uint80, int256 answer, uint256 startedAt, uint256, uint80) {
+        try IChainLinkData(sequencerUptimeOracle).latestRoundData() returns (
+            uint80, int256 answer, uint256 startedAt, uint256, uint80
+        ) {
             success = true;
             if (answer == 1 || block.timestamp - startedAt < riskParams[creditor].gracePeriod) {
                 sequencerDown = true;
@@ -645,8 +646,9 @@ contract RegistryL2 is IRegistry, RegistryGuardian {
                 valuesAndRiskFactors[i].assetValue,
                 valuesAndRiskFactors[i].collateralFactor,
                 valuesAndRiskFactors[i].liquidationFactor
-            ) = IAssetModule(assetToAssetInformation[assets[i]].assetModule)
-                .getValue(creditor, assets[i], assetIds[i], assetAmounts[i]);
+            ) =
+                IAssetModule(assetToAssetInformation[assets[i]].assetModule)
+                    .getValue(creditor, assets[i], assetIds[i], assetAmounts[i]);
         }
     }
 
@@ -676,8 +678,9 @@ contract RegistryL2 is IRegistry, RegistryGuardian {
                 valuesAndRiskFactors[i].assetValue,
                 valuesAndRiskFactors[i].collateralFactor,
                 valuesAndRiskFactors[i].liquidationFactor
-            ) = IAssetModule(assetToAssetInformation[assets[i]].assetModule)
-                .getValue(creditor, assets[i], assetIds[i], assetAmounts[i]);
+            ) =
+                IAssetModule(assetToAssetInformation[assets[i]].assetModule)
+                    .getValue(creditor, assets[i], assetIds[i], assetAmounts[i]);
             // If asset value is too low, set to zero.
             // This is done to prevent dust attacks which may make liquidations unprofitable.
             if (valuesAndRiskFactors[i].assetValue < minUsdValue) valuesAndRiskFactors[i].assetValue = 0;

@@ -52,9 +52,10 @@ contract ProcessIndirectDeposit_AbstractDerivedAM_Fuzz_Test is AbstractDerivedAM
         int256 deltaExposureUpperAssetToAsset_ = -int256(deltaExposureUpperAssetToAsset);
 
         // And: Deposit does not revert.
-        (protocolState, assetState, underlyingPMState, exposureUpperAssetToAsset, deltaExposureUpperAssetToAsset_) = givenNonRevertingDeposit(
-            protocolState, assetState, underlyingPMState, exposureUpperAssetToAsset, deltaExposureUpperAssetToAsset_
-        );
+        (protocolState, assetState, underlyingPMState, exposureUpperAssetToAsset, deltaExposureUpperAssetToAsset_) =
+            givenNonRevertingDeposit(
+                protocolState, assetState, underlyingPMState, exposureUpperAssetToAsset, deltaExposureUpperAssetToAsset_
+            );
 
         // And: State is persisted.
         setDerivedAMProtocolState(protocolState, assetState.creditor);
@@ -89,9 +90,10 @@ contract ProcessIndirectDeposit_AbstractDerivedAM_Fuzz_Test is AbstractDerivedAM
         underlyingPMState.usdValue = 0;
 
         // And: Deposit does not revert.
-        (protocolState, assetState, underlyingPMState, exposureUpperAssetToAsset, deltaExposureUpperAssetToAsset) = givenNonRevertingDeposit(
-            protocolState, assetState, underlyingPMState, exposureUpperAssetToAsset, deltaExposureUpperAssetToAsset
-        );
+        (protocolState, assetState, underlyingPMState, exposureUpperAssetToAsset, deltaExposureUpperAssetToAsset) =
+            givenNonRevertingDeposit(
+                protocolState, assetState, underlyingPMState, exposureUpperAssetToAsset, deltaExposureUpperAssetToAsset
+            );
 
         // And: State is persisted.
         setDerivedAMProtocolState(protocolState, assetState.creditor);
@@ -126,9 +128,10 @@ contract ProcessIndirectDeposit_AbstractDerivedAM_Fuzz_Test is AbstractDerivedAM
         underlyingPMState.usdValue = bound(underlyingPMState.usdValue, 1, type(uint112).max);
 
         // And: Deposit does not revert.
-        (protocolState, assetState, underlyingPMState, exposureUpperAssetToAsset, deltaExposureUpperAssetToAsset) = givenNonRevertingDeposit(
-            protocolState, assetState, underlyingPMState, exposureUpperAssetToAsset, deltaExposureUpperAssetToAsset
-        );
+        (protocolState, assetState, underlyingPMState, exposureUpperAssetToAsset, deltaExposureUpperAssetToAsset) =
+            givenNonRevertingDeposit(
+                protocolState, assetState, underlyingPMState, exposureUpperAssetToAsset, deltaExposureUpperAssetToAsset
+            );
 
         // And: exposureAsset is not zero (test-case).
         uint256 exposureAsset;

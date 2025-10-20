@@ -571,8 +571,9 @@ contract RegistryL1 is IRegistry, RegistryGuardian {
                 valuesAndRiskFactors[i].assetValue,
                 valuesAndRiskFactors[i].collateralFactor,
                 valuesAndRiskFactors[i].liquidationFactor
-            ) = IAssetModule(assetToAssetInformation[assets[i]].assetModule)
-                .getValue(creditor, assets[i], assetIds[i], assetAmounts[i]);
+            ) =
+                IAssetModule(assetToAssetInformation[assets[i]].assetModule)
+                    .getValue(creditor, assets[i], assetIds[i], assetAmounts[i]);
         }
     }
 
@@ -602,8 +603,9 @@ contract RegistryL1 is IRegistry, RegistryGuardian {
                 valuesAndRiskFactors[i].assetValue,
                 valuesAndRiskFactors[i].collateralFactor,
                 valuesAndRiskFactors[i].liquidationFactor
-            ) = IAssetModule(assetToAssetInformation[assets[i]].assetModule)
-                .getValue(creditor, assets[i], assetIds[i], assetAmounts[i]);
+            ) =
+                IAssetModule(assetToAssetInformation[assets[i]].assetModule)
+                    .getValue(creditor, assets[i], assetIds[i], assetAmounts[i]);
             // If asset value is too low, set to zero.
             // This is done to prevent dust attacks which may make liquidations unprofitable.
             if (valuesAndRiskFactors[i].assetValue < minUsdValue) valuesAndRiskFactors[i].assetValue = 0;
