@@ -62,10 +62,10 @@ contract CalculateValueAndRiskFactors_WrappedAerodromeAM_Fuzz_Test is WrappedAer
 
         uint256 expectedCollateralFactor =
             (value0 * collateralFactors[0] + value1 * collateralFactors[1] + value2 * collateralFactors[2])
-            / expectedValueInUsd * riskFactor / AssetValuationLib.ONE_4;
+                / expectedValueInUsd * riskFactor / AssetValuationLib.ONE_4;
         uint256 expectedLiquidationFactor =
             (value0 * liquidationFactors[0] + value1 * liquidationFactors[1] + value2 * liquidationFactors[2])
-            / expectedValueInUsd * riskFactor / AssetValuationLib.ONE_4;
+                / expectedValueInUsd * riskFactor / AssetValuationLib.ONE_4;
 
         AssetValueAndRiskFactors[] memory rateUnderlyingAssetsToUsd = new AssetValueAndRiskFactors[](3);
         rateUnderlyingAssetsToUsd[0] = AssetValueAndRiskFactors({

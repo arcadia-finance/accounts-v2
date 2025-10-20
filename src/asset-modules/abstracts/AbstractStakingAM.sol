@@ -257,14 +257,16 @@ abstract contract StakingAM is DerivedAM, ERC721, ReentrancyGuard {
         // Calculate weighted risk factors.
         if (valueInUsd > 0) {
             unchecked {
-                collateralFactor = (valueStakedAsset
-                        * rateUnderlyingAssetsToUsd[0].collateralFactor
-                        + valueRewardAsset
-                        * rateUnderlyingAssetsToUsd[1].collateralFactor) / valueInUsd;
-                liquidationFactor = (valueStakedAsset
-                        * rateUnderlyingAssetsToUsd[0].liquidationFactor
-                        + valueRewardAsset
-                        * rateUnderlyingAssetsToUsd[1].liquidationFactor) / valueInUsd;
+                collateralFactor =
+                    (valueStakedAsset
+                            * rateUnderlyingAssetsToUsd[0].collateralFactor
+                            + valueRewardAsset
+                            * rateUnderlyingAssetsToUsd[1].collateralFactor) / valueInUsd;
+                liquidationFactor =
+                    (valueStakedAsset
+                            * rateUnderlyingAssetsToUsd[0].liquidationFactor
+                            + valueRewardAsset
+                            * rateUnderlyingAssetsToUsd[1].liquidationFactor) / valueInUsd;
             }
         }
 

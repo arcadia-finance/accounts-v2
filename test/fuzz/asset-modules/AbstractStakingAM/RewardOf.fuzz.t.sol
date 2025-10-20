@@ -57,8 +57,8 @@ contract RewardOf_AbstractStakingAM_Fuzz_Test is AbstractStakingAM_Fuzz_Test {
         unchecked {
             deltaRewardPerToken = rewardPerToken - positionState.lastRewardPerTokenPosition;
         }
-        uint256 currentRewardPosition_ =
-            positionState.lastRewardPosition + uint256(positionState.amountStaked).mulDivDown(deltaRewardPerToken, 1e18);
+        uint256 currentRewardPosition_ = positionState.lastRewardPosition
+            + uint256(positionState.amountStaked).mulDivDown(deltaRewardPerToken, 1e18);
 
         assertEq(currentRewardPosition, currentRewardPosition_);
     }

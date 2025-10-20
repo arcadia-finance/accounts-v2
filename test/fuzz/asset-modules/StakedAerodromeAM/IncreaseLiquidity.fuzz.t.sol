@@ -127,11 +127,11 @@ contract IncreaseLiquidity_StakedAerodromeAM_Fuzz_Test is StakedAerodromeAM_Fuzz
         // And: Position state should be updated correctly.
         StakingAM.PositionState memory newPositionState;
         (
-                newPositionState.asset,
-                newPositionState.amountStaked,
-                newPositionState.lastRewardPerTokenPosition,
-                newPositionState.lastRewardPosition
-            ) = stakedAerodromeAM.positionState(positionId);
+            newPositionState.asset,
+            newPositionState.amountStaked,
+            newPositionState.lastRewardPerTokenPosition,
+            newPositionState.lastRewardPosition
+        ) = stakedAerodromeAM.positionState(positionId);
         assertEq(newPositionState.asset, address(aeroPool));
         assertEq(newPositionState.amountStaked, positionState.amountStaked + amount);
         uint128 currentRewardPerToken;

@@ -117,8 +117,9 @@ contract ChainlinkOM is OracleModule {
         view
         returns (bool success, uint256 answer)
     {
-        try IChainLinkData(oracleInformation_.oracle)
-            .latestRoundData() returns (uint80 roundId, int256 answer_, uint256, uint256 updatedAt, uint80) {
+        try IChainLinkData(oracleInformation_.oracle).latestRoundData() returns (
+            uint80 roundId, int256 answer_, uint256, uint256 updatedAt, uint80
+        ) {
             if (
                 roundId > 0 && answer_ >= 0 && updatedAt > block.timestamp - oracleInformation_.cutOffTime
                     && updatedAt <= block.timestamp

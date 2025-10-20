@@ -90,8 +90,7 @@ contract GetValue_StandardERC4626AM_Fuzz_Test is StandardERC4626AM_Fuzz_Test {
             );
         }
 
-        uint256 expectedValueInUsd =
-            (Constants.WAD * rateToken1ToUsd_ / 10 ** Constants.TOKEN_ORACLE_DECIMALS)
+        uint256 expectedValueInUsd = (Constants.WAD * rateToken1ToUsd_ / 10 ** Constants.TOKEN_ORACLE_DECIMALS)
             * (shares * totalAssets / totalSupply) / 10 ** Constants.TOKEN_DECIMALS;
 
         vm.prank(users.transmitter);

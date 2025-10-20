@@ -348,8 +348,7 @@ contract StakedSlipstreamAM is DerivedAM, ERC721, ReentrancyGuard {
         // "rateUnderlyingAssetsToUsd" is the USD value with 18 decimals precision for 10**18 tokens of Underlying Asset.
         // To get the USD value (also with 18 decimals) of the actual amount of underlying assets, we have to multiply
         // the actual amount with the rate for 10**18 tokens, and divide by 10**18.
-        uint256 valuePrincipal =
-            underlyingAssetsAmounts[0].mulDivDown(rateUnderlyingAssetsToUsd[0].assetValue, 1e18)
+        uint256 valuePrincipal = underlyingAssetsAmounts[0].mulDivDown(rateUnderlyingAssetsToUsd[0].assetValue, 1e18)
             + underlyingAssetsAmounts[1].mulDivDown(rateUnderlyingAssetsToUsd[1].assetValue, 1e18);
         uint256 valueReward = underlyingAssetsAmounts[2].mulDivDown(rateUnderlyingAssetsToUsd[2].assetValue, 1e18);
         valueInUsd = valuePrincipal + valueReward;
@@ -367,14 +366,12 @@ contract StakedSlipstreamAM is DerivedAM, ERC721, ReentrancyGuard {
 
         // Calculate weighted risk factors of principal and reward.
         unchecked {
-            collateralFactor = (valuePrincipal
-                    * collateralFactor
-                    + valueReward
-                    * rateUnderlyingAssetsToUsd[2].collateralFactor) / valueInUsd;
-            liquidationFactor = (valuePrincipal
-                    * liquidationFactor
-                    + valueReward
-                    * rateUnderlyingAssetsToUsd[2].liquidationFactor) / valueInUsd;
+            collateralFactor =
+                (valuePrincipal * collateralFactor + valueReward * rateUnderlyingAssetsToUsd[2].collateralFactor)
+                    / valueInUsd;
+            liquidationFactor =
+                (valuePrincipal * liquidationFactor + valueReward * rateUnderlyingAssetsToUsd[2].liquidationFactor)
+                    / valueInUsd;
         }
 
         // Lower risk factors with the protocol wide risk factor.

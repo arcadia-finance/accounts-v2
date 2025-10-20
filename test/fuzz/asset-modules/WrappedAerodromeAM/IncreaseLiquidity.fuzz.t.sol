@@ -102,13 +102,13 @@ contract IncreaseLiquidity_WrappedAerodromeAM_Fuzz_Test is WrappedAerodromeAM_Fu
         // And: Position state should be updated correctly.
         WrappedAerodromeAM.PositionState memory positionState_;
         (
-                positionState_.fee0PerLiquidity,
-                positionState_.fee1PerLiquidity,
-                positionState_.fee0,
-                positionState_.fee1,
-                positionState_.amountWrapped,
-                positionState_.pool
-            ) = wrappedAerodromeAM.positionState(positionId);
+            positionState_.fee0PerLiquidity,
+            positionState_.fee1PerLiquidity,
+            positionState_.fee0,
+            positionState_.fee1,
+            positionState_.amountWrapped,
+            positionState_.pool
+        ) = wrappedAerodromeAM.positionState(positionId);
 
         uint128 fee0PerLiquidity;
         uint128 fee1PerLiquidity;

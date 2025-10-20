@@ -81,11 +81,11 @@ contract Burn_AbstractStakingAM_Fuzz_Test is AbstractStakingAM_Fuzz_Test {
         // And: Position state should be updated correctly.
         StakingAM.PositionState memory newPositionState;
         (
-                newPositionState.asset,
-                newPositionState.amountStaked,
-                newPositionState.lastRewardPerTokenPosition,
-                newPositionState.lastRewardPosition
-            ) = stakingAM.positionState(positionId);
+            newPositionState.asset,
+            newPositionState.amountStaked,
+            newPositionState.lastRewardPerTokenPosition,
+            newPositionState.lastRewardPosition
+        ) = stakingAM.positionState(positionId);
         assertEq(newPositionState.asset, address(0));
         assertEq(newPositionState.amountStaked, 0);
         assertEq(newPositionState.lastRewardPerTokenPosition, 0);
@@ -160,11 +160,11 @@ contract Burn_AbstractStakingAM_Fuzz_Test is AbstractStakingAM_Fuzz_Test {
         // And: Position state should be updated correctly.
         StakingAM.PositionState memory newPositionState;
         (
-                newPositionState.asset,
-                newPositionState.amountStaked,
-                newPositionState.lastRewardPerTokenPosition,
-                newPositionState.lastRewardPosition
-            ) = stakingAM.positionState(positionId);
+            newPositionState.asset,
+            newPositionState.amountStaked,
+            newPositionState.lastRewardPerTokenPosition,
+            newPositionState.lastRewardPosition
+        ) = stakingAM.positionState(positionId);
         assertEq(newPositionState.asset, address(0));
         assertEq(newPositionState.amountStaked, 0);
         assertEq(newPositionState.lastRewardPerTokenPosition, 0);

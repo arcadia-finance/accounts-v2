@@ -316,7 +316,8 @@ contract UniswapV2AM is DerivedAM {
         uint256 reserve0,
         uint256 reserve1
     ) internal pure returns (bool token0ToToken1, uint256 amountIn) {
-        token0ToToken1 = FixedPointMathLib.mulDivDown(reserve0, trustedPriceToken0, reserve1) < trustedPriceToken1;
+        token0ToToken1 =
+            FixedPointMathLib.mulDivDown(reserve0, trustedPriceToken0, reserve1) < trustedPriceToken1;
 
         uint256 invariant;
         unchecked {

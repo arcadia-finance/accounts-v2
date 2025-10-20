@@ -89,11 +89,11 @@ contract GetRiskFactors_StakedStargateAM_Fuzz_Test is StakedStargateAM_Fuzz_Test
         // And reward is available.
         lpStakingTimeMock.setInfoForPoolId(pid, underlyingAssetsAmounts[1], address(poolMock));
 
-        uint256 expectedCollateralFactor =
-            riskFactor * ((value0 * collateralFactors[0] + value1 * collateralFactors[1]) / expectedValueInUsd)
+        uint256 expectedCollateralFactor = riskFactor
+            * ((value0 * collateralFactors[0] + value1 * collateralFactors[1]) / expectedValueInUsd)
             / AssetValuationLib.ONE_4;
-        uint256 expectedLiquidationFactor =
-            riskFactor * ((value0 * liquidationFactors[0] + value1 * liquidationFactors[1]) / expectedValueInUsd)
+        uint256 expectedLiquidationFactor = riskFactor
+            * ((value0 * liquidationFactors[0] + value1 * liquidationFactors[1]) / expectedValueInUsd)
             / AssetValuationLib.ONE_4;
 
         (uint256 collateralFactor, uint256 liquidationFactor) =

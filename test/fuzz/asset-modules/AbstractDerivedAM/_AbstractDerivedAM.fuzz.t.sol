@@ -230,9 +230,10 @@ abstract contract AbstractDerivedAM_Fuzz_Test is Fuzz_Test {
         )
     {
         // Identical bounds as for Withdrawals.
-        (protocolState, assetState, underlyingPMState, exposureUpperAssetToAsset, deltaExposureUpperAssetToAsset) = givenNonRevertingWithdrawal(
-            protocolState, assetState, underlyingPMState, exposureUpperAssetToAsset, deltaExposureUpperAssetToAsset
-        );
+        (protocolState, assetState, underlyingPMState, exposureUpperAssetToAsset, deltaExposureUpperAssetToAsset) =
+            givenNonRevertingWithdrawal(
+                protocolState, assetState, underlyingPMState, exposureUpperAssetToAsset, deltaExposureUpperAssetToAsset
+            );
 
         // And: "exposure" is strictly smaller than "maxExposure".
         uint256 usdExposureProtocolExpected;
