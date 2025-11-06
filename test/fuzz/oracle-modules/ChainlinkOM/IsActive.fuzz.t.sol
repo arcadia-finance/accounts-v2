@@ -104,12 +104,9 @@ contract IsActive_ChainlinkOM_Fuzz_Test is ChainlinkOM_Fuzz_Test {
         assertFalse(chainlinkOM.isActive(oracleId));
     }
 
-    function testFuzz_Success_isActive_HealthyOracle(
-        address sender,
-        int192 price,
-        uint32 timePassed,
-        uint32 cutOffTime
-    ) public {
+    function testFuzz_Success_isActive_HealthyOracle(address sender, int192 price, uint32 timePassed, uint32 cutOffTime)
+        public
+    {
         price = int192(int256(bound(price, 0, type(int192).max)));
         cutOffTime = uint32(bound(cutOffTime, 1, type(uint32).max));
         timePassed = uint32(bound(timePassed, 0, cutOffTime - 1));

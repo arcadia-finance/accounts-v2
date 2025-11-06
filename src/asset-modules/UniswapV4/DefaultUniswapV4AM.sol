@@ -222,19 +222,19 @@ contract DefaultUniswapV4AM is DerivedAM {
         // Therefore we cap the fee amounts so that this cannot be abused to far exceed the max exposures.
         unchecked {
             fee0 = fee0
-                    < principal0
-                        + principal1.mulDivDown(
-                            rateUnderlyingAssetsToUsd[1].assetValue, rateUnderlyingAssetsToUsd[0].assetValue
-                        )
+                < principal0
+                    + principal1.mulDivDown(
+                        rateUnderlyingAssetsToUsd[1].assetValue, rateUnderlyingAssetsToUsd[0].assetValue
+                    )
                 ? fee0
                 : principal0
                     + principal1.mulDivDown(
                         rateUnderlyingAssetsToUsd[1].assetValue, rateUnderlyingAssetsToUsd[0].assetValue
                     );
             fee1 = fee1
-                    < principal0.mulDivDown(
-                            rateUnderlyingAssetsToUsd[0].assetValue, rateUnderlyingAssetsToUsd[1].assetValue
-                        ) + principal1
+                < principal0.mulDivDown(
+                        rateUnderlyingAssetsToUsd[0].assetValue, rateUnderlyingAssetsToUsd[1].assetValue
+                    ) + principal1
                 ? fee1
                 : principal0.mulDivDown(
                         rateUnderlyingAssetsToUsd[0].assetValue, rateUnderlyingAssetsToUsd[1].assetValue
@@ -416,7 +416,7 @@ contract DefaultUniswapV4AM is DerivedAM {
             ? riskFactor.mulDivDown(rateUnderlyingAssetsToUsd[0].collateralFactor, AssetValuationLib.ONE_4)
             : riskFactor.mulDivDown(rateUnderlyingAssetsToUsd[1].collateralFactor, AssetValuationLib.ONE_4);
         liquidationFactor = rateUnderlyingAssetsToUsd[0].liquidationFactor
-                < rateUnderlyingAssetsToUsd[1].liquidationFactor
+            < rateUnderlyingAssetsToUsd[1].liquidationFactor
             ? riskFactor.mulDivDown(rateUnderlyingAssetsToUsd[0].liquidationFactor, AssetValuationLib.ONE_4)
             : riskFactor.mulDivDown(rateUnderlyingAssetsToUsd[1].liquidationFactor, AssetValuationLib.ONE_4);
     }

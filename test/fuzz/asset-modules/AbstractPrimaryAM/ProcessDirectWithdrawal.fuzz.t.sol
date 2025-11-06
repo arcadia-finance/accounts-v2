@@ -42,10 +42,9 @@ contract ProcessDirectWithdrawal_AbstractPrimaryAM_Fuzz_Test is AbstractPrimaryA
         vm.stopPrank();
     }
 
-    function testFuzz_Success_processDirectWithdrawal_NoUnderflow(
-        PrimaryAMAssetState memory assetState,
-        uint256 amount
-    ) public {
+    function testFuzz_Success_processDirectWithdrawal_NoUnderflow(PrimaryAMAssetState memory assetState, uint256 amount)
+        public
+    {
         // Given: exposure does not underflow after withdrawal (test-case).
         amount = bound(amount, 0, assetState.exposureAssetLast);
 

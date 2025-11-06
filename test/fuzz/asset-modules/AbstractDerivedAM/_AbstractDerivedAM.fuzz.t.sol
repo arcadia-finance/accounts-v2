@@ -242,7 +242,7 @@ abstract contract AbstractDerivedAM_Fuzz_Test is Fuzz_Test {
                 protocolState.lastUsdExposureProtocol + (underlyingPMState.usdValue - assetState.lastUsdExposureAsset);
         } else {
             usdExposureProtocolExpected = protocolState.lastUsdExposureProtocol
-                    > assetState.lastUsdExposureAsset - underlyingPMState.usdValue
+                > assetState.lastUsdExposureAsset - underlyingPMState.usdValue
                 ? protocolState.lastUsdExposureProtocol - (assetState.lastUsdExposureAsset - underlyingPMState.usdValue)
                 : 0;
         }

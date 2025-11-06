@@ -125,12 +125,9 @@ contract IsAllowed_DefaultUniswapV4AM_Fuzz_Test is DefaultUniswapV4AM_Fuzz_Test 
         assertTrue(uniswapV4AM.isAllowed(address(positionManagerV4), tokenId));
     }
 
-    function testFuzz_Success_isAllowed_NativeToken(
-        uint96 tokenId,
-        int24 tickLower,
-        int24 tickUpper,
-        uint128 liquidity
-    ) public {
+    function testFuzz_Success_isAllowed_NativeToken(uint96 tokenId, int24 tickLower, int24 tickUpper, uint128 liquidity)
+        public
+    {
         // Given : Valid ticks
         (tickLower, tickUpper) = givenValidTicks(tickLower, tickUpper);
 
