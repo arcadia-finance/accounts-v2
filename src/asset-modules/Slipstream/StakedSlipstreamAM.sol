@@ -360,7 +360,7 @@ contract StakedSlipstreamAM is DerivedAM, ERC721, ReentrancyGuard {
             ? rateUnderlyingAssetsToUsd[0].collateralFactor
             : rateUnderlyingAssetsToUsd[1].collateralFactor;
         liquidationFactor = rateUnderlyingAssetsToUsd[0].liquidationFactor
-                < rateUnderlyingAssetsToUsd[1].liquidationFactor
+            < rateUnderlyingAssetsToUsd[1].liquidationFactor
             ? rateUnderlyingAssetsToUsd[0].liquidationFactor
             : rateUnderlyingAssetsToUsd[1].liquidationFactor;
 

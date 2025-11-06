@@ -343,12 +343,12 @@ contract UniswapV3AM is DerivedAM {
         // one or both terms, or their sum, is bigger than a uint128.
         // This is however much bigger than any realistic situation.
         unchecked {
-            amount0 =
-                FullMath.mulDiv(feeGrowthInside0CurrentX128 - feeGrowthInside0LastX128, liquidity, FixedPoint128.Q128)
-                    + tokensOwed0;
-            amount1 =
-                FullMath.mulDiv(feeGrowthInside1CurrentX128 - feeGrowthInside1LastX128, liquidity, FixedPoint128.Q128)
-                    + tokensOwed1;
+            amount0 = FullMath.mulDiv(
+                feeGrowthInside0CurrentX128 - feeGrowthInside0LastX128, liquidity, FixedPoint128.Q128
+            ) + tokensOwed0;
+            amount1 = FullMath.mulDiv(
+                feeGrowthInside1CurrentX128 - feeGrowthInside1LastX128, liquidity, FixedPoint128.Q128
+            ) + tokensOwed1;
         }
     }
 
@@ -471,7 +471,7 @@ contract UniswapV3AM is DerivedAM {
             ? riskFactor.mulDivDown(rateUnderlyingAssetsToUsd[0].collateralFactor, AssetValuationLib.ONE_4)
             : riskFactor.mulDivDown(rateUnderlyingAssetsToUsd[1].collateralFactor, AssetValuationLib.ONE_4);
         liquidationFactor = rateUnderlyingAssetsToUsd[0].liquidationFactor
-                < rateUnderlyingAssetsToUsd[1].liquidationFactor
+            < rateUnderlyingAssetsToUsd[1].liquidationFactor
             ? riskFactor.mulDivDown(rateUnderlyingAssetsToUsd[0].liquidationFactor, AssetValuationLib.ONE_4)
             : riskFactor.mulDivDown(rateUnderlyingAssetsToUsd[1].liquidationFactor, AssetValuationLib.ONE_4);
     }
