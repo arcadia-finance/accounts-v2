@@ -6,6 +6,8 @@ pragma solidity ^0.8.0;
 
 import { Constants } from "../../../utils/Constants.sol";
 import { ERC20 } from "../../../../lib/solmate/src/tokens/ERC20.sol";
+import { FixedPoint128 } from "../../../../src/asset-modules/UniswapV3/libraries/FixedPoint128.sol";
+import { FullMath } from "../../../../src/asset-modules/UniswapV3/libraries/FullMath.sol";
 import { LiquidityAmounts } from "../../../../src/asset-modules/UniswapV3/libraries/LiquidityAmounts.sol";
 import { LiquidityAmountsExtension } from "./extensions/libraries/LiquidityAmountsExtension.sol";
 import { INonfungiblePositionManagerExtension } from "./extensions/interfaces/INonfungiblePositionManagerExtension.sol";
@@ -185,5 +187,82 @@ contract UniswapV3Fixture is WETH9Fixture {
     function isWithinAllowedRange(int24 tick) internal pure returns (bool) {
         // forge-lint: disable-next-line(unsafe-typecast)
         return (tick < 0 ? uint256(-int256(tick)) : uint256(int256(tick))) <= uint256(uint24(TickMath.MAX_TICK));
+    }
+
+    function getAmountsV3(uint256 id) internal view returns (uint256 amount0, uint256 amount1) {
+        (uint256 principal0, uint256 principal1) = getPrincipalAmountsV3(id);
+        (uint256 fee0, uint256 fee1) = getFeeAmountsV3(id);
+
+        amount0 = principal0 + fee0;
+        amount1 = principal1 + fee1;
+    }
+
+    function getPrincipalAmountsV3(uint256 id) internal view returns (uint256 amount0, uint256 amount1) {
+        (,, address token0, address token1, uint24 fee, int24 tickLower, int24 tickUpper, uint128 liquidity,,,,) =
+            nonfungiblePositionManager.positions(id);
+        IUniswapV3PoolExtension pool = IUniswapV3PoolExtension(uniswapV3Factory.getPool(token0, token1, fee));
+        (uint160 sqrtPrice,,,,,,) = pool.slot0();
+
+        (amount0, amount1) = LiquidityAmounts.getAmountsForLiquidity(
+            sqrtPrice, TickMath.getSqrtRatioAtTick(tickLower), TickMath.getSqrtRatioAtTick(tickUpper), liquidity
+        );
+    }
+
+    function getFeeAmountsV3(uint256 id) internal view returns (uint256 amount0, uint256 amount1) {
+        (
+            ,,
+            address token0,
+            address token1,
+            uint24 fee,
+            int24 tickLower,
+            int24 tickUpper,
+            uint256 liquidity,
+            uint256 feeGrowthInside0LastX128,
+            uint256 feeGrowthInside1LastX128,
+            uint256 tokensOwed0,
+            uint256 tokensOwed1
+        ) = nonfungiblePositionManager.positions(id);
+
+        (uint256 feeGrowthInside0CurrentX128, uint256 feeGrowthInside1CurrentX128) =
+            getFeeGrowthInsideV3(token0, token1, fee, tickLower, tickUpper);
+
+        unchecked {
+            amount0 = FullMath.mulDiv(
+                feeGrowthInside0CurrentX128 - feeGrowthInside0LastX128, liquidity, FixedPoint128.Q128
+            ) + tokensOwed0;
+            amount1 = FullMath.mulDiv(
+                feeGrowthInside1CurrentX128 - feeGrowthInside1LastX128, liquidity, FixedPoint128.Q128
+            ) + tokensOwed1;
+        }
+    }
+
+    function getFeeGrowthInsideV3(address token0, address token1, uint24 fee, int24 tickLower, int24 tickUpper)
+        internal
+        view
+        returns (uint256 feeGrowthInside0X128, uint256 feeGrowthInside1X128)
+    {
+        IUniswapV3PoolExtension pool = IUniswapV3PoolExtension(uniswapV3Factory.getPool(token0, token1, fee));
+
+        // To calculate the pending fees, the current tick has to be used, even if the pool would be unbalanced.
+        (, int24 tickCurrent,,,,,) = pool.slot0();
+        (,, uint256 lowerFeeGrowthOutside0X128, uint256 lowerFeeGrowthOutside1X128,,,,) = pool.ticks(tickLower);
+        (,, uint256 upperFeeGrowthOutside0X128, uint256 upperFeeGrowthOutside1X128,,,,) = pool.ticks(tickUpper);
+
+        // Calculate the fee growth inside of the Liquidity Range since the last time the position was updated.
+        // feeGrowthInside can overflow (without reverting), as is the case in the Uniswap fee calculations.
+        unchecked {
+            if (tickCurrent < tickLower) {
+                feeGrowthInside0X128 = lowerFeeGrowthOutside0X128 - upperFeeGrowthOutside0X128;
+                feeGrowthInside1X128 = lowerFeeGrowthOutside1X128 - upperFeeGrowthOutside1X128;
+            } else if (tickCurrent < tickUpper) {
+                feeGrowthInside0X128 =
+                    pool.feeGrowthGlobal0X128() - lowerFeeGrowthOutside0X128 - upperFeeGrowthOutside0X128;
+                feeGrowthInside1X128 =
+                    pool.feeGrowthGlobal1X128() - lowerFeeGrowthOutside1X128 - upperFeeGrowthOutside1X128;
+            } else {
+                feeGrowthInside0X128 = upperFeeGrowthOutside0X128 - lowerFeeGrowthOutside0X128;
+                feeGrowthInside1X128 = upperFeeGrowthOutside1X128 - lowerFeeGrowthOutside1X128;
+            }
+        }
     }
 }

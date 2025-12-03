@@ -9,6 +9,8 @@ import { ActionConstants } from "../../../../lib/v4-periphery/src/libraries/Acti
 import { BaseHookExtension } from "./extensions/BaseHookExtension.sol";
 import { Currency } from "../../../../lib/v4-periphery/lib/v4-core/src/types/Currency.sol";
 import { ERC20 } from "../../../../lib/solmate/src/tokens/ERC20.sol";
+import { FixedPoint128 } from "../../../../src/asset-modules/UniswapV3/libraries/FixedPoint128.sol";
+import { FullMath } from "../../../../src/asset-modules/UniswapV3/libraries/FullMath.sol";
 import { HookMockValid } from "../..//mocks/UniswapV4/BaseAM/HookMockValid.sol";
 import { HookMockUnvalid } from "../../mocks/UniswapV4/BaseAM/HookMockUnvalid.sol";
 import { Hooks } from "../../../../lib/v4-periphery/lib/v4-core/src/libraries/Hooks.sol";
@@ -20,12 +22,16 @@ import { IWETH9 } from "../../../../lib/v4-periphery/src/interfaces/external/IWE
 import { LiquidityAmounts } from "../../../../src/asset-modules/UniswapV3/libraries/LiquidityAmounts.sol";
 import { Permit2Fixture } from "../../../utils/fixtures/permit2/Permit2Fixture.f.sol";
 import { PoolKey } from "../../../../lib/v4-periphery/lib/v4-core/src/types/PoolKey.sol";
+import { PositionInfoLibrary, PositionInfo } from "../../../../lib/v4-periphery/src/libraries/PositionInfoLibrary.sol";
+import { StateLibrary } from "../../../../lib/v4-periphery/lib/v4-core/src/libraries/StateLibrary.sol";
 import { StateView } from "../../../../lib/v4-periphery/src/lens/StateView.sol";
 import { Test } from "../../../../lib/forge-std/src/Test.sol";
 import { TickMath } from "../../../../lib/v4-periphery/lib/v4-core/src/libraries/TickMath.sol";
 import { WETH9Fixture } from "../weth9/WETH9Fixture.f.sol";
 
 contract UniswapV4Fixture is Test, Permit2Fixture, WETH9Fixture {
+    using PositionInfoLibrary for PositionInfo;
+    using StateLibrary for IPoolManagerExtension;
     /*//////////////////////////////////////////////////////////////////////////
                                    CONTRACTS
     //////////////////////////////////////////////////////////////////////////*/
@@ -281,5 +287,59 @@ contract UniswapV4Fixture is Test, Permit2Fixture, WETH9Fixture {
     function isWithinAllowedRangeV4(int24 tick) internal pure returns (bool) {
         // forge-lint: disable-next-line(unsafe-typecast)
         return (tick < 0 ? uint256(-int256(tick)) : uint256(int256(tick))) <= uint256(uint24(MAX_TICK));
+    }
+
+    function getAmountsV4(uint256 id) internal view returns (uint256 amount0, uint256 amount1) {
+        (uint256 principal0, uint256 principal1) = getPrincipalAmountsV4(id);
+        (uint256 fee0, uint256 fee1) = getFeeAmountsV4(id);
+
+        amount0 = principal0 + fee0;
+        amount1 = principal1 + fee1;
+    }
+
+    function getPrincipalAmountsV4(uint256 id) internal view returns (uint256 amount0, uint256 amount1) {
+        (PoolKey memory poolKey, PositionInfo info) = positionManagerV4.getPoolAndPositionInfo(id);
+        (uint160 sqrtPriceX96,,,) = stateView.getSlot0(poolKey.toId());
+        bytes32 positionId =
+            keccak256(abi.encodePacked(address(positionManagerV4), info.tickLower(), info.tickUpper(), bytes32(id)));
+        uint128 liquidity = poolManager.getPositionLiquidity(poolKey.toId(), positionId);
+
+        (amount0, amount1) = LiquidityAmounts.getAmountsForLiquidity(
+            sqrtPriceX96,
+            TickMath.getSqrtPriceAtTick(info.tickLower()),
+            TickMath.getSqrtPriceAtTick(info.tickUpper()),
+            liquidity
+        );
+    }
+
+    function getFeeAmountsV4(uint256 id) internal view returns (uint256 amount0, uint256 amount1) {
+        (PoolKey memory poolKey, PositionInfo info) = positionManagerV4.getPoolAndPositionInfo(id);
+
+        (uint256 feeGrowthInside0CurrentX128, uint256 feeGrowthInside1CurrentX128) =
+            stateView.getFeeGrowthInside(poolKey.toId(), info.tickLower(), info.tickUpper());
+
+        bytes32 positionId =
+            keccak256(abi.encodePacked(address(positionManagerV4), info.tickLower(), info.tickUpper(), bytes32(id)));
+
+        (, uint256 feeGrowthInside0LastX128, uint256 feeGrowthInside1LastX128) =
+            stateView.getPositionInfo(poolKey.toId(), positionId);
+
+        // Calculate accumulated fees since the last time the position was updated:
+        // (feeGrowthInsideCurrentX128 - feeGrowthInsideLastX128) * liquidity.
+        // Fee calculations in PositionManager.sol overflow (without reverting) when
+        // one or both terms, or their sum, is bigger than a uint128.
+        // This is however much bigger than any realistic situation.
+        unchecked {
+            amount0 = FullMath.mulDiv(
+                feeGrowthInside0CurrentX128 - feeGrowthInside0LastX128,
+                positionManagerV4.getPositionLiquidity(id),
+                FixedPoint128.Q128
+            );
+            amount1 = FullMath.mulDiv(
+                feeGrowthInside1CurrentX128 - feeGrowthInside1LastX128,
+                positionManagerV4.getPositionLiquidity(id),
+                FixedPoint128.Q128
+            );
+        }
     }
 }
