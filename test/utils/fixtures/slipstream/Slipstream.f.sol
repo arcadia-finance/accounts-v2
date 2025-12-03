@@ -5,9 +5,9 @@
 pragma solidity ^0.8.0;
 
 import { AerodromeFixture } from "../aerodrome/AerodromeFixture.f.sol";
-import { WETH9Fixture } from "../weth9/WETH9Fixture.f.sol";
-
 import { ERC20 } from "../../../../lib/solmate/src/tokens/ERC20.sol";
+import { FixedPoint128 } from "../../../../src/asset-modules/UniswapV3/libraries/FixedPoint128.sol";
+import { FullMath } from "../../../../src/asset-modules/UniswapV3/libraries/FullMath.sol";
 import { ICLFactoryExtension } from "./extensions/interfaces/ICLFactoryExtension.sol";
 import { ICLGauge } from "../../../../src/asset-modules/Slipstream/interfaces/ICLGauge.sol";
 import { ICLGaugeFactory } from "./interfaces/ICLGaugeFactory.sol";
@@ -17,6 +17,7 @@ import { LiquidityAmounts } from "../../../../src/asset-modules/UniswapV3/librar
 import { LiquidityAmountsExtension } from "../uniswap-v3/extensions/libraries/LiquidityAmountsExtension.sol";
 import { TickMath } from "../../../../src/asset-modules/UniswapV3/libraries/TickMath.sol";
 import { Utils } from "../../Utils.sol";
+import { WETH9Fixture } from "../weth9/WETH9Fixture.f.sol";
 
 // forge-lint: disable-next-item(divide-before-multiply,mixed-case-function)
 contract SlipstreamFixture is WETH9Fixture, AerodromeFixture {
@@ -213,5 +214,89 @@ contract SlipstreamFixture is WETH9Fixture, AerodromeFixture {
                 deadline: type(uint256).max
             })
         );
+    }
+
+    function getAmountsCL(uint256 id) internal view returns (uint256 amount0, uint256 amount1) {
+        (uint256 principal0, uint256 principal1) = getPrincipalAmountsCL(id);
+        (uint256 fee0, uint256 fee1) = getFeeAmountsCL(id);
+
+        amount0 = principal0 + fee0;
+        amount1 = principal1 + fee1;
+    }
+
+    function getPrincipalAmountsCL(uint256 id) internal view returns (uint256 amount0, uint256 amount1) {
+        (
+            ,,
+            address token0,
+            address token1,
+            int24 tickSpacing,
+            int24 tickLower,
+            int24 tickUpper,
+            uint128 liquidity,,,,
+        ) = slipstreamPositionManager.positions(id);
+        ICLPoolExtension pool = ICLPoolExtension(cLFactory.getPool(token0, token1, tickSpacing));
+        (uint160 sqrtPrice,,,,,) = pool.slot0();
+
+        (amount0, amount1) = LiquidityAmounts.getAmountsForLiquidity(
+            sqrtPrice, TickMath.getSqrtRatioAtTick(tickLower), TickMath.getSqrtRatioAtTick(tickUpper), liquidity
+        );
+    }
+
+    function getFeeAmountsCL(uint256 id) internal view returns (uint256 amount0, uint256 amount1) {
+        (
+            ,,
+            address token0,
+            address token1,
+            int24 tickSpacing,
+            int24 tickLower,
+            int24 tickUpper,
+            uint256 liquidity,
+            uint256 feeGrowthInside0LastX128,
+            uint256 feeGrowthInside1LastX128,
+            uint256 tokensOwed0,
+            uint256 tokensOwed1
+        ) = slipstreamPositionManager.positions(id);
+
+        (uint256 feeGrowthInside0CurrentX128, uint256 feeGrowthInside1CurrentX128) =
+            getFeeGrowthInsideCL(token0, token1, tickSpacing, tickLower, tickUpper);
+
+        unchecked {
+            amount0 = FullMath.mulDiv(
+                feeGrowthInside0CurrentX128 - feeGrowthInside0LastX128, liquidity, FixedPoint128.Q128
+            ) + tokensOwed0;
+            amount1 = FullMath.mulDiv(
+                feeGrowthInside1CurrentX128 - feeGrowthInside1LastX128, liquidity, FixedPoint128.Q128
+            ) + tokensOwed1;
+        }
+    }
+
+    function getFeeGrowthInsideCL(address token0, address token1, int24 tickSpacing, int24 tickLower, int24 tickUpper)
+        internal
+        view
+        returns (uint256 feeGrowthInside0X128, uint256 feeGrowthInside1X128)
+    {
+        ICLPoolExtension pool = ICLPoolExtension(cLFactory.getPool(token0, token1, tickSpacing));
+
+        // To calculate the pending fees, the current tick has to be used, even if the pool would be unbalanced.
+        (, int24 tickCurrent,,,,) = pool.slot0();
+        (,,, uint256 lowerFeeGrowthOutside0X128, uint256 lowerFeeGrowthOutside1X128,,,,,) = pool.ticks(tickLower);
+        (,,, uint256 upperFeeGrowthOutside0X128, uint256 upperFeeGrowthOutside1X128,,,,,) = pool.ticks(tickUpper);
+
+        // Calculate the fee growth inside of the Liquidity Range since the last time the position was updated.
+        // feeGrowthInside can overflow (without reverting), as is the case in the Uniswap fee calculations.
+        unchecked {
+            if (tickCurrent < tickLower) {
+                feeGrowthInside0X128 = lowerFeeGrowthOutside0X128 - upperFeeGrowthOutside0X128;
+                feeGrowthInside1X128 = lowerFeeGrowthOutside1X128 - upperFeeGrowthOutside1X128;
+            } else if (tickCurrent < tickUpper) {
+                feeGrowthInside0X128 =
+                    pool.feeGrowthGlobal0X128() - lowerFeeGrowthOutside0X128 - upperFeeGrowthOutside0X128;
+                feeGrowthInside1X128 =
+                    pool.feeGrowthGlobal1X128() - lowerFeeGrowthOutside1X128 - upperFeeGrowthOutside1X128;
+            } else {
+                feeGrowthInside0X128 = upperFeeGrowthOutside0X128 - lowerFeeGrowthOutside0X128;
+                feeGrowthInside1X128 = upperFeeGrowthOutside1X128 - lowerFeeGrowthOutside1X128;
+            }
+        }
     }
 }
