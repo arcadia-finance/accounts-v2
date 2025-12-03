@@ -233,7 +233,7 @@ contract CreateAccount_Factory_Fuzz_Test is Factory_Fuzz_Test {
     ) public {
         // We assume that salt > 0 as we already deployed an Account with all inputs to 0
         vm.assume(salt > 0);
-        vm.assume(sender0 != sender1);
+        vm.assume(uint32(uint160(sender0)) != uint32(uint160(sender1)));
         vm.assume(sender0 != address(0));
         vm.assume(sender1 != address(0));
 
