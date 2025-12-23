@@ -141,13 +141,13 @@ contract DecreaseLiquidity_WrappedAerodromeAM_Fuzz_Test is WrappedAerodromeAM_Fu
             emit WrappedAerodromeAM.FeesPaid(positionId, uint128(fee0_), uint128(fee1_));
             vm.expectEmit();
             emit WrappedAerodromeAM.LiquidityDecreased(positionId, address(aeroPool), positionState.amountWrapped);
-            (uint256 fee0__, uint256 fee1__) =
+            (uint256 _fee0_, uint256 _fee1_) =
                 wrappedAerodromeAM.decreaseLiquidity(positionId, positionState.amountWrapped);
             vm.stopPrank();
 
             // Then : Claimed rewards are returned.
-            assertEq(fee0_, fee0__);
-            assertEq(fee1_, fee1__);
+            assertEq(fee0_, _fee0_);
+            assertEq(fee1_, _fee1_);
 
             // And : Owner should get the staking and reward tokens
             assertEq(aeroPool.balanceOf(owner), positionState.amountWrapped);
@@ -240,12 +240,12 @@ contract DecreaseLiquidity_WrappedAerodromeAM_Fuzz_Test is WrappedAerodromeAM_Fu
             emit WrappedAerodromeAM.FeesPaid(positionId, uint128(fee0_), uint128(fee1_));
             vm.expectEmit();
             emit WrappedAerodromeAM.LiquidityDecreased(positionId, address(aeroPool), amount);
-            (uint256 fee0__, uint256 fee1__) = wrappedAerodromeAM.decreaseLiquidity(positionId, amount);
+            (uint256 _fee0_, uint256 _fee1_) = wrappedAerodromeAM.decreaseLiquidity(positionId, amount);
             vm.stopPrank();
 
             // Then : Claimed rewards are returned.
-            assertEq(fee0_, fee0__);
-            assertEq(fee1_, fee1__);
+            assertEq(fee0_, _fee0_);
+            assertEq(fee1_, _fee1_);
 
             // And : Owner should get the withdrawn amount and reward tokens.
             assertEq(aeroPool.balanceOf(owner), amount);
