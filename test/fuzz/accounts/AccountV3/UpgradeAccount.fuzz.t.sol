@@ -62,10 +62,12 @@ contract UpgradeAccount_AccountV3_Fuzz_Test is AccountV3_Fuzz_Test {
     function setUp() public override {
         AccountV3_Fuzz_Test.setUp();
 
-        // Set a Mocked V2 Account Logic contract in the Factory.
+        // Set a Mocked Account Logic contract in the Factory.
+        uint256 nextVersion = factory.latestAccountVersion() + 1;
         vm.startPrank(users.owner);
-        accountLogicMock = new AccountLogicMock(address(factory));
-        factory.setNewAccountInfo(address(registry), address(accountLogicMock), Constants.ROOT, "");
+        accountLogicMock = new AccountLogicMock(nextVersion, address(factory));
+        bytes32 root = keccak256(abi.encodePacked(account.ACCOUNT_VERSION(), nextVersion));
+        factory.setNewAccountInfo(address(registry), address(accountLogicMock), root, "");
         vm.stopPrank();
     }
 
@@ -217,15 +219,14 @@ contract UpgradeAccount_AccountV3_Fuzz_Test is AccountV3_Fuzz_Test {
 
         Checks memory checkBefore = createCompareStruct();
 
-        bytes32[] memory proofs = new bytes32[](1);
-        proofs[0] = Constants.PROOF_4_TO_3;
+        bytes32[] memory proofs = new bytes32[](0);
 
         vm.warp(time);
 
         // When: "users.accountOwner" Upgrade the account to AccountLogicMockLogic.
         vm.startPrank(users.accountOwner);
         vm.expectEmit(true, true, true, true);
-        emit Factory.AccountUpgraded(address(account), 4);
+        emit Factory.AccountUpgraded(address(account), factory.latestAccountVersion());
         factory.upgradeAccountVersion(address(account), factory.latestAccountVersion(), proofs);
         vm.stopPrank();
 

@@ -7,6 +7,7 @@ pragma solidity ^0.8.0;
 import { AccountsGuardExtension } from "../../extensions/AccountsGuardExtension.sol";
 import { AccountPlaceholder } from "../../../../src/accounts/AccountPlaceholder.sol";
 import { AccountV3 } from "../../../../src/accounts/AccountV3.sol";
+import { AccountV4 } from "../../../../src/accounts/AccountV4.sol";
 import { ArcadiaOracle } from "../../mocks/oracles/ArcadiaOracle.sol";
 import { Base_Test } from "../../../Base.t.sol";
 import { BitPackingLib } from "../../../../src/libraries/BitPackingLib.sol";
@@ -48,8 +49,12 @@ contract ArcadiaAccountsFixture is Base_Test {
         factory.setNewAccountInfo(address(registry), address(accountPlaceholder), Constants.ROOT, "");
 
         // Account Implementation V3.
-        accountLogic = new AccountV3(address(factory), address(accountsGuard), merklDistributor);
-        factory.setNewAccountInfo(address(registry), address(accountLogic), Constants.ROOT, "");
+        accountV3Logic = new AccountV3(address(factory), address(accountsGuard), merklDistributor);
+        factory.setNewAccountInfo(address(registry), address(accountV3Logic), Constants.ROOT, "");
+
+        // Account Implementation V4.
+        accountV4Logic = new AccountV4(address(factory), address(accountsGuard), merklDistributor);
+        factory.setNewAccountInfo(address(registry), address(accountV4Logic), Constants.ROOT, "");
 
         // Set the Guardians.
         vm.startPrank(users.owner);
@@ -68,7 +73,7 @@ contract ArcadiaAccountsFixture is Base_Test {
 
         // Deploy an initial Account with all inputs to zero
         vm.prank(users.accountOwner);
-        address proxyAddress = factory.createAccount(0, 0, address(0));
+        address proxyAddress = factory.createAccount(0, 3, address(0));
         account = AccountV3(proxyAddress);
 
         // Label the base test contracts.
@@ -76,7 +81,7 @@ contract ArcadiaAccountsFixture is Base_Test {
         vm.label({ account: address(registry), newLabel: "Registry" });
         vm.label({ account: address(chainlinkOM), newLabel: "Chainlink Oracle Module" });
         vm.label({ account: address(erc20AM), newLabel: "Standard ERC20 Asset Module" });
-        vm.label({ account: address(accountLogic), newLabel: "Account Logic" });
+        vm.label({ account: address(accountV3Logic), newLabel: "Account Logic" });
     }
 
     /*//////////////////////////////////////////////////////////////////////////

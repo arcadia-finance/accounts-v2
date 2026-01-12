@@ -37,7 +37,7 @@ contract AccountLogicMock is AccountStorageV2 {
     ////////////////////////////////////////////////////////////// */
 
     // The current Account Version.
-    uint256 public constant ACCOUNT_VERSION = 4;
+    uint256 public immutable ACCOUNT_VERSION;
     // Storage slot with the address of the current implementation.
     // This is the hardcoded keccak-256 hash of: "eip1967.proxy.implementation" subtracted by 1.
     bytes32 internal constant IMPLEMENTATION_SLOT = 0x360894a13ba1a3210667c828492db98dca3e2076cc3735a920a3ca505d382bbc;
@@ -120,11 +120,12 @@ contract AccountLogicMock is AccountStorageV2 {
     /**
      * @param factory The contract address of the Arcadia Accounts Factory.
      */
-    constructor(address factory) {
+    constructor(uint256 version, address factory) {
         // This will only be the owner of the Account logic implementation.
         // and will not affect any subsequent proxy implementation using this Account logic.
         owner = msg.sender;
 
+        ACCOUNT_VERSION = version;
         FACTORY = factory;
     }
 

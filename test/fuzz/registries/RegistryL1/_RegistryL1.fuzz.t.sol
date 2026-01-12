@@ -56,9 +56,9 @@ abstract contract RegistryL1_Fuzz_Test is Fuzz_Test {
         floorERC1155AM = new FloorERC1155AMExtension(users.owner, address(registry_));
 
         accountsGuard = new AccountsGuardExtension(users.owner, address(factory));
-        accountLogic = new AccountV3(address(factory), address(accountsGuard), address(0));
+        accountV3Logic = new AccountV3(address(factory), address(accountsGuard), address(0));
         factory.setLatestAccountVersion(2);
-        factory.setNewAccountInfo(address(registry_), address(accountLogic), Constants.ROOT, "");
+        factory.setNewAccountInfo(address(registry_), address(accountV3Logic), Constants.ROOT, "");
 
         // Set the Guardians.
         factory.changeGuardian(users.guardian);
