@@ -14,7 +14,7 @@ import { NonfungiblePositionManager } from "../lib/slipstream/contracts/peripher
 import {
     NonfungiblePositionManagerExtension
 } from "./utils/fixtures/uniswap-v3/extensions/NonfungiblePositionManagerExtension.sol";
-import { Test } from "../lib/forge-std/src/Test.sol";
+import { Test } from "../lib/forge-std-v1.13/src/Test.sol";
 import { UniswapV3FactoryExtension } from "./utils/fixtures/uniswap-v3/extensions/UniswapV3FactoryExtension.sol";
 import { UniswapV3PoolExtension } from "./utils/fixtures/uniswap-v3/extensions/UniswapV3PoolExtension.sol";
 // forge-lint: disable-end(unused-import)
