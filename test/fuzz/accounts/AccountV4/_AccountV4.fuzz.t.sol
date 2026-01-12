@@ -6,7 +6,7 @@ pragma solidity ^0.8.0;
 
 import { AccountV4Extension } from "../../../utils/extensions/AccountV4Extension.sol";
 import { ActionTargetMock } from "../../../utils/mocks/action-targets/ActionTargetMock.sol";
-import { Constants } from "../../../utils/Constants.sol";
+import { Factory } from "../../../../src/Factory.sol";
 import { Fuzz_Test } from "../../Fuzz.t.sol";
 import { RouterMock } from "../../../utils/mocks/action-targets/RouterMock.sol";
 
@@ -37,8 +37,12 @@ abstract contract AccountV4_Fuzz_Test is Fuzz_Test {
 
         // Deploy Account.
         accountSpotLogic = new AccountV4Extension(address(factory), address(accountsGuard), address(0));
-        vm.prank(users.owner);
-        factory.setNewAccountInfo(address(registry), address(accountSpotLogic), Constants.ROOT, "");
+        factory.setVersionInformation(
+            4,
+            Factory.VersionInformation({
+                registry: address(registry), implementation: address(accountSpotLogic), data: ""
+            })
+        );
 
         vm.prank(users.accountOwner);
         address payable proxyAddress = payable(factory.createAccount(1001, 4, address(0)));

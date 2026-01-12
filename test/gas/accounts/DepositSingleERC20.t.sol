@@ -22,7 +22,7 @@ contract Deposits_SingleERC20_Gas_Test is Gas_Test {
     function setUp() public override {
         Gas_Test.setUp();
         vm.prank(users.accountOwner);
-        newAccount = factory.createAccount(1_000_000, 0, address(creditorStable1));
+        newAccount = factory.createAccount(1_000_000, 3, address(creditorStable1));
     }
 
     /*//////////////////////////////////////////////////////////////

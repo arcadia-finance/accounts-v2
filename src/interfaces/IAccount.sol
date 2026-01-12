@@ -37,6 +37,16 @@ interface IAccount {
         external;
 
     /**
+     * @notice Finalizes the Upgrade to a new Account version on the new implementation Contract.
+     * @param oldImplementation The old contract address of the Account implementation.
+     * @param oldRegistry The Registry of the old version (might be identical to the new registry)
+     * @param oldVersion The old version of the Account implementation.
+     * @param data Arbitrary data, can contain instructions to execute in this function.
+     */
+    function upgradeHook(address oldImplementation, address oldRegistry, uint256 oldVersion, bytes calldata data)
+        external;
+
+    /**
      * @notice Transfers ownership of the contract to a new account.
      * @param newOwner The new owner of the Account.
      */

@@ -24,7 +24,7 @@ contract UpgradeAccount_AccountV4_Fuzz_Test is AccountV4_Fuzz_Test {
 
         // Set the accountSpot version in the Factory.
         vm.startPrank(users.owner);
-        accountLogic = new AccountV3(address(factory), address(accountsGuard), address(0));
+        accountV3Logic = new AccountV3(address(factory), address(accountsGuard), address(0));
         vm.stopPrank();
     }
 

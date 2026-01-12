@@ -6,6 +6,7 @@ pragma solidity ^0.8.0;
 
 import { AccountsGuardExtension } from "./utils/extensions/AccountsGuardExtension.sol";
 import { AccountV3 } from "../src/accounts/AccountV3.sol";
+import { AccountV4 } from "../src/accounts/AccountV4.sol";
 import { ChainlinkOMExtension } from "./utils/extensions/ChainlinkOMExtension.sol";
 import { ERC20PrimaryAMExtension } from "./utils/extensions/ERC20PrimaryAMExtension.sol";
 import { ERC721TokenReceiver } from "../lib/solmate/src/tokens/ERC721.sol";
@@ -40,7 +41,8 @@ abstract contract Base_Test is Test {
     // forge-lint: disable-start(mixed-case-variable)
     AccountsGuardExtension internal accountsGuard;
     AccountV3 internal account;
-    AccountV3 internal accountLogic;
+    AccountV3 internal accountV3Logic;
+    AccountV4 internal accountV4Logic;
     ChainlinkOMExtension internal chainlinkOM;
     ERC20PrimaryAMExtension internal erc20AM;
     FactoryExtension internal factory;

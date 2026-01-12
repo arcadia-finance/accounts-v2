@@ -59,7 +59,7 @@ contract TransferFrom_Factory_Fuzz_Test is Factory_Fuzz_Test {
         vm.assume(owner != address(0));
 
         vm.broadcast(owner);
-        address newAccount = factory.createAccount(salt, 0, address(0));
+        address newAccount = factory.createAccount(salt, 3, address(0));
 
         coolDownPeriodPassed(newAccount, lastActionTimestamp, timePassed);
 
@@ -74,7 +74,7 @@ contract TransferFrom_Factory_Fuzz_Test is Factory_Fuzz_Test {
         vm.assume(owner != address(0));
 
         vm.broadcast(owner);
-        address newAccount = factory.createAccount(salt, 0, address(0));
+        address newAccount = factory.createAccount(salt, 3, address(0));
 
         coolDownPeriodPassed(newAccount, lastActionTimestamp, timePassed);
 
@@ -97,7 +97,7 @@ contract TransferFrom_Factory_Fuzz_Test is Factory_Fuzz_Test {
         vm.assume(to != address(0));
 
         vm.broadcast(owner);
-        address newAccount = factory.createAccount(salt, 0, address(0));
+        address newAccount = factory.createAccount(salt, 3, address(0));
 
         vm.assume(to != newAccount);
 
@@ -117,7 +117,7 @@ contract TransferFrom_Factory_Fuzz_Test is Factory_Fuzz_Test {
         vm.assume(owner != address(0));
 
         vm.broadcast(owner);
-        address newAccount = factory.createAccount(salt, 0, address(0));
+        address newAccount = factory.createAccount(salt, 3, address(0));
 
         coolDownPeriodPassed(newAccount, lastActionTimestamp, timePassed);
 
@@ -136,7 +136,7 @@ contract TransferFrom_Factory_Fuzz_Test is Factory_Fuzz_Test {
         vm.assume(owner != address(0));
 
         vm.broadcast(owner);
-        address newAccount = factory.createAccount(salt, 0, address(0));
+        address newAccount = factory.createAccount(salt, 3, address(0));
 
         coolDownPeriodPassed(newAccount, lastActionTimestamp, timePassed);
 
@@ -160,7 +160,7 @@ contract TransferFrom_Factory_Fuzz_Test is Factory_Fuzz_Test {
         vm.assume(to != address(0));
 
         vm.broadcast(owner);
-        address newAccount = factory.createAccount(salt, 0, address(0));
+        address newAccount = factory.createAccount(salt, 3, address(0));
 
         vm.assume(to != newAccount);
 
@@ -181,7 +181,7 @@ contract TransferFrom_Factory_Fuzz_Test is Factory_Fuzz_Test {
         vm.assume(owner != address(0));
 
         vm.broadcast(owner);
-        address newAccount = factory.createAccount(salt, 0, address(0));
+        address newAccount = factory.createAccount(salt, 3, address(0));
 
         coolDownPeriodPassed(newAccount, lastActionTimestamp, timePassed);
 
@@ -197,7 +197,7 @@ contract TransferFrom_Factory_Fuzz_Test is Factory_Fuzz_Test {
         vm.assume(owner != address(0));
 
         vm.broadcast(owner);
-        address newAccount = factory.createAccount(salt, 0, address(0));
+        address newAccount = factory.createAccount(salt, 3, address(0));
 
         coolDownPeriodPassed(newAccount, lastActionTimestamp, timePassed);
 
@@ -221,7 +221,7 @@ contract TransferFrom_Factory_Fuzz_Test is Factory_Fuzz_Test {
         vm.assume(to != address(0));
 
         vm.broadcast(owner);
-        address newAccount = factory.createAccount(salt, 0, address(0));
+        address newAccount = factory.createAccount(salt, 3, address(0));
 
         vm.assume(to != newAccount);
 
@@ -242,7 +242,7 @@ contract TransferFrom_Factory_Fuzz_Test is Factory_Fuzz_Test {
         vm.assume(owner != address(0));
 
         vm.broadcast(owner);
-        address newAccount = factory.createAccount(salt, 0, address(0));
+        address newAccount = factory.createAccount(salt, 3, address(0));
 
         coolDownPeriodPassed(newAccount, lastActionTimestamp, timePassed);
 
@@ -262,7 +262,7 @@ contract TransferFrom_Factory_Fuzz_Test is Factory_Fuzz_Test {
         vm.assume(owner != address(0));
 
         vm.broadcast(owner);
-        address newAccount = factory.createAccount(salt, 0, address(0));
+        address newAccount = factory.createAccount(salt, 3, address(0));
 
         coolDownPeriodPassed(newAccount, lastActionTimestamp, timePassed);
 
@@ -287,7 +287,7 @@ contract TransferFrom_Factory_Fuzz_Test is Factory_Fuzz_Test {
         vm.assume(to != address(0));
 
         vm.broadcast(owner);
-        address newAccount = factory.createAccount(salt, 0, address(0));
+        address newAccount = factory.createAccount(salt, 3, address(0));
 
         vm.assume(to != newAccount);
 
@@ -310,7 +310,7 @@ contract TransferFrom_Factory_Fuzz_Test is Factory_Fuzz_Test {
         vm.assume(owner != address(0));
 
         vm.broadcast(owner);
-        address newAccount = factory.createAccount(salt, 0, address(0));
+        address newAccount = factory.createAccount(salt, 3, address(0));
 
         coolDownPeriodPassed(newAccount, lastActionTimestamp, timePassed);
 
@@ -330,7 +330,7 @@ contract TransferFrom_Factory_Fuzz_Test is Factory_Fuzz_Test {
         vm.assume(owner != address(0));
 
         vm.broadcast(owner);
-        address newAccount = factory.createAccount(salt, 0, address(0));
+        address newAccount = factory.createAccount(salt, 3, address(0));
 
         vm.assume(to != newAccount);
 
@@ -353,7 +353,7 @@ contract TransferFrom_Factory_Fuzz_Test is Factory_Fuzz_Test {
         vm.assume(owner != address(0));
 
         vm.broadcast(owner);
-        address newAccount = factory.createAccount(salt, 0, address(0));
+        address newAccount = factory.createAccount(salt, 3, address(0));
 
         vm.assume(to != newAccount);
 
@@ -376,7 +376,7 @@ contract TransferFrom_Factory_Fuzz_Test is Factory_Fuzz_Test {
         vm.assume(owner != address(0));
 
         vm.broadcast(owner);
-        address newAccount = factory.createAccount(salt, 0, address(0));
+        address newAccount = factory.createAccount(salt, 3, address(0));
 
         vm.assume(to != newAccount);
 
