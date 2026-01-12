@@ -170,7 +170,10 @@ contract AccountPlaceholder is AccountStorageV1, IAccount {
      * param data Arbitrary data, can contain instructions to execute in this function.
      * @dev If upgradeHook() is implemented, it MUST verify that msg.sender == address(this).
      */
-    function upgradeHook(address, address, uint256, bytes calldata) external pure {
+    function upgradeHook(address, address, uint256, bytes calldata) external {
+        // Function must be non-view, we do a sstore to suppress pure/view warning for proxy compatibility.
+        owner = owner;
+
         // Placeholder implementations are strictly for creating Accounts of a certain version.
         // It should never be possible to upgrade an Account to a Placeholder implementation.
         revert AccountErrors.InvalidUpgrade();
