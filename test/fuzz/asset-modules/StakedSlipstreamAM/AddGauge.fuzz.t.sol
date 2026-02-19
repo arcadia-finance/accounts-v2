@@ -26,7 +26,7 @@ contract AddGauge_StakedSlipstreamAM_Fuzz_Test is StakedSlipstreamAM_Fuzz_Test {
         deployStakedSlipstreamAM();
         ERC20Mock tokenA = new ERC20Mock("Token A", "TOKENA", 18);
         ERC20Mock tokenB = new ERC20Mock("Token B", "TOKENB", 18);
-        (token0, token1) = tokenA < tokenB ? (tokenA, tokenB) : (tokenB, tokenA);
+        (token0, token1) = address(tokenA) < address(tokenB) ? (tokenA, tokenB) : (tokenB, tokenA);
         pool = createPoolCL(address(token0), address(token1), 1, TickMath.getSqrtRatioAtTick(0), 300);
         gauge = createGaugeCL(pool);
     }

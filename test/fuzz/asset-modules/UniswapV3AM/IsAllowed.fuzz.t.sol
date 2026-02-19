@@ -45,7 +45,7 @@ contract IsAllowed_UniswapV3AM_Fuzz_Test is UniswapV3AM_Fuzz_Test {
         // Token 4 has no exposure set
         ERC20 tokenA = ERC20(address(mockERC20.token1));
         ERC20 tokenB = ERC20(address(mockERC20.token4));
-        (tokenA, tokenB) = tokenA < tokenB ? (tokenA, tokenB) : (tokenB, tokenA);
+        (tokenA, tokenB) = address(tokenA) < address(tokenB) ? (tokenA, tokenB) : (tokenB, tokenA);
         address pool = nonfungiblePositionManager.createAndInitializePoolIfNecessary(
             address(tokenA), address(tokenB), 100, 1 << 96
         );
@@ -88,7 +88,7 @@ contract IsAllowed_UniswapV3AM_Fuzz_Test is UniswapV3AM_Fuzz_Test {
         // Create a LP-position of two underlying assets: token1 and token2.
         ERC20 tokenA = ERC20(address(mockERC20.token1));
         ERC20 tokenB = ERC20(address(mockERC20.token2));
-        (tokenA, tokenB) = tokenA < tokenB ? (tokenA, tokenB) : (tokenB, tokenA);
+        (tokenA, tokenB) = address(tokenA) < address(tokenB) ? (tokenA, tokenB) : (tokenB, tokenA);
         address pool = nonfungiblePositionManager.createAndInitializePoolIfNecessary(
             address(tokenA), address(tokenB), 100, 1 << 96
         );
@@ -139,7 +139,7 @@ contract IsAllowed_UniswapV3AM_Fuzz_Test is UniswapV3AM_Fuzz_Test {
         // Create a LP-position of two underlying assets: token1 and token2.
         ERC20 tokenA = ERC20(address(mockERC20.token1));
         ERC20 tokenB = ERC20(address(mockERC20.token2));
-        (tokenA, tokenB) = tokenA < tokenB ? (tokenA, tokenB) : (tokenB, tokenA);
+        (tokenA, tokenB) = address(tokenA) < address(tokenB) ? (tokenA, tokenB) : (tokenB, tokenA);
         address pool = nonfungiblePositionManager.createAndInitializePoolIfNecessary(
             address(tokenA), address(tokenB), 100, 1 << 96
         );

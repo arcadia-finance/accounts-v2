@@ -69,7 +69,7 @@ contract UniswapV3Fixture is WETH9Fixture {
         uint160 sqrtPriceX96,
         uint16 observationCardinality
     ) internal returns (IUniswapV3PoolExtension uniV3Pool_) {
-        (token0, token1) = token0 < token1 ? (token0, token1) : (token1, token0);
+        (token0, token1) = address(token0) < address(token1) ? (token0, token1) : (token1, token0);
         address poolAddress =
             nonfungiblePositionManager.createAndInitializePoolIfNecessary(token0, token1, fee, sqrtPriceX96);
         uniV3Pool_ = IUniswapV3PoolExtension(poolAddress);

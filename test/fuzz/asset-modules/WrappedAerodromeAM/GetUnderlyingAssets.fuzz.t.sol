@@ -41,7 +41,7 @@ contract GetUnderlyingAssets_WrappedAerodromeAM_Fuzz_Test is WrappedAerodromeAM_
         // Then : Underlying assets returned should be correct
         assertEq(underlyingAssetKeys[0], wrappedAerodromeAM.getKeyFromAsset(address(aeroPool), 0));
         // Then : Asset and gauge info should be updated
-        if (mockERC20.token1 < mockERC20.stable1) {
+        if (address(mockERC20.token1) < address(mockERC20.stable1)) {
             assertEq(underlyingAssetKeys[1], wrappedAerodromeAM.getKeyFromAsset(address(mockERC20.token1), 0));
             assertEq(underlyingAssetKeys[2], wrappedAerodromeAM.getKeyFromAsset(address(mockERC20.stable1), 0));
         } else {

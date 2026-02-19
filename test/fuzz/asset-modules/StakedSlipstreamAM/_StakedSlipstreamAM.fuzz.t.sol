@@ -87,7 +87,7 @@ abstract contract StakedSlipstreamAM_Fuzz_Test is Fuzz_Test, SlipstreamFixture {
     function deployAndAddGauge(int24 tick) internal {
         ERC20Mock tokenA = new ERC20Mock("Token A", "TOKENA", 18);
         ERC20Mock tokenB = new ERC20Mock("Token B", "TOKENB", 18);
-        (token0, token1) = tokenA < tokenB ? (tokenA, tokenB) : (tokenB, tokenA);
+        (token0, token1) = address(tokenA) < address(tokenB) ? (tokenA, tokenB) : (tokenB, tokenA);
         addAssetToArcadia(address(token0), 1e18);
         addAssetToArcadia(address(token1), 1e18);
 

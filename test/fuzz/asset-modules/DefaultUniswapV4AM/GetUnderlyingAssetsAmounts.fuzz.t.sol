@@ -44,7 +44,7 @@ contract GetUnderlyingAssetsAmounts_DefaultUniswapV4AM_Fuzz_Test is DefaultUnisw
 
         ERC20Mock token0_ = new ERC20Mock("Token 0", "TOK0", uint8(asset0.decimals));
         ERC20Mock token1_ = new ERC20Mock("Token 1", "TOK1", uint8(asset1.decimals));
-        if (token0_ > token1_) {
+        if (address(token0_) > address(token1_)) {
             (token0_, token1_) = (token1_, token0_);
             (asset0, asset1) = (asset1, asset0);
         }
@@ -95,7 +95,7 @@ contract GetUnderlyingAssetsAmounts_DefaultUniswapV4AM_Fuzz_Test is DefaultUnisw
 
         ERC20Mock token0_ = new ERC20Mock("Token 0", "TOK0", uint8(asset0.decimals));
         ERC20Mock token1_ = new ERC20Mock("Token 1", "TOK1", uint8(asset1.decimals));
-        if (token0_ > token1_) {
+        if (address(token0_) > address(token1_)) {
             (token0_, token1_) = (token1_, token0_);
             (asset0, asset1) = (asset1, asset0);
         }
@@ -157,7 +157,7 @@ contract GetUnderlyingAssetsAmounts_DefaultUniswapV4AM_Fuzz_Test is DefaultUnisw
 
         ERC20Mock token0_ = new ERC20Mock("Token 0", "TOK0", uint8(asset0.decimals));
         ERC20Mock token1_ = new ERC20Mock("Token 1", "TOK1", uint8(asset1.decimals));
-        if (token0_ > token1_) {
+        if (address(token0_) > address(token1_)) {
             (token0_, token1_) = (token1_, token0_);
             (asset0, asset1) = (asset1, asset0);
         }
@@ -328,7 +328,7 @@ contract GetUnderlyingAssetsAmounts_DefaultUniswapV4AM_Fuzz_Test is DefaultUnisw
 
         token0 = new ERC20Mock("Token 0", "TOK0", uint8(asset0.decimals));
         token1 = new ERC20Mock("Token 1", "TOK1", uint8(asset1.decimals));
-        if (token0 > token1) {
+        if (address(token0) > address(token1)) {
             (token0, token1) = (token1, token0);
             (asset0, asset1) = (asset1, asset0);
         }
@@ -460,7 +460,7 @@ contract GetUnderlyingAssetsAmounts_DefaultUniswapV4AM_Fuzz_Test is DefaultUnisw
 
         token0 = new ERC20Mock("Token 0", "TOK0", uint8(asset0.decimals));
         token1 = new ERC20Mock("Token 1", "TOK1", uint8(asset1.decimals));
-        if (token0 > token1) {
+        if (address(token0) > address(token1)) {
             (token0, token1) = (token1, token0);
             (asset0, asset1) = (asset1, asset0);
         }

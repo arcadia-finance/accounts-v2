@@ -39,7 +39,7 @@ contract GetValue_DefaultUniswapV4AM_Fuzz_Test is DefaultUniswapV4AM_Fuzz_Test {
         vm.startPrank(users.tokenCreator);
         ERC20 token0_ = new ERC20Mock("TOKEN0", "TOK0", uint8(vars.decimals0));
         ERC20 token1_ = new ERC20Mock("TOKEN1", "TOK1", uint8(vars.decimals1));
-        if (token0_ > token1_) {
+        if (address(token0_) > address(token1_)) {
             (token0_, token1_) = (token1_, token0_);
             (vars.decimals0, vars.decimals1) = (vars.decimals1, vars.decimals0);
             (vars.priceToken0, vars.priceToken1) = (vars.priceToken1, vars.priceToken0);
@@ -212,7 +212,7 @@ contract GetValue_DefaultUniswapV4AM_Fuzz_Test is DefaultUniswapV4AM_Fuzz_Test {
         vm.startPrank(users.tokenCreator);
         ERC20 token0_ = new ERC20Mock("TOKEN0", "TOK0", uint8(decimals0));
         ERC20 token1_ = new ERC20Mock("TOKEN1", "TOK1", uint8(decimals1));
-        if (token0_ > token1_) {
+        if (address(token0_) > address(token1_)) {
             (token0_, token1_) = (token1_, token0_);
             (decimals0, decimals1) = (decimals1, decimals0);
         }
