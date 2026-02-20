@@ -962,7 +962,7 @@ contract GetUnderlyingAssetsAmounts_AerodromePoolAM_Fuzz_Test is AerodromePoolAM
         // Given : Deploy two tokens for the new Aerodrome tokenPair
         ERC20Mock token0 = new ERC20Mock("Token 0", "TOK0", 18);
         ERC20Mock token1;
-        while (token1 < token0) {
+        while (address(token1) < address(token0)) {
             token1 = new ERC20Mock("Token 1", "TOK1", 6);
         }
 
@@ -1031,7 +1031,7 @@ contract GetUnderlyingAssetsAmounts_AerodromePoolAM_Fuzz_Test is AerodromePoolAM
             // Given : Deploy two tokens for the new Aerodrome tokenPair
             ERC20Mock token0 = new ERC20Mock("Token 0", "TOK0", decimals0);
             ERC20Mock token1;
-            while (token1 < token0) {
+            while (address(token1) < address(token0)) {
                 token1 = new ERC20Mock("Token 1", "TOK1", decimals1);
             }
             aeroPool = createPoolAerodrome(address(token0), address(token1), true);

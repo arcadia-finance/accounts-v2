@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: GPL-2.0-or-later
-pragma solidity ^0.8.0;
+pragma solidity ^0.8.34;
 
 library Hooks {
     uint160 internal constant BEFORE_REMOVE_LIQUIDITY_FLAG = 1 << 9;

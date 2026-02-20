@@ -996,7 +996,8 @@ contract AccountLogicMock is AccountStorageV2 {
      */
     function skim(address token, uint256 id, uint256 type_) public onlyOwner {
         if (token == address(0)) {
-            payable(owner).transfer(address(this).balance);
+            (bool success,) = payable(owner).call{ value: address(this).balance }("");
+            require(success, "ETH transfer failed");
             return;
         }
 

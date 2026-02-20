@@ -2,7 +2,7 @@
  * Created by Pragma Labs
  * SPDX-License-Identifier: BUSL-1.1
  */
-pragma solidity ^0.8.30;
+pragma solidity ^0.8.34;
 
 import { CreateProxyLib } from "./libraries/CreateProxyLib.sol";
 import { ERC721, ERC721TokenReceiver } from "../lib/solmate/src/tokens/ERC721.sol";

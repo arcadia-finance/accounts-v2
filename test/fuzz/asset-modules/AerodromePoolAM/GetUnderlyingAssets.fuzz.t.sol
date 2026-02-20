@@ -32,7 +32,7 @@ contract GetUnderlyingAssets_AerodromePoolAM_Fuzz_Test is AerodromePoolAM_Fuzz_T
 
         bytes32 assetKey = bytes32(abi.encodePacked(uint96(0), address(aeroPool)));
         bytes32[] memory expectedUnderlyingAssetKeys = new bytes32[](2);
-        if (mockERC20.token1 < mockERC20.stable1) {
+        if (address(mockERC20.token1) < address(mockERC20.stable1)) {
             expectedUnderlyingAssetKeys[0] = bytes32(abi.encodePacked(uint96(0), address(mockERC20.token1)));
             expectedUnderlyingAssetKeys[1] = bytes32(abi.encodePacked(uint96(0), address(mockERC20.stable1)));
         } else {

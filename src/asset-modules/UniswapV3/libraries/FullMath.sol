@@ -1,6 +1,6 @@
 // https://github.com/Uniswap/v3-core/blob/main/contracts/libraries/FullMath.sol
 // SPDX-License-Identifier: GPL-2.0-or-later
-pragma solidity ^0.8.0;
+pragma solidity ^0.8.34;
 
 /// @title Contains 512-bit math functions
 /// @notice Facilitates multiplication and division that can have overflow of an intermediate value without any loss of precision
