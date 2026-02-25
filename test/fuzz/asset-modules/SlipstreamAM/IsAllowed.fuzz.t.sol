@@ -46,7 +46,7 @@ contract IsAllowed_SlipstreamAM_Fuzz_Test is SlipstreamAM_Fuzz_Test {
         // Token 4 has no exposure set
         ERC20 tokenA = ERC20(address(mockERC20.token1));
         ERC20 tokenB = ERC20(address(mockERC20.token4));
-        (tokenA, tokenB) = tokenA < tokenB ? (tokenA, tokenB) : (tokenB, tokenA);
+        (tokenA, tokenB) = address(tokenA) < address(tokenB) ? (tokenA, tokenB) : (tokenB, tokenA);
         address pool = cLFactory.createPool(address(tokenA), address(tokenB), 1, 1 << 96);
 
         vm.assume(lp != pool);
@@ -88,7 +88,7 @@ contract IsAllowed_SlipstreamAM_Fuzz_Test is SlipstreamAM_Fuzz_Test {
         // Create a LP-position of two underlying assets: token1 and token2.
         ERC20 tokenA = ERC20(address(mockERC20.token1));
         ERC20 tokenB = ERC20(address(mockERC20.token2));
-        (tokenA, tokenB) = tokenA < tokenB ? (tokenA, tokenB) : (tokenB, tokenA);
+        (tokenA, tokenB) = address(tokenA) < address(tokenB) ? (tokenA, tokenB) : (tokenB, tokenA);
         address pool = cLFactory.createPool(address(tokenA), address(tokenB), 1, 1 << 96);
 
         vm.assume(lp != pool);
@@ -138,7 +138,7 @@ contract IsAllowed_SlipstreamAM_Fuzz_Test is SlipstreamAM_Fuzz_Test {
         // Create a LP-position of two underlying assets: token1 and token2.
         ERC20 tokenA = ERC20(address(mockERC20.token1));
         ERC20 tokenB = ERC20(address(mockERC20.token2));
-        (tokenA, tokenB) = tokenA < tokenB ? (tokenA, tokenB) : (tokenB, tokenA);
+        (tokenA, tokenB) = address(tokenA) < address(tokenB) ? (tokenA, tokenB) : (tokenB, tokenA);
         address pool = cLFactory.createPool(address(tokenA), address(tokenB), 1, 1 << 96);
 
         vm.assume(lp != pool);

@@ -2,7 +2,7 @@
  * Created by Pragma Labs
  * SPDX-License-Identifier: BUSL-1.1
  */
-pragma solidity ^0.8.30;
+pragma solidity ^0.8.34;
 
 import { IERC20 } from "../../interfaces/IERC20.sol";
 import { IRegistry } from "../interfaces/IRegistry.sol";

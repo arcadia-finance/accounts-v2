@@ -23,7 +23,22 @@ remappings = [
 ]
 fs_permissions = [{ access = "read", path = "./out"}, { access = "write", path = "./script/out"}]
 unchecked_cheatcode_artifacts = true
-ignored_warnings_from = ["lib/slipstream/contracts/libraries/EnumerableSet.sol"]
+# Transient storage composability warning (known safe pattern in AccountsGuard):
+# - 2394: transient storage cleared at end of call
+# Solmate deprecation warnings (used in deployed contracts):
+# - 2424: memory-safe-assembly natspec deprecated (FixedPointMathLib.sol, SafeTransferLib.sol, MerkleProofLib.sol)
+# - 8429: virtual modifiers deprecated (Owned.sol, ReentrancyGuard.sol)
+# Test files exceed max sizes:
+# - 3860: Contract initcode size exceeds 49152 bytes
+# - 4591: More than 256 warnings (meta-warning triggered by suppressed max size warnings)
+# - 5574: Contract code size exceeds 24576 bytes
+ignored_error_codes = [2394, 2424, 3860, 4591, 5574, 8429]
+# Test-only submodules: not used in src/, safe to suppress all warnings.
+ignored_warnings_from = [
+    "lib/openzeppelin-contracts-v4.9/",
+    "lib/openzeppelin-contracts-upgradeable-v4.9/",
+    "lib/slipstream/",
+]
 
 [fmt]
 bracket_spacing = true

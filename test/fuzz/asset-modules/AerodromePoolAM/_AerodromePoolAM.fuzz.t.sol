@@ -77,7 +77,7 @@ abstract contract AerodromePoolAM_Fuzz_Test is Fuzz_Test, AerodromeFixture {
     {
         ERC20Mock token0 = new ERC20Mock("Token 0", "TOK0", uint8(testVars.decimals0));
         ERC20Mock token1;
-        while (token1 < token0) {
+        while (address(token1) < address(token0)) {
             token1 = new ERC20Mock("Token 1", "TOK1", uint8(testVars.decimals1));
         }
 

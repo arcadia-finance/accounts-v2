@@ -91,7 +91,7 @@ contract AddAsset_AerodromePoolAM_Fuzz_Test is AerodromePoolAM_Fuzz_Test {
         assertTrue(aeroPoolAM.inAssetModule(address(aeroPool)));
         bytes32 assetKey = bytes32(abi.encodePacked(uint96(0), address(aeroPool)));
         bytes32[] memory underlyingAssetKeys = aeroPoolAM.getUnderlyingAssets(assetKey);
-        if (mockERC20.token1 < mockERC20.stable1) {
+        if (address(mockERC20.token1) < address(mockERC20.stable1)) {
             assertEq(underlyingAssetKeys[0], bytes32(abi.encodePacked(uint96(0), address(mockERC20.token1))));
             assertEq(underlyingAssetKeys[1], bytes32(abi.encodePacked(uint96(0), address(mockERC20.stable1))));
         } else {
@@ -120,7 +120,7 @@ contract AddAsset_AerodromePoolAM_Fuzz_Test is AerodromePoolAM_Fuzz_Test {
         bytes32 assetKey = bytes32(abi.encodePacked(uint96(0), address(aeroPool)));
 
         bytes32[] memory underlyingAssetKeys = aeroPoolAM.getUnderlyingAssets(assetKey);
-        if (mockERC20.token1 < mockERC20.stable1) {
+        if (address(mockERC20.token1) < address(mockERC20.stable1)) {
             assertEq(underlyingAssetKeys[0], bytes32(abi.encodePacked(uint96(0), address(mockERC20.token1))));
             assertEq(underlyingAssetKeys[1], bytes32(abi.encodePacked(uint96(0), address(mockERC20.stable1))));
         } else {
@@ -131,7 +131,7 @@ contract AddAsset_AerodromePoolAM_Fuzz_Test is AerodromePoolAM_Fuzz_Test {
         (bool stable, uint64 unitCorrection0, uint64 unitCorrection1) = aeroPoolAM.assetToInformation(address(aeroPool));
         assertTrue(stable);
 
-        if (mockERC20.token1 < mockERC20.stable1) {
+        if (address(mockERC20.token1) < address(mockERC20.stable1)) {
             assertEq(unitCorrection0, 10 ** (18 - mockERC20.token1.decimals()));
             assertEq(unitCorrection1, 10 ** (18 - mockERC20.stable1.decimals()));
         } else {

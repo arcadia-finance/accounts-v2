@@ -87,7 +87,7 @@ contract SlipstreamFixture is WETH9Fixture, AerodromeFixture {
         uint160 sqrtPriceX96,
         uint16 observationCardinality
     ) internal returns (ICLPoolExtension pool) {
-        (token0, token1) = token0 < token1 ? (token0, token1) : (token1, token0);
+        (token0, token1) = address(token0) < address(token1) ? (token0, token1) : (token1, token0);
         address poolAddress = cLFactory.createPool(token0, token1, tickSpacing, sqrtPriceX96); // Set initial price to lowest possible price.
         pool = ICLPoolExtension(poolAddress);
         pool.increaseObservationCardinalityNext(observationCardinality);

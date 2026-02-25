@@ -45,7 +45,7 @@ contract GetUnderlyingAssetsAmounts_UniswapV3AM_Fuzz_Test is UniswapV3AM_Fuzz_Te
 
         ERC20Mock token0 = new ERC20Mock("Token 0", "TOK0", uint8(asset0.decimals));
         ERC20Mock token1 = new ERC20Mock("Token 1", "TOK1", uint8(asset1.decimals));
-        if (token0 > token1) {
+        if (address(token0) > address(token1)) {
             (token0, token1) = (token1, token0);
             (asset0, asset1) = (asset1, asset0);
         }
@@ -91,7 +91,7 @@ contract GetUnderlyingAssetsAmounts_UniswapV3AM_Fuzz_Test is UniswapV3AM_Fuzz_Te
 
         ERC20Mock token0 = new ERC20Mock("Token 0", "TOK0", uint8(asset0.decimals));
         ERC20Mock token1 = new ERC20Mock("Token 1", "TOK1", uint8(asset1.decimals));
-        if (token0 > token1) {
+        if (address(token0) > address(token1)) {
             (token0, token1) = (token1, token0);
             (asset0, asset1) = (asset1, asset0);
         }
@@ -131,7 +131,7 @@ contract GetUnderlyingAssetsAmounts_UniswapV3AM_Fuzz_Test is UniswapV3AM_Fuzz_Te
 
         ERC20Mock token0 = new ERC20Mock("Token 0", "TOK0", uint8(asset0.decimals));
         ERC20Mock token1 = new ERC20Mock("Token 1", "TOK1", uint8(asset1.decimals));
-        if (token0 > token1) {
+        if (address(token0) > address(token1)) {
             (token0, token1) = (token1, token0);
             (asset0, asset1) = (asset1, asset0);
         }

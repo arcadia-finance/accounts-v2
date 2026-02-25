@@ -149,7 +149,7 @@ contract UniswapV4Fixture is Test, Permit2Fixture, WETH9Fixture {
     ) public returns (PoolKey memory poolKey) {
         Currency currency0;
         Currency currency1;
-        if (token0 > token1) {
+        if (address(token0) > address(token1)) {
             (currency0, currency1) = (Currency.wrap(address(token1)), Currency.wrap(address(token0)));
         } else {
             (currency0, currency1) = (Currency.wrap(address(token0)), Currency.wrap(address(token1)));

@@ -63,7 +63,7 @@ contract GetUnderlyingAssetsAmounts_StakedSlipstreamAM_Fuzz_Test is StakedSlipst
             ERC20Mock tokenB = new ERC20Mock("Token B", "TOKENB", 18);
             uint256 priceTokenA;
             uint256 priceTokenB;
-            if (tokenA < tokenB) {
+            if (address(tokenA) < address(tokenB)) {
                 (token0, token1) = (tokenA, tokenB);
                 (priceTokenA, priceTokenB) = (priceToken0, priceToken1);
             } else {
@@ -146,7 +146,7 @@ contract GetUnderlyingAssetsAmounts_StakedSlipstreamAM_Fuzz_Test is StakedSlipst
             ERC20Mock tokenB = new ERC20Mock("Token B", "TOKENB", 18);
             uint256 priceTokenA;
             uint256 priceTokenB;
-            if (tokenA < tokenB) {
+            if (address(tokenA) < address(tokenB)) {
                 (token0, token1) = (tokenA, tokenB);
                 (priceTokenA, priceTokenB) = (priceToken0, priceToken1);
             } else {
