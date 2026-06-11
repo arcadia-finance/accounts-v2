@@ -50,6 +50,7 @@ abstract contract BaseGuardian is Owned {
      * but ensures that no rogue owner or guardian can lock user funds for an indefinite amount of time.
      */
     modifier afterCoolDownOf(uint256 coolDownPeriod) {
+        // forge-lint: disable-next-line(block-timestamp)
         if (block.timestamp <= pauseTimestamp + coolDownPeriod) revert GuardianErrors.CoolDownPeriodNotPassed();
         _;
     }

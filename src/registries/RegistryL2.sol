@@ -178,6 +178,7 @@ contract RegistryL2 is IRegistry, RegistryGuardian {
             uint80, int256 answer, uint256 startedAt, uint256, uint80
         ) {
             success = true;
+            // forge-lint: disable-next-line(block-timestamp)
             if (answer == 1 || block.timestamp - startedAt < riskParams[creditor].gracePeriod) {
                 sequencerDown = true;
             }

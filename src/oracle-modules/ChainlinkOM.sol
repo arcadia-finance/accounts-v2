@@ -120,6 +120,7 @@ contract ChainlinkOM is OracleModule {
         try IChainLinkData(oracleInformation_.oracle).latestRoundData() returns (
             uint80 roundId, int256 answer_, uint256, uint256 updatedAt, uint80
         ) {
+            // forge-lint: disable-next-item(block-timestamp)
             if (
                 roundId > 0 && answer_ >= 0 && updatedAt > block.timestamp - oracleInformation_.cutOffTime
                     && updatedAt <= block.timestamp
