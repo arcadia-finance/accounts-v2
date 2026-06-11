@@ -288,6 +288,7 @@ contract AccountV3 is AccountStorageV1, IAccount {
         nonReentrant(WITHOUT_PAUSE_CHECK)
         notDuringAuction
     {
+        // forge-lint: disable-next-line(block-timestamp)
         if (block.timestamp <= lastActionTimestamp + COOL_DOWN_PERIOD) {
             revert AccountErrors.CoolDownPeriodNotPassed();
         }

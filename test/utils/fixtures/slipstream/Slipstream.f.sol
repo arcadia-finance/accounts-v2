@@ -48,11 +48,11 @@ contract SlipstreamFixture is WETH9Fixture, AerodromeFixture {
         deployCodeTo("CLPoolExtension.sol", args, poolImplementation);
 
         // Deploy the CLFactory.
-        args = abi.encode(address(voter), poolImplementation);
+        args = abi.encode(address(this), address(this), address(this), address(voter), poolImplementation);
         deployCodeTo("CLFactory.sol", args, address(cLFactory));
 
         // Deploy the NonfungiblePositionManager, pass zero address for the NonfungibleTokenPositionDescriptor.
-        args = abi.encode(address(cLFactory), address(weth9), address(0), "", "");
+        args = abi.encode(address(this), address(cLFactory), address(weth9), address(0), "", "");
         deployCodeTo(
             "periphery/NonfungiblePositionManager.sol:NonfungiblePositionManager",
             args,
@@ -67,13 +67,11 @@ contract SlipstreamFixture is WETH9Fixture, AerodromeFixture {
         address cLGauge_ = Utils.deployBytecode(bytecode);
 
         // Deploy the CLGaugeFactory.
-        // Deploy the CLFactory.
-        args = abi.encode(address(voter), cLGauge_);
+        args = abi.encode(address(this), address(voter), address(slipstreamPositionManager), cLGauge_);
         bytecode = abi.encodePacked(vm.getCode("CLGaugeFactory.sol"), args);
         address cLGaugeFactory_ = Utils.deployBytecode(bytecode);
         cLGaugeFactory = ICLGaugeFactory(cLGaugeFactory_);
 
-        cLGaugeFactory.setNonfungiblePositionManager(address(slipstreamPositionManager));
         factoryRegistry.setFactoriesToPoolFactory(address(cLFactory), address(0), address(cLGaugeFactory));
     }
 

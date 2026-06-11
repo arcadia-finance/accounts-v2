@@ -195,6 +195,7 @@ contract AccountPlaceholder is AccountStorageV1, IAccount {
      * This prevents the old Owner from frontrunning a transferFrom().
      */
     function transferOwnership(address newOwner) external onlyFactory nonReentrant(WITHOUT_PAUSE_CHECK) {
+        // forge-lint: disable-next-line(block-timestamp)
         if (block.timestamp <= lastActionTimestamp + COOL_DOWN_PERIOD) revert AccountErrors.CoolDownPeriodNotPassed();
 
         // The Factory will check that the new owner is not address(0).
