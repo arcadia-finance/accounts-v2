@@ -25,6 +25,9 @@ jobs:
       - name: Install Tenderly CLI
         run: curl https://raw.githubusercontent.com/Tenderly/tenderly-cli/master/scripts/install-linux.sh | sudo sh
 
+      - name: Build
+        run: FOUNDRY_PROFILE=hf forge build
+
       - name: Run tests
         run: |
           export RPC_URL=$(tenderly devnet spawn-rpc --project arcadia-finance-tenderly --template basetest --account ${TENDERLY_ACCOUNT_ID} --access_key ${TENDERLY_ACCESS_KEY} 2>&1)

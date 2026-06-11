@@ -7,6 +7,7 @@ pragma solidity ^0.8.0;
 contract VoterMock {
     address public factoryRegistry;
     address public ve;
+    address public minter;
     mapping(address gauge => bool isGauge) public isGauge;
     mapping(address gauge => bool) public isAlive;
     mapping(address => address) public gauges;
