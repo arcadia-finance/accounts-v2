@@ -112,6 +112,8 @@ abstract contract Base_Test is Test {
 
         // These should be present on all EVM-compatible chains.
         if (addr >= address(0x1) && addr <= address(0x11)) return true;
+        // RIP-7212 / EIP-7951 P256VERIFY precompile.
+        if (addr == address(0x100)) return true;
 
         // forgefmt: disable-start
         if (chainId == 10 || chainId == 420) {
