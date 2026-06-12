@@ -167,9 +167,8 @@ contract ProcessDeposit_AbstractDerivedAM_Fuzz_Test is AbstractDerivedAM_Fuzz_Te
         assertEq(usdExposureAsset, underlyingPMState.usdValue);
 
         // And: "lastExposureAssetToUnderlyingAsset" is updated.
-        bytes32 underlyingAssetKey = derivedAM.getKeyFromAsset(assetState.underlyingAsset, assetState.underlyingAssetId);
         assertEq(
-            derivedAM.getExposureAssetToUnderlyingAssetsLast(assetState.creditor, assetKey, underlyingAssetKey),
+            derivedAM.getExposureAssetToUnderlyingAssetsLast(assetState.creditor, assetKey, 0),
             assetState.exposureAssetToUnderlyingAsset
         );
 
@@ -244,9 +243,8 @@ contract ProcessDeposit_AbstractDerivedAM_Fuzz_Test is AbstractDerivedAM_Fuzz_Te
         assertEq(usdExposureAsset, underlyingPMState.usdValue);
 
         // And: "lastExposureAssetToUnderlyingAsset" is updated.
-        bytes32 underlyingAssetKey = derivedAM.getKeyFromAsset(assetState.underlyingAsset, assetState.underlyingAssetId);
         assertEq(
-            derivedAM.getExposureAssetToUnderlyingAssetsLast(assetState.creditor, assetKey, underlyingAssetKey),
+            derivedAM.getExposureAssetToUnderlyingAssetsLast(assetState.creditor, assetKey, 0),
             assetState.exposureAssetToUnderlyingAsset
         );
 
@@ -316,9 +314,8 @@ contract ProcessDeposit_AbstractDerivedAM_Fuzz_Test is AbstractDerivedAM_Fuzz_Te
         assertEq(usdExposureAsset, underlyingPMState.usdValue);
 
         // And: "lastExposureAssetToUnderlyingAsset" is updated.
-        bytes32 underlyingAssetKey = derivedAM.getKeyFromAsset(assetState.underlyingAsset, assetState.underlyingAssetId);
         assertEq(
-            derivedAM.getExposureAssetToUnderlyingAssetsLast(assetState.creditor, assetKey, underlyingAssetKey),
+            derivedAM.getExposureAssetToUnderlyingAssetsLast(assetState.creditor, assetKey, 0),
             assetState.exposureAssetToUnderlyingAsset
         );
 
@@ -329,5 +326,60 @@ contract ProcessDeposit_AbstractDerivedAM_Fuzz_Test is AbstractDerivedAM_Fuzz_Te
         // And: "usdExposureProtocol" is updated.
         (uint128 usdExposureProtocolActual,,) = derivedAM.riskParams(assetState.creditor);
         assertEq(usdExposureProtocolActual, 0);
+    }
+
+    function testFuzz_Success_processDeposit_DuplicateUnderlyingAssets(
+        address creditor,
+        address asset,
+        uint256 assetId,
+        address underlyingAssetA,
+        address underlyingAssetB,
+        uint256 amount0,
+        uint256 amount1,
+        uint256 rewards
+    ) public {
+        // Given: Two distinct underlying assets.
+        vm.assume(underlyingAssetA != underlyingAssetB);
+
+        // And: id's are smaller or equal to type(uint96).max.
+        assetId = bound(assetId, 0, type(uint96).max);
+
+        // And: "exposure" of the underlying assets is strictly smaller than their "maxExposure".
+        amount0 = bound(amount0, 0, type(uint112).max - 1);
+        rewards = bound(rewards, 0, type(uint112).max - 1 - amount0);
+        amount1 = bound(amount1, 0, type(uint112).max - 1);
+
+        // And: The asset has underlying assets [A, B, A] (the reward token equals one of the pool tokens).
+        address[] memory underlyingAssets = new address[](3);
+        underlyingAssets[0] = underlyingAssetA;
+        underlyingAssets[1] = underlyingAssetB;
+        underlyingAssets[2] = underlyingAssetA;
+        uint256[] memory underlyingAssetIds = new uint256[](3);
+        derivedAM.addAsset(asset, assetId, underlyingAssets, underlyingAssetIds);
+
+        uint256[] memory underlyingAssetsAmounts = new uint256[](3);
+        underlyingAssetsAmounts[0] = amount0;
+        underlyingAssetsAmounts[1] = amount1;
+        underlyingAssetsAmounts[2] = rewards;
+        derivedAM.setUnderlyingAssetsAmounts(underlyingAssetsAmounts);
+
+        // And: State is persisted.
+        derivedAM.setUsdExposureProtocol(creditor, type(uint112).max, 0);
+        registry.setAssetModule(underlyingAssetA, address(primaryAM));
+        registry.setAssetModule(underlyingAssetB, address(primaryAM));
+        primaryAM.setExposure(creditor, underlyingAssetA, 0, 0, type(uint112).max);
+        primaryAM.setExposure(creditor, underlyingAssetB, 0, 0, type(uint112).max);
+
+        // When: "_processDeposit" is called.
+        bytes32 assetKey = derivedAM.getKeyFromAsset(asset, assetId);
+        derivedAM.processDeposit(creditor, assetKey, 1);
+
+        // Then: The exposure to the duplicated underlying asset is the sum of both occurrences.
+        (uint112 lastExposureA,,,) = primaryAM.riskParams(creditor, derivedAM.getKeyFromAsset(underlyingAssetA, 0));
+        assertEq(lastExposureA, amount0 + rewards);
+
+        // And: The exposure to the non-duplicated underlying asset is correct.
+        (uint112 lastExposureB,,,) = primaryAM.riskParams(creditor, derivedAM.getKeyFromAsset(underlyingAssetB, 0));
+        assertEq(lastExposureB, amount1);
     }
 }

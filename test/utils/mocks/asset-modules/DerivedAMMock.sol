@@ -11,7 +11,7 @@ contract DerivedAMMock is DerivedAMExtension {
 
     mapping(bytes32 assetKey => bytes32[] underlyingAssetKeys) internal assetToUnderlyingAssets;
 
-    uint256 internal underlyingAssetAmount;
+    uint256[] internal underlyingAssetAmounts;
     bool internal returnRateUnderlyingAssetToUsd;
     uint256 internal rateUnderlyingAssetToUsd;
 
@@ -22,7 +22,13 @@ contract DerivedAMMock is DerivedAMExtension {
     function isAllowed(address asset, uint256) public view override returns (bool) { }
 
     function setUnderlyingAssetsAmount(uint256 underlyingAssetAmount_) public {
-        underlyingAssetAmount = underlyingAssetAmount_;
+        uint256[] memory underlyingAssetAmounts_ = new uint256[](1);
+        underlyingAssetAmounts_[0] = underlyingAssetAmount_;
+        underlyingAssetAmounts = underlyingAssetAmounts_;
+    }
+
+    function setUnderlyingAssetsAmounts(uint256[] memory underlyingAssetAmounts_) public {
+        underlyingAssetAmounts = underlyingAssetAmounts_;
     }
 
     function setRateUnderlyingAssetToUsd(uint256 rateUnderlyingAssetToUsd_) public {
@@ -52,18 +58,19 @@ contract DerivedAMMock is DerivedAMExtension {
         internal
         view
         override
-        returns (uint256[] memory underlyingAssetsAmount, AssetValueAndRiskFactors[] memory rateUnderlyingAssetsToUsd)
+        returns (uint256[] memory underlyingAssetsAmounts_, AssetValueAndRiskFactors[] memory rateUnderlyingAssetsToUsd)
     {
-        underlyingAssetsAmount = new uint256[](1);
-        underlyingAssetsAmount[0] = underlyingAssetAmount;
+        underlyingAssetsAmounts_ = underlyingAssetAmounts;
 
         // If rateUnderlyingAssetToUsd is set, also return rateUnderlyingAssetsToUsd.
         if (returnRateUnderlyingAssetToUsd) {
-            rateUnderlyingAssetsToUsd = new AssetValueAndRiskFactors[](1);
-            rateUnderlyingAssetsToUsd[0].assetValue = rateUnderlyingAssetToUsd;
+            rateUnderlyingAssetsToUsd = new AssetValueAndRiskFactors[](underlyingAssetsAmounts_.length);
+            for (uint256 i; i < underlyingAssetsAmounts_.length; ++i) {
+                rateUnderlyingAssetsToUsd[i].assetValue = rateUnderlyingAssetToUsd;
+            }
         }
 
-        return (underlyingAssetsAmount, rateUnderlyingAssetsToUsd);
+        return (underlyingAssetsAmounts_, rateUnderlyingAssetsToUsd);
     }
 
     function _getUnderlyingAssets(bytes32 assetKey) internal view override returns (bytes32[] memory underlyingAssets) {

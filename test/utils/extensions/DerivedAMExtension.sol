@@ -19,13 +19,12 @@ abstract contract DerivedAMExtension is DerivedAM {
         lastUsdExposureAsset = lastExposuresAsset[creditor][assetKey].lastUsdExposureAsset;
     }
 
-    function getExposureAssetToUnderlyingAssetsLast(address creditor, bytes32 assetKey, bytes32 underlyingAssetKey)
+    function getExposureAssetToUnderlyingAssetsLast(address creditor, bytes32 assetKey, uint256 index)
         external
         view
         returns (uint256 exposureAssetToUnderlyingAssetsLast_)
     {
-        exposureAssetToUnderlyingAssetsLast_ =
-            lastExposureAssetToUnderlyingAsset[creditor][assetKey][underlyingAssetKey];
+        exposureAssetToUnderlyingAssetsLast_ = lastExposureAssetToUnderlyingAsset[creditor][assetKey][index];
     }
 
     function setUsdExposureProtocol(address creditor, uint112 maxUsdExposureProtocol_, uint112 usdExposureProtocol_)
@@ -39,17 +38,16 @@ abstract contract DerivedAMExtension is DerivedAM {
         address creditor,
         address asset,
         uint256 assetId,
-        address underLyingAsset,
-        uint256 underlyingAssetId,
+        address,
+        uint256,
         uint112 exposureAssetLast,
         uint112 lastUsdExposureAsset,
         uint128 exposureAssetToUnderlyingAssetLast
     ) public {
         bytes32 assetKey = _getKeyFromAsset(asset, assetId);
-        bytes32 underLyingAssetKey = _getKeyFromAsset(underLyingAsset, underlyingAssetId);
         lastExposuresAsset[creditor][assetKey].lastExposureAsset = exposureAssetLast;
         lastExposuresAsset[creditor][assetKey].lastUsdExposureAsset = lastUsdExposureAsset;
-        lastExposureAssetToUnderlyingAsset[creditor][assetKey][underLyingAssetKey] = exposureAssetToUnderlyingAssetLast;
+        lastExposureAssetToUnderlyingAsset[creditor][assetKey][0] = exposureAssetToUnderlyingAssetLast;
     }
 
     function getRateUnderlyingAssetsToUsd(address creditor, bytes32[] memory underlyingAssetKeys)
