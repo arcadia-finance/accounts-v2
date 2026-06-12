@@ -135,6 +135,7 @@ contract SetNewAccountInfo_Factory_Fuzz_Test is Factory_Fuzz_Test {
         vm.assume(logic != address(account));
         vm.assume(logic != address(sequencerUptimeOracle));
         vm.assume(logic != address(accountVarVersion));
+        vm.assume(logic != address(0));
 
         uint256 latestAccountVersionPre = factory.latestAccountVersion();
         bytes memory code = address(accountVarVersion).code;
