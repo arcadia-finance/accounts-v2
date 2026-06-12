@@ -2,7 +2,7 @@
  * Created by Pragma Labs
  * SPDX-License-Identifier: MIT
  */
-pragma solidity ^0.8.0;
+pragma solidity ^0.8.34;
 
 /**
  * @title Library for packing sequences of oracles in a single bytes32-object

@@ -75,9 +75,7 @@ contract Withdraw_AccountV4_Fuzz_Test is AccountV4_Fuzz_Test {
         vm.stopPrank();
     }
 
-    function testFuzz_Success_withdraw(uint112 erc20Amount, uint8 erc721Id, uint112 erc1155Amount, uint32 time)
-        public
-    {
+    function testFuzz_Success_withdraw(uint112 erc20Amount, uint8 erc721Id, uint112 erc1155Amount, uint32 time) public {
         // Given: An initial state of the account with assets.
         address[] memory assetAddresses = new address[](3);
         assetAddresses[0] = address(mockERC20.token1);

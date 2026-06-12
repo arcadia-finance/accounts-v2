@@ -30,9 +30,9 @@ contract Factory_Invariant_Test is Invariant_Test {
         Invariant_Test.setUp();
 
         vm.prank(users.owner);
-        accountV2Logic = new AccountLogicMock(address(factory));
+        accountV2Logic = new AccountLogicMock(factory.latestAccountVersion() + 1, address(factory));
 
-        factoryHandler = new FactoryHandler(factory, registry, accountLogic, accountV2Logic);
+        factoryHandler = new FactoryHandler(factory, registry, accountV3Logic, accountV2Logic);
         // We only want to target function calls inside the FactoryHandler contract
         targetContract(address(factoryHandler));
     }

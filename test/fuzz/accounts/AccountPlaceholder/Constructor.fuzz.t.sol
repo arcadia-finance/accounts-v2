@@ -22,10 +22,10 @@ contract Constructor_AccountPlaceholder_Fuzz_Test is AccountPlaceholder_Fuzz_Tes
     //////////////////////////////////////////////////////////////*/
     function testFuzz_Success_deployment(address factory_, address accountsGuard_, uint256 version) public {
         vm.prank(users.owner);
-        AccountPlaceholder account__ = new AccountPlaceholder(factory_, accountsGuard_, version);
+        AccountPlaceholder account_ = new AccountPlaceholder(factory_, accountsGuard_, version);
 
-        assertEq(account__.FACTORY(), factory_);
-        assertEq(address(account__.ACCOUNTS_GUARD()), accountsGuard_);
-        assertEq(account__.ACCOUNT_VERSION(), version);
+        assertEq(account_.FACTORY(), factory_);
+        assertEq(address(account_.ACCOUNTS_GUARD()), accountsGuard_);
+        assertEq(account_.ACCOUNT_VERSION(), version);
     }
 }

@@ -4,8 +4,9 @@
  */
 pragma solidity ^0.8.0;
 
-import { INonfungiblePositionManagerExtension } from
-    "../../../utils/fixtures/uniswap-v3/extensions/interfaces/INonfungiblePositionManagerExtension.sol";
+import {
+    INonfungiblePositionManagerExtension
+} from "../../../utils/fixtures/uniswap-v3/extensions/interfaces/INonfungiblePositionManagerExtension.sol";
 import { IUniswapV3Factory } from "../../../utils/fixtures/uniswap-v3/extensions/interfaces/IUniswapV3Factory.sol";
 import { QuoterV2Fixture } from "../../../utils/fixtures/uniswap-v3/QuoterV2Fixture.f.sol";
 import { SwapRouter02Fixture } from "../../../utils/fixtures/swap-router-02/SwapRouter02Fixture.f.sol";

@@ -11,6 +11,7 @@ import { Constants } from "../../../utils/Constants.sol";
 /**
  * @notice Fuzz tests for the function "getValue" of contract "ERC20PrimaryAM".
  */
+// forge-lint: disable-next-item(unsafe-typecast)
 contract GetValue_ERC20PrimaryAM_Fuzz_Test is ERC20PrimaryAM_Fuzz_Test {
     /* ///////////////////////////////////////////////////////////////
                               SETUP

@@ -12,6 +12,7 @@ import { OracleModuleMock } from "../../../utils/mocks/oracle-modules/OracleModu
 /**
  * @notice Fuzz tests for the function "getValue" of contract "AbstractPrimaryAM".
  */
+// forge-lint: disable-next-item(unsafe-typecast)
 contract GetValue_AbstractPrimaryAM_Fuzz_Test is AbstractPrimaryAM_Fuzz_Test {
     /* ///////////////////////////////////////////////////////////////
                               SETUP

@@ -16,6 +16,7 @@ import { RevertingReceive } from "../../../utils/mocks/RevertingReceive.sol";
 /**
  * @notice Fuzz tests for the function "skim" of contract "AccountV3".
  */
+// forge-lint: disable-next-item(unsafe-typecast)
 contract Skim_AccountV3_Fuzz_Test is AccountV3_Fuzz_Test {
     /* ///////////////////////////////////////////////////////////////
                             TEST CONTRACTS

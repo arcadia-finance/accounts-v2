@@ -14,7 +14,7 @@ import { ERC20Mock } from "../../../utils/mocks/tokens/ERC20Mock.sol";
 /**
  * @notice Fuzz tests for the function "getTotalValue" of contract "RegistryL1".
  */
-/// forge-lint: disable-next-item(divide-before-multiply)
+// forge-lint: disable-next-item(divide-before-multiply,unsafe-typecast)
 contract GetTotalValue_RegistryL1_Fuzz_Test is RegistryL1_Fuzz_Test {
     /* ///////////////////////////////////////////////////////////////
                               SETUP
@@ -58,8 +58,9 @@ contract GetTotalValue_RegistryL1_Fuzz_Test is RegistryL1_Fuzz_Test {
         vm.assume(rateToken1ToUsd > 0);
         vm.assume(
             amountToken2
-                > ((type(uint256).max / uint256(rates.token2ToUsd) / Constants.WAD) * 10 ** Constants.TOKEN_ORACLE_DECIMALS)
-                    / 10 ** (Constants.TOKEN_ORACLE_DECIMALS - token2Decimals)
+                > ((type(uint256).max / uint256(rates.token2ToUsd) / Constants.WAD)
+                        * 10
+                        ** Constants.TOKEN_ORACLE_DECIMALS) / 10 ** (Constants.TOKEN_ORACLE_DECIMALS - token2Decimals)
         );
 
         ArcadiaOracle oracle = initMockedOracle(uint8(0), "LINK / USD", int256(0));
@@ -187,17 +188,16 @@ contract GetTotalValue_RegistryL1_Fuzz_Test is RegistryL1_Fuzz_Test {
 
         vm.assume(
             amountToken2
-                <= type(uint256).max / uint256(rates.token2ToUsd) / Constants.WAD
-                    / 10 ** (Constants.TOKEN_ORACLE_DECIMALS - Constants.TOKEN_ORACLE_DECIMALS)
+                <= type(uint256).max / uint256(rates.token2ToUsd) / Constants.WAD / 10
+                    ** (Constants.TOKEN_ORACLE_DECIMALS - Constants.TOKEN_ORACLE_DECIMALS)
         );
         vm.assume(
             amountToken2
-                <= (
-                    (
-                        (type(uint256).max / uint256(rates.token2ToUsd) / Constants.WAD)
-                            * 10 ** Constants.TOKEN_ORACLE_DECIMALS
-                    ) / 10 ** Constants.TOKEN_ORACLE_DECIMALS
-                ) * 10 ** Constants.TOKEN_DECIMALS
+                <= (((type(uint256).max / uint256(rates.token2ToUsd) / Constants.WAD)
+                            * 10
+                            ** Constants.TOKEN_ORACLE_DECIMALS)
+                        / 10
+                        ** Constants.TOKEN_ORACLE_DECIMALS) * 10 ** Constants.TOKEN_DECIMALS
         );
 
         vm.startPrank(users.transmitter);

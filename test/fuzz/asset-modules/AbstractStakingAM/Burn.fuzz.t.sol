@@ -9,6 +9,7 @@ import { AbstractStakingAM_Fuzz_Test, StakingAM, ERC20Mock } from "./_AbstractSt
 /**
  * @notice Fuzz tests for the function "burn" of contract "StakingAM".
  */
+// forge-lint: disable-next-item(unsafe-typecast)
 contract Burn_AbstractStakingAM_Fuzz_Test is AbstractStakingAM_Fuzz_Test {
     /* ///////////////////////////////////////////////////////////////
                               SETUP

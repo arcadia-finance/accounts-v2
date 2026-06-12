@@ -4,7 +4,6 @@
  */
 pragma solidity ^0.8.0;
 
-import { AccountLogicMock } from "../../utils/mocks/accounts/AccountLogicMock.sol";
 import { Constants } from "../../utils/Constants.sol";
 import { Factory } from "../../../src/Factory.sol";
 import { Factory_Fuzz_Test } from "./_Factory.fuzz.t.sol";
@@ -15,23 +14,11 @@ import { FactoryErrors } from "../../../src/libraries/Errors.sol";
  */
 contract UpgradeAccountVersion_Factory_Fuzz_Test is Factory_Fuzz_Test {
     /* ///////////////////////////////////////////////////////////////
-                              TEST CONTRACTS
-    /////////////////////////////////////////////////////////////// */
-
-    AccountLogicMock internal accountLogicMock;
-
-    /* ///////////////////////////////////////////////////////////////
                               SETUP
     /////////////////////////////////////////////////////////////// */
 
     function setUp() public override {
         Factory_Fuzz_Test.setUp();
-
-        // Set a Mocked Account Logic contract in the Factory.
-        vm.startPrank(users.owner);
-        accountLogicMock = new AccountLogicMock(address(factory));
-        factory.setNewAccountInfo(address(registry), address(accountLogicMock), Constants.ROOT, "");
-        vm.stopPrank();
     }
 
     /*//////////////////////////////////////////////////////////////
@@ -75,11 +62,11 @@ contract UpgradeAccountVersion_Factory_Fuzz_Test is Factory_Fuzz_Test {
         bytes32[] memory proofs = new bytes32[](1);
         proofs[0] = Constants.PROOF_4_TO_3;
 
-        // When: "users.accountOwner" Upgrade the account to AccountLogicMockLogic.
+        // When: "users.accountOwner" Upgrade the account to Version 4.
         vm.startPrank(users.accountOwner);
-        vm.expectEmit(true, true, true, true);
-        emit Factory.AccountUpgraded(address(account), factory.latestAccountVersion());
-        factory.upgradeAccountVersion(address(account), factory.latestAccountVersion(), proofs);
+        vm.expectEmit(address(factory));
+        emit Factory.AccountUpgraded(address(account), 4);
+        factory.upgradeAccountVersion(address(account), 4, proofs);
         vm.stopPrank();
     }
 }

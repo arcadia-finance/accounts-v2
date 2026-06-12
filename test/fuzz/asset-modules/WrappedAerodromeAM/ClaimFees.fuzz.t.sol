@@ -13,6 +13,7 @@ import { WrappedAerodromeAM } from "../../../../src/asset-modules/Aerodrome-Fina
 /**
  * @notice Fuzz tests for the function "claimFees" of contract "WrappedAerodromeAM".
  */
+// forge-lint: disable-next-item(unsafe-typecast)
 contract ClaimFees_WrappedAerodromeAM_Fuzz_Test is WrappedAerodromeAM_Fuzz_Test {
     using FixedPointMathLib for uint256;
 
@@ -103,12 +104,12 @@ contract ClaimFees_WrappedAerodromeAM_Fuzz_Test is WrappedAerodromeAM_Fuzz_Test 
             vm.startPrank(owner);
             vm.expectEmit();
             emit WrappedAerodromeAM.FeesPaid(positionId, uint128(fee0_), uint128(fee1_));
-            (uint256 fee0__, uint256 fee1__) = wrappedAerodromeAM.claimFees(positionId);
+            (uint256 _fee0_, uint256 _fee1_) = wrappedAerodromeAM.claimFees(positionId);
             vm.stopPrank();
 
             // Then : Claimed rewards are returned.
-            assertEq(fee0_, fee0__);
-            assertEq(fee1_, fee1__);
+            assertEq(fee0_, _fee0_);
+            assertEq(fee1_, _fee1_);
 
             // And : Owner should get the fees but no aeroPool tokens.
             assertEq(aeroPool.balanceOf(owner), 0);

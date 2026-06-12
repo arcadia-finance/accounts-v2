@@ -2,7 +2,7 @@
  * Created by Pragma Labs
  * SPDX-License-Identifier: BUSL-1.1
  */
-pragma solidity ^0.8.30;
+pragma solidity ^0.8.34;
 
 import { IRegistry } from "../interfaces/IRegistry.sol";
 import { PrimaryAM } from "../abstracts/AbstractPrimaryAM.sol";
@@ -40,6 +40,7 @@ contract NativeTokenAM is PrimaryAM {
      */
     constructor(address owner_, address registry_, uint256 decimals) PrimaryAM(owner_, registry_, 4) {
         if (decimals > 18) revert Max18Decimals();
+        // forge-lint: disable-next-line(unsafe-typecast)
         ASSET_UNIT = uint64(10 ** decimals);
     }
 
@@ -58,6 +59,7 @@ contract NativeTokenAM is PrimaryAM {
         // View function, reverts in Registry if sequence is not correct.
         if (!IRegistry(REGISTRY).checkOracleSequence(oracleSequence)) revert BadOracleSequence();
         // Will revert in Registry if asset was already added.
+        // forge-lint: disable-next-line(unsafe-typecast)
         IRegistry(REGISTRY).addAsset(uint96(ASSET_TYPE), asset);
 
         inAssetModule[asset] = true;

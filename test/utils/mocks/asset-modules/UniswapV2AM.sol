@@ -45,6 +45,7 @@ contract UniswapV2AM is DerivedAM {
     error Token1_Not_Allowed();
     error Zero_Supply();
     error Zero_Reserves();
+
     /* //////////////////////////////////////////////////////////////
                                 CONSTRUCTOR
     ////////////////////////////////////////////////////////////// */
@@ -94,6 +95,7 @@ contract UniswapV2AM is DerivedAM {
         assetToUnderlyingAssets[_getKeyFromAsset(asset, 0)] = underlyingAssets_;
 
         // Will revert in Registry if asset was already added.
+        // forge-lint: disable-next-line(unsafe-typecast)
         IRegistry(REGISTRY).addAsset(uint96(ASSET_TYPE), asset);
     }
 
@@ -314,7 +316,8 @@ contract UniswapV2AM is DerivedAM {
         uint256 reserve0,
         uint256 reserve1
     ) internal pure returns (bool token0ToToken1, uint256 amountIn) {
-        token0ToToken1 = FixedPointMathLib.mulDivDown(reserve0, trustedPriceToken0, reserve1) < trustedPriceToken1;
+        token0ToToken1 =
+            FixedPointMathLib.mulDivDown(reserve0, trustedPriceToken0, reserve1) < trustedPriceToken1;
 
         uint256 invariant;
         unchecked {

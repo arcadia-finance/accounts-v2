@@ -2,7 +2,7 @@
  * Created by Pragma Labs
  * SPDX-License-Identifier: BUSL-1.1
  */
-pragma solidity ^0.8.30;
+pragma solidity ^0.8.34;
 
 import { AssetModule, IAssetModule } from "../abstracts/AbstractAM.sol";
 import { AssetValueAndRiskFactors } from "../../libraries/AssetValuationLib.sol";
@@ -119,6 +119,7 @@ contract UniswapV4HooksRegistry is AssetModule {
         inAssetModule[address(POSITION_MANAGER)] = true;
 
         // Will revert in Registry if asset was already added.
+        // forge-lint: disable-next-line(unsafe-typecast)
         IRegistry(REGISTRY).addAsset(uint96(ASSET_TYPE), address(POSITION_MANAGER));
     }
 
@@ -245,7 +246,7 @@ contract UniswapV4HooksRegistry is AssetModule {
      * denominated in USD with 18 decimals precision.
      * @param riskFactor The risk factor of the asset for the Creditor, 4 decimals precision.
      */
-    /// forge-lint: disable-next-item(mixed-case-function)
+    // forge-lint: disable-next-item(mixed-case-function)
     function setRiskParametersOfDerivedAM(
         address creditor,
         address assetModule,
@@ -326,9 +327,8 @@ contract UniswapV4HooksRegistry is AssetModule {
         uint256 exposureUpperAssetToAsset,
         int256 deltaExposureUpperAssetToAsset
     ) public override onlyRegistry returns (uint256 recursiveCalls, uint256 usdExposureUpperAssetToAsset) {
-        return IAssetModule(getAssetModule(assetId)).processIndirectDeposit(
-            creditor, asset, assetId, exposureUpperAssetToAsset, deltaExposureUpperAssetToAsset
-        );
+        return IAssetModule(getAssetModule(assetId))
+            .processIndirectDeposit(creditor, asset, assetId, exposureUpperAssetToAsset, deltaExposureUpperAssetToAsset);
     }
 
     /**
@@ -362,9 +362,10 @@ contract UniswapV4HooksRegistry is AssetModule {
         uint256 exposureUpperAssetToAsset,
         int256 deltaExposureUpperAssetToAsset
     ) public override onlyRegistry returns (uint256 usdExposureUpperAssetToAsset) {
-        return IAssetModule(getAssetModule(assetId)).processIndirectWithdrawal(
-            creditor, asset, assetId, exposureUpperAssetToAsset, deltaExposureUpperAssetToAsset
-        );
+        return IAssetModule(getAssetModule(assetId))
+            .processIndirectWithdrawal(
+                creditor, asset, assetId, exposureUpperAssetToAsset, deltaExposureUpperAssetToAsset
+            );
     }
 
     /**
@@ -387,13 +388,14 @@ contract UniswapV4HooksRegistry is AssetModule {
         uint256 exposureAssetToUnderlyingAsset,
         int256 deltaExposureAssetToUnderlyingAsset
     ) external onlyAssetModule returns (uint256 recursiveCalls, uint256 usdExposureAssetToUnderlyingAsset) {
-        return IRegistry(REGISTRY).getUsdValueExposureToUnderlyingAssetAfterDeposit(
-            creditor,
-            underlyingAsset,
-            underlyingAssetId,
-            exposureAssetToUnderlyingAsset,
-            deltaExposureAssetToUnderlyingAsset
-        );
+        return IRegistry(REGISTRY)
+            .getUsdValueExposureToUnderlyingAssetAfterDeposit(
+                creditor,
+                underlyingAsset,
+                underlyingAssetId,
+                exposureAssetToUnderlyingAsset,
+                deltaExposureAssetToUnderlyingAsset
+            );
     }
 
     /**
@@ -415,13 +417,14 @@ contract UniswapV4HooksRegistry is AssetModule {
         uint256 exposureAssetToUnderlyingAsset,
         int256 deltaExposureAssetToUnderlyingAsset
     ) external onlyAssetModule returns (uint256 usdExposureAssetToUnderlyingAsset) {
-        return IRegistry(REGISTRY).getUsdValueExposureToUnderlyingAssetAfterWithdrawal(
-            creditor,
-            underlyingAsset,
-            underlyingAssetId,
-            exposureAssetToUnderlyingAsset,
-            deltaExposureAssetToUnderlyingAsset
-        );
+        return IRegistry(REGISTRY)
+            .getUsdValueExposureToUnderlyingAssetAfterWithdrawal(
+                creditor,
+                underlyingAsset,
+                underlyingAssetId,
+                exposureAssetToUnderlyingAsset,
+                deltaExposureAssetToUnderlyingAsset
+            );
     }
 
     /* ///////////////////////////////////////////////////////////////

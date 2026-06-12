@@ -25,7 +25,7 @@ contract Constructor_StandardERC4626AM_Fuzz_Test is StandardERC4626AM_Fuzz_Test 
     //////////////////////////////////////////////////////////////*/
     function testFuzz_Success_deployment(address registry_) public {
         vm.startPrank(users.owner);
-        /// forge-lint: disable-next-line(mixed-case-variable)
+        // forge-lint: disable-next-line(mixed-case-variable)
         ERC4626AMExtension erc4626AM_ = new ERC4626AMExtension(users.owner, registry_);
         vm.stopPrank();
 

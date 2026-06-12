@@ -14,6 +14,7 @@ import { AssetValueAndRiskFactors } from "../../../../src/libraries/AssetValuati
 /**
  * @notice Fuzz tests for the function "_getUnderlyingAssetsAmounts()" of contract "UniswapV2AM".
  */
+// forge-lint: disable-next-item(unsafe-typecast)
 contract GetUnderlyingAssetsAmounts_UniswapV2AM_Fuzz_Test is UniswapV2AM_Fuzz_Test {
     using stdStorage for StdStorage;
     /* ///////////////////////////////////////////////////////////////

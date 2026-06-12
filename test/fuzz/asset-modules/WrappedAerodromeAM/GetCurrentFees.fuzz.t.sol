@@ -101,9 +101,9 @@ contract GetCurrentFees_WrappedAerodromeAM_Fuzz_Test is WrappedAerodromeAM_Fuzz_
         // And : this is equal or smaller than the actual returned fees.
         deal(aeroPool.token0(), aeroPool.poolFees(), type(uint256).max, true);
         deal(aeroPool.token1(), aeroPool.poolFees(), type(uint256).max, true);
-        (uint256 fee0__, uint256 fee1__) = wrappedAerodromeAM.claimFees(address(aeroPool));
-        assertLe(fee0, fee0__);
-        assertLe(fee1, fee1__);
+        (uint256 _fee0_, uint256 _fee1_) = wrappedAerodromeAM.claimFees(address(aeroPool));
+        assertLe(fee0, _fee0_);
+        assertLe(fee1, _fee1_);
     }
 
     function testFuzz_Success_totalWrapped_NonZeroWrapped_ExactBalanceOf(
@@ -141,9 +141,9 @@ contract GetCurrentFees_WrappedAerodromeAM_Fuzz_Test is WrappedAerodromeAM_Fuzz_
         // And : this is equal or smaller than the actual returned fees.
         deal(aeroPool.token0(), aeroPool.poolFees(), type(uint256).max, true);
         deal(aeroPool.token1(), aeroPool.poolFees(), type(uint256).max, true);
-        (uint256 fee0__, uint256 fee1__) = wrappedAerodromeAM.claimFees(address(aeroPool));
-        assertEq(fee0, fee0__);
-        assertEq(fee1, fee1__);
+        (uint256 _fee0_, uint256 _fee1_) = wrappedAerodromeAM.claimFees(address(aeroPool));
+        assertEq(fee0, _fee0_);
+        assertEq(fee1, _fee1_);
     }
 
     function testFuzz_Success_totalWrapped_ZeroWrapped(
@@ -174,8 +174,8 @@ contract GetCurrentFees_WrappedAerodromeAM_Fuzz_Test is WrappedAerodromeAM_Fuzz_
         // And : this is equal or smaller than the actual returned fees.
         deal(aeroPool.token0(), aeroPool.poolFees(), type(uint256).max, true);
         deal(aeroPool.token1(), aeroPool.poolFees(), type(uint256).max, true);
-        (uint256 fee0__, uint256 fee1__) = wrappedAerodromeAM.claimFees(address(aeroPool));
-        assertLe(fee0, fee0__);
-        assertLe(fee1, fee1__);
+        (uint256 _fee0_, uint256 _fee1_) = wrappedAerodromeAM.claimFees(address(aeroPool));
+        assertLe(fee0, _fee0_);
+        assertLe(fee1, _fee1_);
     }
 }

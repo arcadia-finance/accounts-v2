@@ -2,7 +2,7 @@
  * Created by Pragma Labs
  * SPDX-License-Identifier: BUSL-1.1
  */
-pragma solidity ^0.8.0;
+pragma solidity ^0.8.34;
 
 import { GuardianErrors } from "../libraries/Errors.sol";
 import { Owned } from "../../lib/solmate/src/auth/Owned.sol";
@@ -50,6 +50,7 @@ abstract contract BaseGuardian is Owned {
      * but ensures that no rogue owner or guardian can lock user funds for an indefinite amount of time.
      */
     modifier afterCoolDownOf(uint256 coolDownPeriod) {
+        // forge-lint: disable-next-line(block-timestamp)
         if (block.timestamp <= pauseTimestamp + coolDownPeriod) revert GuardianErrors.CoolDownPeriodNotPassed();
         _;
     }

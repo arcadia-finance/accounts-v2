@@ -72,6 +72,7 @@ contract ClaimReward_AbstractStakingAM_Fuzz_Test is AbstractStakingAM_Fuzz_Test 
         // When : Account calls claimReward()
         vm.startPrank(account_);
         vm.expectEmit();
+        // forge-lint: disable-next-line(unsafe-typecast)
         emit StakingAM.RewardPaid(positionId, address(stakingAM.REWARD_TOKEN()), uint128(currentRewardPosition));
         uint256 rewards = stakingAM.claimReward(positionId);
         vm.stopPrank();

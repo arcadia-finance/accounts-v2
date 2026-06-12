@@ -2,7 +2,7 @@
  * Created by Pragma Labs
  * SPDX-License-Identifier: BUSL-1.1
  */
-pragma solidity ^0.8.30;
+pragma solidity ^0.8.34;
 
 import { ERC20, IRegistry, StakingAM } from "../abstracts/AbstractStakingAM.sol";
 import { ILpStakingTime } from "./interfaces/ILpStakingTime.sol";

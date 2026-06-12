@@ -59,9 +59,7 @@ contract AddAsset_SlipstreamAM_Fuzz_Test is SlipstreamAM_Fuzz_Test {
         vm.stopPrank();
     }
 
-    function testFuzz_Success_addAsset(uint96 tokenId, NonfungiblePositionManagerMock.Position memory position)
-        public
-    {
+    function testFuzz_Success_addAsset(uint96 tokenId, NonfungiblePositionManagerMock.Position memory position) public {
         // Given: position is valid.
         position = givenValidPosition(position);
 

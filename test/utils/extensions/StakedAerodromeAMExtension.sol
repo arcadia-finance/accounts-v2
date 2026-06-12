@@ -57,6 +57,7 @@ contract StakedAerodromeAMExtension is StakedAerodromeAM {
     }
 
     function setAmountStakedForPosition(uint256 id, uint256 amount) public {
+        // forge-lint: disable-next-line(unsafe-typecast)
         positionState[id].amountStaked = uint128(amount);
     }
 

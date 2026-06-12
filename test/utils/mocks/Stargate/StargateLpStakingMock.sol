@@ -21,10 +21,7 @@ contract LPStakingTimeMock {
 
     function setInfoForPoolId(uint256 poolId, uint256 pendingEmissionsToken_, address lpToken_) public {
         poolInfo[poolId] = PoolInfo({
-            pendingEmissionsToken: pendingEmissionsToken_,
-            lpToken: IERC20(lpToken_),
-            allocPoint: 0,
-            lastRewardTime: 0
+            pendingEmissionsToken: pendingEmissionsToken_, lpToken: IERC20(lpToken_), allocPoint: 0, lastRewardTime: 0
         });
     }
 
@@ -37,12 +34,12 @@ contract LPStakingTimeMock {
     }
 
     function deposit(uint256 poolId, uint256 amount) external {
-        /// forge-lint: disable-next-line(erc20-unchecked-transfer)
+        // forge-lint: disable-next-line(erc20-unchecked-transfer)
         poolInfo[poolId].lpToken.transferFrom(msg.sender, address(this), amount);
     }
 
     function withdraw(uint256 poolId, uint256 amount) external {
-        /// forge-lint: disable-next-line(erc20-unchecked-transfer)
+        // forge-lint: disable-next-line(erc20-unchecked-transfer)
         poolInfo[poolId].lpToken.transfer(msg.sender, amount);
     }
 }

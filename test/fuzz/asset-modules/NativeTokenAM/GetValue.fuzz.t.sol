@@ -10,6 +10,7 @@ import { NativeTokenAM_Fuzz_Test } from "./_NativeTokenAM.fuzz.t.sol";
 /**
  * @notice Fuzz tests for the function "getValue" of contract "NativeTokenAM".
  */
+// forge-lint: disable-next-item(unsafe-typecast)
 contract GetValue_NativeTokenAM_Fuzz_Test is NativeTokenAM_Fuzz_Test {
     /* ///////////////////////////////////////////////////////////////
                               SETUP

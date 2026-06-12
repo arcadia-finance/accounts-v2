@@ -44,7 +44,7 @@ contract GetUnderlyingAssetsAmounts_DefaultUniswapV4AM_Fuzz_Test is DefaultUnisw
 
         ERC20Mock token0_ = new ERC20Mock("Token 0", "TOK0", uint8(asset0.decimals));
         ERC20Mock token1_ = new ERC20Mock("Token 1", "TOK1", uint8(asset1.decimals));
-        if (token0_ > token1_) {
+        if (address(token0_) > address(token1_)) {
             (token0_, token1_) = (token1_, token0_);
             (asset0, asset1) = (asset1, asset0);
         }
@@ -95,7 +95,7 @@ contract GetUnderlyingAssetsAmounts_DefaultUniswapV4AM_Fuzz_Test is DefaultUnisw
 
         ERC20Mock token0_ = new ERC20Mock("Token 0", "TOK0", uint8(asset0.decimals));
         ERC20Mock token1_ = new ERC20Mock("Token 1", "TOK1", uint8(asset1.decimals));
-        if (token0_ > token1_) {
+        if (address(token0_) > address(token1_)) {
             (token0_, token1_) = (token1_, token0_);
             (asset0, asset1) = (asset1, asset0);
         }
@@ -157,7 +157,7 @@ contract GetUnderlyingAssetsAmounts_DefaultUniswapV4AM_Fuzz_Test is DefaultUnisw
 
         ERC20Mock token0_ = new ERC20Mock("Token 0", "TOK0", uint8(asset0.decimals));
         ERC20Mock token1_ = new ERC20Mock("Token 1", "TOK1", uint8(asset1.decimals));
-        if (token0_ > token1_) {
+        if (address(token0_) > address(token1_)) {
             (token0_, token1_) = (token1_, token0_);
             (asset0, asset1) = (asset1, asset0);
         }
@@ -182,8 +182,9 @@ contract GetUnderlyingAssetsAmounts_DefaultUniswapV4AM_Fuzz_Test is DefaultUnisw
             randomPoolKey =
                 initializePoolV4(address(token0_), address(token1_), sqrtPriceX96_, address(validHook), 500, 1);
             (tickLower, tickUpper) = givenValidTicks(tickLower, tickUpper);
-            bytes32 positionKey =
-                keccak256(abi.encodePacked(address(positionManagerV4), tickLower, tickUpper, bytes32(uint256(tokenId))));
+            bytes32 positionKey = keccak256(
+                abi.encodePacked(address(positionManagerV4), tickLower, tickUpper, bytes32(uint256(tokenId)))
+            );
 
             vm.assume(liquidity > 0);
             // And: No overflow in capped fee calculation (max fee that can be considered as underlying amount to avoid bypassing max exposure)
@@ -223,8 +224,7 @@ contract GetUnderlyingAssetsAmounts_DefaultUniswapV4AM_Fuzz_Test is DefaultUnisw
         // And: The correct "underlyingAssetsAmounts" rates are returned.
         uint160 sqrtPriceX96 =
             uniswapV4AM.getSqrtPriceX96(expectedRateUnderlyingAssetsToUsd0, expectedRateUnderlyingAssetsToUsd1);
-        (uint256 expectedUnderlyingAssetsAmount0, uint256 expectedUnderlyingAssetsAmount1) = LiquidityAmounts
-            .getAmountsForLiquidity(
+        (uint256 expectedUnderlyingAssetsAmount0, uint256 expectedUnderlyingAssetsAmount1) = LiquidityAmounts.getAmountsForLiquidity(
             sqrtPriceX96, TickMath.getSqrtPriceAtTick(tickLower), TickMath.getSqrtPriceAtTick(tickUpper), liquidity
         );
         assertEq(underlyingAssetsAmounts[0], expectedUnderlyingAssetsAmount0);
@@ -264,8 +264,9 @@ contract GetUnderlyingAssetsAmounts_DefaultUniswapV4AM_Fuzz_Test is DefaultUnisw
         {
             randomPoolKey = initializePoolV4(address(0), address(token1_), sqrtPriceX96_, address(validHook), 500, 1);
             (tickLower, tickUpper) = givenValidTicks(tickLower, tickUpper);
-            bytes32 positionKey =
-                keccak256(abi.encodePacked(address(positionManagerV4), tickLower, tickUpper, bytes32(uint256(tokenId))));
+            bytes32 positionKey = keccak256(
+                abi.encodePacked(address(positionManagerV4), tickLower, tickUpper, bytes32(uint256(tokenId)))
+            );
 
             vm.assume(liquidity > 0);
             // And: No overflow in capped fee calculation (max fee that can be considered as underlying amount to avoid bypassing max exposure)
@@ -305,8 +306,7 @@ contract GetUnderlyingAssetsAmounts_DefaultUniswapV4AM_Fuzz_Test is DefaultUnisw
         // And: The correct "underlyingAssetsAmounts" rates are returned.
         uint160 sqrtPriceX96 =
             uniswapV4AM.getSqrtPriceX96(expectedRateUnderlyingAssetsToUsd0, expectedRateUnderlyingAssetsToUsd1);
-        (uint256 expectedUnderlyingAssetsAmount0, uint256 expectedUnderlyingAssetsAmount1) = LiquidityAmounts
-            .getAmountsForLiquidity(
+        (uint256 expectedUnderlyingAssetsAmount0, uint256 expectedUnderlyingAssetsAmount1) = LiquidityAmounts.getAmountsForLiquidity(
             sqrtPriceX96, TickMath.getSqrtPriceAtTick(tickLower), TickMath.getSqrtPriceAtTick(tickUpper), liquidity
         );
         assertEq(underlyingAssetsAmounts[0], expectedUnderlyingAssetsAmount0);
@@ -328,7 +328,7 @@ contract GetUnderlyingAssetsAmounts_DefaultUniswapV4AM_Fuzz_Test is DefaultUnisw
 
         token0 = new ERC20Mock("Token 0", "TOK0", uint8(asset0.decimals));
         token1 = new ERC20Mock("Token 1", "TOK1", uint8(asset1.decimals));
-        if (token0 > token1) {
+        if (address(token0) > address(token1)) {
             (token0, token1) = (token1, token0);
             (asset0, asset1) = (asset1, asset0);
         }
@@ -353,8 +353,9 @@ contract GetUnderlyingAssetsAmounts_DefaultUniswapV4AM_Fuzz_Test is DefaultUnisw
             randomPoolKey =
                 initializePoolV4(address(token0), address(token1), sqrtPriceX96_, address(validHook), 500, 1);
             (tickLower, tickUpper) = givenValidTicks(tickLower, tickUpper);
-            bytes32 positionKey =
-                keccak256(abi.encodePacked(address(positionManagerV4), tickLower, tickUpper, bytes32(uint256(tokenId))));
+            bytes32 positionKey = keccak256(
+                abi.encodePacked(address(positionManagerV4), tickLower, tickUpper, bytes32(uint256(tokenId)))
+            );
 
             vm.assume(liquidity > 0);
             // And: No overflow in capped fee calculation (max fee that can be considered as underlying amount to avoid bypassing max exposure)
@@ -384,12 +385,10 @@ contract GetUnderlyingAssetsAmounts_DefaultUniswapV4AM_Fuzz_Test is DefaultUnisw
                         uniswapV4AM.getUnderlyingAssetsAmounts(address(creditorUsd), assetKey, 1, new bytes32[](0));
                 }
 
-                principleInAmount0 = underlyingAssetsAmounts[0]
-                    + underlyingAssetsAmounts[1] * rateUnderlyingAssetsToUsd[1].assetValue
-                        / rateUnderlyingAssetsToUsd[0].assetValue;
-                principleInAmount1 = underlyingAssetsAmounts[1]
-                    + underlyingAssetsAmounts[0] * rateUnderlyingAssetsToUsd[0].assetValue
-                        / rateUnderlyingAssetsToUsd[1].assetValue;
+                principleInAmount0 = underlyingAssetsAmounts[0] + underlyingAssetsAmounts[1]
+                    * rateUnderlyingAssetsToUsd[1].assetValue / rateUnderlyingAssetsToUsd[0].assetValue;
+                principleInAmount1 = underlyingAssetsAmounts[1] + underlyingAssetsAmounts[0]
+                    * rateUnderlyingAssetsToUsd[0].assetValue / rateUnderlyingAssetsToUsd[1].assetValue;
             }
 
             // And : Fee is not capped.
@@ -461,7 +460,7 @@ contract GetUnderlyingAssetsAmounts_DefaultUniswapV4AM_Fuzz_Test is DefaultUnisw
 
         token0 = new ERC20Mock("Token 0", "TOK0", uint8(asset0.decimals));
         token1 = new ERC20Mock("Token 1", "TOK1", uint8(asset1.decimals));
-        if (token0 > token1) {
+        if (address(token0) > address(token1)) {
             (token0, token1) = (token1, token0);
             (asset0, asset1) = (asset1, asset0);
         }
@@ -486,8 +485,9 @@ contract GetUnderlyingAssetsAmounts_DefaultUniswapV4AM_Fuzz_Test is DefaultUnisw
             randomPoolKey =
                 initializePoolV4(address(token0), address(token1), sqrtPriceX96_, address(validHook), 500, 1);
             (tickLower, tickUpper) = givenValidTicks(tickLower, tickUpper);
-            bytes32 positionKey =
-                keccak256(abi.encodePacked(address(positionManagerV4), tickLower, tickUpper, bytes32(uint256(tokenId))));
+            bytes32 positionKey = keccak256(
+                abi.encodePacked(address(positionManagerV4), tickLower, tickUpper, bytes32(uint256(tokenId)))
+            );
 
             vm.assume(liquidity > 0);
             // And: No overflow in capped fee calculation (max fee that can be considered as underlying amount to avoid bypassing max exposure)
@@ -517,12 +517,10 @@ contract GetUnderlyingAssetsAmounts_DefaultUniswapV4AM_Fuzz_Test is DefaultUnisw
                         uniswapV4AM.getUnderlyingAssetsAmounts(address(creditorUsd), assetKey, 1, new bytes32[](0));
                 }
 
-                principleInAmount0 = underlyingAssetsAmounts[0]
-                    + underlyingAssetsAmounts[1] * rateUnderlyingAssetsToUsd[1].assetValue
-                        / rateUnderlyingAssetsToUsd[0].assetValue;
-                principleInAmount1 = underlyingAssetsAmounts[1]
-                    + underlyingAssetsAmounts[0] * rateUnderlyingAssetsToUsd[0].assetValue
-                        / rateUnderlyingAssetsToUsd[1].assetValue;
+                principleInAmount0 = underlyingAssetsAmounts[0] + underlyingAssetsAmounts[1]
+                    * rateUnderlyingAssetsToUsd[1].assetValue / rateUnderlyingAssetsToUsd[0].assetValue;
+                principleInAmount1 = underlyingAssetsAmounts[1] + underlyingAssetsAmounts[0]
+                    * rateUnderlyingAssetsToUsd[0].assetValue / rateUnderlyingAssetsToUsd[1].assetValue;
             }
 
             // And : Fee is not capped.

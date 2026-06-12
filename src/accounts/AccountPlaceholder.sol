@@ -2,7 +2,7 @@
  * Created by Pragma Labs
  * SPDX-License-Identifier: BUSL-1.1
  */
-pragma solidity ^0.8.30;
+pragma solidity ^0.8.34;
 
 import { AccountErrors } from "../libraries/Errors.sol";
 import { AccountStorageV1 } from "./AccountStorageV1.sol";
@@ -170,7 +170,10 @@ contract AccountPlaceholder is AccountStorageV1, IAccount {
      * param data Arbitrary data, can contain instructions to execute in this function.
      * @dev If upgradeHook() is implemented, it MUST verify that msg.sender == address(this).
      */
-    function upgradeHook(address, address, uint256, bytes calldata) external pure {
+    function upgradeHook(address, address, uint256, bytes calldata) external {
+        // Function must be non-view, we do a sstore to suppress pure/view warning for proxy compatibility.
+        owner = owner;
+
         // Placeholder implementations are strictly for creating Accounts of a certain version.
         // It should never be possible to upgrade an Account to a Placeholder implementation.
         revert AccountErrors.InvalidUpgrade();
@@ -192,6 +195,7 @@ contract AccountPlaceholder is AccountStorageV1, IAccount {
      * This prevents the old Owner from frontrunning a transferFrom().
      */
     function transferOwnership(address newOwner) external onlyFactory nonReentrant(WITHOUT_PAUSE_CHECK) {
+        // forge-lint: disable-next-line(block-timestamp)
         if (block.timestamp <= lastActionTimestamp + COOL_DOWN_PERIOD) revert AccountErrors.CoolDownPeriodNotPassed();
 
         // The Factory will check that the new owner is not address(0).

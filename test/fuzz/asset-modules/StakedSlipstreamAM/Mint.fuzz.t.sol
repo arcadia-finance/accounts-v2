@@ -5,13 +5,15 @@
 pragma solidity ^0.8.0;
 
 import { StakedSlipstreamAM_Fuzz_Test } from "./_StakedSlipstreamAM.fuzz.t.sol";
-import { INonfungiblePositionManagerExtension } from
-    "../../../utils/fixtures/slipstream/extensions/interfaces/INonfungiblePositionManagerExtension.sol";
+import {
+    INonfungiblePositionManagerExtension
+} from "../../../utils/fixtures/slipstream/extensions/interfaces/INonfungiblePositionManagerExtension.sol";
 import { StakedSlipstreamAM } from "../../../../src/asset-modules/Slipstream/StakedSlipstreamAM.sol";
 
 /**
  * @notice Fuzz tests for the function "mint" of contract "StakedSlipstreamAM".
  */
+// forge-lint: disable-next-item(unsafe-typecast)
 contract Mint_StakedSlipstreamAM_Fuzz_Test is StakedSlipstreamAM_Fuzz_Test {
     /* ///////////////////////////////////////////////////////////////
                               SETUP
@@ -57,11 +59,7 @@ contract Mint_StakedSlipstreamAM_Fuzz_Test is StakedSlipstreamAM_Fuzz_Test {
         vm.prank(users.liquidityProvider);
         slipstreamPositionManager.decreaseLiquidity(
             INonfungiblePositionManagerExtension.DecreaseLiquidityParams({
-                tokenId: assetId,
-                liquidity: liquidity,
-                amount0Min: 0,
-                amount1Min: 0,
-                deadline: type(uint256).max
+                tokenId: assetId, liquidity: liquidity, amount0Min: 0, amount1Min: 0, deadline: type(uint256).max
             })
         );
 

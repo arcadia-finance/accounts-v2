@@ -24,7 +24,7 @@ abstract contract StakedStargateAM_Fuzz_Test is StargateAM_Fuzz_Test {
                             TEST CONTRACTS
     /////////////////////////////////////////////////////////////// */
 
-    /// forge-lint: disable-next-line(mixed-case-variable)
+    // forge-lint: disable-next-line(mixed-case-variable)
     StakedStargateAMExtension internal stakedStargateAM;
     LPStakingTimeMock internal lpStakingTimeMock;
     ArcadiaOracle internal stargateOracle;

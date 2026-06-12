@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: BUSL-1.1
 pragma solidity ^0.8.0;
 
-import { BaseHook } from "../../../../../lib/v4-periphery/src/utils/BaseHook.sol";
+import { BaseHook } from "../../../mocks/UniswapV4/BaseHook.sol";
 import { Hooks } from "../../../../../lib/v4-periphery/lib/v4-core/src/libraries/Hooks.sol";
 import { IPoolManager } from "../../../../../lib/v4-periphery/lib/v4-core/src/interfaces/IPoolManager.sol";
 

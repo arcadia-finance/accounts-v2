@@ -21,7 +21,7 @@ contract Mint_AbstractStakingAM_Fuzz_Test is AbstractStakingAM_Fuzz_Test {
     }
 
     /*//////////////////////////////////////////////////////////////
-                              TESTS 
+                              TESTS
     //////////////////////////////////////////////////////////////*/
 
     function testFuzz_Revert_mint_ZeroAmount(address asset) public {

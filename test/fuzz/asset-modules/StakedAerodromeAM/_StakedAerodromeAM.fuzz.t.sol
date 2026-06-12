@@ -24,12 +24,12 @@ abstract contract StakedAerodromeAM_Fuzz_Test is Fuzz_Test, AbstractStakingAM_Fu
                             TEST CONTRACTS
     /////////////////////////////////////////////////////////////// */
 
-    /// forge-lint: disable-start(mixed-case-variable)
+    // forge-lint: disable-start(mixed-case-variable)
     AerodromePoolAM internal aerodromePoolAM;
     Gauge internal aeroGauge;
     Pool internal aeroPool;
     StakedAerodromeAMExtension internal stakedAerodromeAM;
-    /// forge-lint: disable-end(mixed-case-variable)
+    // forge-lint: disable-end(mixed-case-variable)
 
     /* ///////////////////////////////////////////////////////////////
                               SETUP
@@ -61,7 +61,7 @@ abstract contract StakedAerodromeAM_Fuzz_Test is Fuzz_Test, AbstractStakingAM_Fu
                           HELPER FUNCTIONS
     /////////////////////////////////////////////////////////////// */
 
-    /// forge-lint: disable-next-item(mixed-case-function,mixed-case-variable)
+    // forge-lint: disable-next-item(mixed-case-function,mixed-case-variable)
     function setStakedAerodromeAMState(
         StakingAMStateForAsset memory stakingAMStateForAsset,
         StakingAM.PositionState memory stakingAMStateForPosition,

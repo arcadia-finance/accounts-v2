@@ -2,7 +2,7 @@
  * Created by Pragma Labs
  * SPDX-License-Identifier: BUSL-1.1
  */
-pragma solidity ^0.8.30;
+pragma solidity ^0.8.34;
 
 import { AssetValuationLib, AssetValueAndRiskFactors } from "../../libraries/AssetValuationLib.sol";
 import { DerivedAM, FixedPointMathLib, IRegistry } from "../abstracts/AbstractDerivedAM.sol";
@@ -99,6 +99,7 @@ contract AerodromePoolAM is DerivedAM {
         assetToUnderlyingAssets[_getKeyFromAsset(pool, 0)] = underlyingAssetsKey;
 
         // Will revert in Registry if Aerodrome Finance pool was already added.
+        // forge-lint: disable-next-line(unsafe-typecast)
         IRegistry(REGISTRY).addAsset(uint96(ASSET_TYPE), pool);
     }
 

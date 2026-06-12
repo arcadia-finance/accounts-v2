@@ -16,7 +16,7 @@ contract GetValuesInUsdRecursive_UniswapV4HooksRegistry_Fuzz_Test is UniswapV4Ho
                              VARIABLES
     /////////////////////////////////////////////////////////////// */
 
-    /// forge-lint: disable-next-line(mixed-case-variable)
+    // forge-lint: disable-next-line(mixed-case-variable)
     PrimaryAMMock internal primaryAM;
 
     /* ///////////////////////////////////////////////////////////////

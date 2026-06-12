@@ -52,8 +52,7 @@ contract GetUnderlyingAssetsAmounts_StargateAM_Fuzz_Test is StargateAM_Fuzz_Test
         bytes32 assetKey = stargateAssetModule.getKeyFromAsset(address(poolMock), 0);
 
         // When : Calling getUnderlyingAssetsAmounts.
-        (uint256[] memory underlyingAssetsAmounts, AssetValueAndRiskFactors[] memory rateUnderlyingAssetsToUsd) =
-        stargateAssetModule.getUnderlyingAssetsAmounts(
+        (uint256[] memory underlyingAssetsAmounts, AssetValueAndRiskFactors[] memory rateUnderlyingAssetsToUsd) = stargateAssetModule.getUnderlyingAssetsAmounts(
             address(creditorToken1), assetKey, assetAmount, underlyingAssetKeys
         );
 

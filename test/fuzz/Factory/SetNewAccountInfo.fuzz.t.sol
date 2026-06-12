@@ -69,7 +69,7 @@ contract SetNewAccountInfo_Factory_Fuzz_Test is Factory_Fuzz_Test {
         vm.assume(logic != address(factory));
         vm.assume(logic != address(registry));
         vm.assume(logic != address(vm));
-        vm.assume(logic != address(accountLogic));
+        vm.assume(logic != address(accountV3Logic));
         vm.assume(logic != address(account));
         vm.assume(logic != address(sequencerUptimeOracle));
         vm.assume(logic != address(accountVarVersion));
@@ -91,8 +91,10 @@ contract SetNewAccountInfo_Factory_Fuzz_Test is Factory_Fuzz_Test {
     }
 
     function testFuzz_Revert_setNewAccountInfo_InvalidAccountVersion() public {
-        AccountLogicMock newAccountLogicMock = new AccountLogicMock(address(factory));
-        AccountLogicMock newAccountLogicMock2 = new AccountLogicMock(address(factory));
+        AccountLogicMock newAccountLogicMock =
+            new AccountLogicMock(factory.latestAccountVersion() + 1, address(factory));
+        AccountLogicMock newAccountLogicMock2 =
+            new AccountLogicMock(factory.latestAccountVersion() + 1, address(factory));
 
         vm.startPrank(users.owner);
         //first set an actual version 2
@@ -106,7 +108,7 @@ contract SetNewAccountInfo_Factory_Fuzz_Test is Factory_Fuzz_Test {
     function testFuzz_Revert_setNewAccountInfo_InvalidAccountFactory(address nonFactory) public {
         vm.assume(nonFactory != address(factory));
 
-        AccountLogicMock badAccount = new AccountLogicMock(nonFactory);
+        AccountLogicMock badAccount = new AccountLogicMock(factory.latestAccountVersion() + 1, nonFactory);
 
         vm.prank(users.owner);
         vm.expectRevert(FactoryErrors.FactoryMismatch.selector);
@@ -116,7 +118,7 @@ contract SetNewAccountInfo_Factory_Fuzz_Test is Factory_Fuzz_Test {
     function testFuzz_Revert_setNewAccountInfo_InvalidRegistryFactory(address nonFactory) public {
         vm.assume(nonFactory != address(factory));
 
-        AccountLogicMock account_ = new AccountLogicMock(nonFactory);
+        AccountLogicMock account_ = new AccountLogicMock(factory.latestAccountVersion() + 1, nonFactory);
         RegistryL2 badRegistry = new RegistryL2(users.owner, nonFactory, address(sequencerUptimeOracle));
 
         vm.prank(users.owner);
@@ -129,10 +131,11 @@ contract SetNewAccountInfo_Factory_Fuzz_Test is Factory_Fuzz_Test {
         vm.assume(logic != address(factory));
         vm.assume(logic != address(registry));
         vm.assume(logic != address(vm));
-        vm.assume(logic != address(accountLogic));
+        vm.assume(logic != address(accountV3Logic));
         vm.assume(logic != address(account));
         vm.assume(logic != address(sequencerUptimeOracle));
         vm.assume(logic != address(accountVarVersion));
+        vm.assume(logic != address(0));
 
         uint256 latestAccountVersionPre = factory.latestAccountVersion();
         bytes memory code = address(accountVarVersion).code;
@@ -146,6 +149,7 @@ contract SetNewAccountInfo_Factory_Fuzz_Test is Factory_Fuzz_Test {
 
         vm.startPrank(users.owner);
         vm.expectEmit(true, true, true, true);
+        // forge-lint: disable-next-line(unsafe-typecast)
         emit Factory.AccountVersionAdded(uint16(latestAccountVersionPre + 1), address(registry2), logic);
         factory.setNewAccountInfo(address(registry2), logic, Constants.ROOT, data);
         vm.stopPrank();

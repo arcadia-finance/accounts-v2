@@ -32,7 +32,7 @@ interface IPool {
     event Sync(uint256 reserve0, uint256 reserve1);
     event Claim(address indexed sender, address indexed recipient, uint256 amount0, uint256 amount1);
 
-    // Struct to capture time period obervations every 30 minutes, used for local oracles
+    // Struct to capture time period observations every 30 minutes, used for local oracles
     struct Observation {
         uint256 timestamp;
         uint256 reserve0Cumulative;
@@ -54,7 +54,7 @@ interface IPool {
     /// @notice Address of token in the pool with the lower address value
     function token0() external view returns (address);
 
-    /// @notice Address of token in the poool with the higher address value
+    /// @notice Address of token in the pool with the higher address value
     function token1() external view returns (address);
 
     /// @notice Address of linked PoolFees.sol
@@ -104,13 +104,13 @@ interface IPool {
 
     /// @notice Set pool name
     ///         Only callable by Voter.emergencyCouncil()
-    /// @param __name String of new name
-    function setName(string calldata __name) external;
+    /// @param _name String of new name
+    function setName(string calldata _name) external;
 
     /// @notice Set pool symbol
     ///         Only callable by Voter.emergencyCouncil()
-    /// @param __symbol String of new symbol
-    function setSymbol(string calldata __symbol) external;
+    /// @param _symbol String of new symbol
+    function setSymbol(string calldata _symbol) external;
 
     /// @notice Get the number of observations recorded
     function observationLength() external view returns (uint256);
@@ -157,7 +157,7 @@ interface IPool {
     /// @notice This low-level function should be called from a contract which performs important safety checks
     /// @param amount0Out   Amount of token0 to send to `to`
     /// @param amount1Out   Amount of token1 to send to `to`
-    /// @param to           Address to recieve the swapped output
+    /// @param to           Address to receive the swapped output
     /// @param data         Additional calldata for flashloans
     function swap(uint256 amount0Out, uint256 amount1Out, address to, bytes calldata data) external;
 

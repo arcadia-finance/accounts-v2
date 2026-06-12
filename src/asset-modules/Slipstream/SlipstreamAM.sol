@@ -2,7 +2,7 @@
  * Created by Pragma Labs
  * SPDX-License-Identifier: BUSL-1.1
  */
-pragma solidity ^0.8.30;
+pragma solidity ^0.8.34;
 
 import { AssetValuationLib, AssetValueAndRiskFactors } from "../../libraries/AssetValuationLib.sol";
 import { DerivedAM, FixedPointMathLib, IRegistry } from "../abstracts/AbstractDerivedAM.sol";
@@ -66,9 +66,7 @@ contract SlipstreamAM is DerivedAM {
      * @param nonFungiblePositionManager The contract address of the protocols NonFungiblePositionManager.
      * @dev The ASSET_TYPE, necessary for the deposit and withdraw logic in the Accounts, is "2" for Slipstream Liquidity Positions (ERC721).
      */
-    constructor(address owner_, address registry_, address nonFungiblePositionManager)
-        DerivedAM(owner_, registry_, 2)
-    {
+    constructor(address owner_, address registry_, address nonFungiblePositionManager) DerivedAM(owner_, registry_, 2) {
         NON_FUNGIBLE_POSITION_MANAGER = INonfungiblePositionManager(nonFungiblePositionManager);
         CL_FACTORY = INonfungiblePositionManager(nonFungiblePositionManager).factory();
     }
@@ -85,6 +83,7 @@ contract SlipstreamAM is DerivedAM {
         inAssetModule[address(NON_FUNGIBLE_POSITION_MANAGER)] = true;
 
         // Will revert in Registry if asset was already added.
+        // forge-lint: disable-next-line(unsafe-typecast)
         IRegistry(REGISTRY).addAsset(uint96(ASSET_TYPE), address(NON_FUNGIBLE_POSITION_MANAGER));
     }
 
@@ -321,8 +320,7 @@ contract SlipstreamAM is DerivedAM {
      */
     function _getFeeAmounts(uint256 id) internal view returns (uint256 amount0, uint256 amount1) {
         (
-            ,
-            ,
+            ,,
             address token0,
             address token1,
             int24 tickSpacing,
@@ -546,10 +544,7 @@ contract SlipstreamAM is DerivedAM {
      * _getUnderlyingAssets() would keep using the liquidity of the asset at the time of deposit.
      * This might result in a wrongly calculated getValue() of the non-deposited asset (for off-chain purposes).
      */
-    function processDirectWithdrawal(address creditor, address asset, uint256 assetId, uint256 amount)
-        public
-        override
-    {
+    function processDirectWithdrawal(address creditor, address asset, uint256 assetId, uint256 amount) public override {
         // Also checks that msg.sender == Registry.
         super.processDirectWithdrawal(creditor, asset, assetId, amount);
 

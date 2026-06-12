@@ -15,7 +15,9 @@ import { Constants } from "../../../utils/Constants.sol";
 import { IPermit2 } from "../../../utils/interfaces/IPermit2.sol";
 import { Permit2Fixture } from "../../../utils/fixtures/permit2/Permit2Fixture.f.sol";
 import { RouterMock } from "../../../utils/mocks/action-targets/RouterMock.sol";
-import { SignatureVerification } from "../../../../lib/v4-periphery/lib/permit2/src/libraries/SignatureVerification.sol";
+import {
+    SignatureVerification
+} from "../../../../lib/v4-periphery/lib/permit2/src/libraries/SignatureVerification.sol";
 import { StdStorage, stdStorage } from "../../../../lib/forge-std/src/Test.sol";
 import { Utils } from "../../../utils/Utils.sol";
 
@@ -137,10 +139,7 @@ contract FlashAction_AccountV3_Fuzz_Test is AccountV3_Fuzz_Test, Permit2Fixture 
         ActionData memory transferFromOwner;
 
         ActionData memory assetDataIn = ActionData({
-            assets: assetAddresses,
-            assetIds: assetIds,
-            assetAmounts: assetAmounts,
-            assetTypes: assetTypes
+            assets: assetAddresses, assetIds: assetIds, assetAmounts: assetAmounts, assetTypes: assetTypes
         });
 
         // Avoid stack too deep
@@ -157,7 +156,7 @@ contract FlashAction_AccountV3_Fuzz_Test is AccountV3_Fuzz_Test, Permit2Fixture 
         uint256 id = 10;
         for (uint256 i; i < lengthStack; ++i) {
             vm.prank(users.accountOwner);
-            /// forge-lint: disable-next-line(erc20-unchecked-transfer)
+            // forge-lint: disable-next-line(erc20-unchecked-transfer)
             mockERC721.nft1.transferFrom(users.accountOwner, address(actionTarget), id);
             ++id;
         }

@@ -31,10 +31,10 @@ abstract contract RegistryL1_Fuzz_Test is Fuzz_Test {
                             TEST CONTRACTS
     /////////////////////////////////////////////////////////////// */
 
-    /// forge-lint: disable-start(mixed-case-variable)
+    // forge-lint: disable-start(mixed-case-variable)
     PrimaryAMMock internal primaryAM;
     DerivedAMMock internal derivedAM;
-    /// forge-lint: disable-end(mixed-case-variable)
+    // forge-lint: disable-end(mixed-case-variable)
 
     OracleModuleMock internal oracleModule;
 
@@ -56,9 +56,9 @@ abstract contract RegistryL1_Fuzz_Test is Fuzz_Test {
         floorERC1155AM = new FloorERC1155AMExtension(users.owner, address(registry_));
 
         accountsGuard = new AccountsGuardExtension(users.owner, address(factory));
-        accountLogic = new AccountV3(address(factory), address(accountsGuard), address(0));
+        accountV3Logic = new AccountV3(address(factory), address(accountsGuard), address(0));
         factory.setLatestAccountVersion(2);
-        factory.setNewAccountInfo(address(registry_), address(accountLogic), Constants.ROOT, "");
+        factory.setNewAccountInfo(address(registry_), address(accountV3Logic), Constants.ROOT, "");
 
         // Set the Guardians.
         factory.changeGuardian(users.guardian);
@@ -253,6 +253,7 @@ abstract contract RegistryL1_Fuzz_Test is Fuzz_Test {
         for (uint8 i; i < oracleArr.length; i++) {
             (,, address oracle) = chainlinkOM.getOracleInformation(oracleArr[i]);
             (, int256 answer,,,) = ArcadiaOracle(oracle).latestRoundData();
+            // forge-lint: disable-next-line(unsafe-typecast)
             ratesMultiplied *= uint256(answer);
             sumOfOracleDecimals += ArcadiaOracle(oracle).decimals();
         }

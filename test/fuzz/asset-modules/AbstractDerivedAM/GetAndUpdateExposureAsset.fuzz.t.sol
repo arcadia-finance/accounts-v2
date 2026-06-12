@@ -9,6 +9,7 @@ import { AbstractDerivedAM_Fuzz_Test } from "./_AbstractDerivedAM.fuzz.t.sol";
 /**
  * @notice Fuzz tests for the function "_getAndUpdateExposureAsset" of contract "AbstractDerivedAM".
  */
+// forge-lint: disable-next-item(unsafe-typecast)
 contract GetAndUpdateExposureAsset_AbstractDerivedAM_Fuzz_Test is AbstractDerivedAM_Fuzz_Test {
     /* ///////////////////////////////////////////////////////////////
                               SETUP

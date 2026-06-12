@@ -40,7 +40,7 @@ contract CreateAccount_Factory_Fuzz_Test is Factory_Fuzz_Test {
         // Then: Reverted
         vm.prank(sender);
         vm.expectRevert(GuardianErrors.FunctionIsPaused.selector);
-        factory.createAccount(salt, 0, address(0));
+        factory.createAccount(salt, 3, address(0));
     }
 
     function testFuzz_Revert_createAccount_CreateNonExistingAccountVersion(uint256 accountVersion) public {
@@ -63,10 +63,11 @@ contract CreateAccount_Factory_Fuzz_Test is Factory_Fuzz_Test {
         vm.assume(versionsToBlock.length < 10 && versionsToBlock.length > 0);
         vm.assume(uint256(versionsToMake) + 1 < type(uint8).max);
         vm.assume(accountVersion <= versionsToMake + 1);
+        uint256 nextVersion = factory.latestAccountVersion() + 1;
         for (uint256 i; i < versionsToMake; ++i) {
-            //create account logic with the right version
-            //the first account version to add is 4, so we add 4 to the index
-            account_.setAccountVersion(uint16(i + 4));
+            // Create account logic with the right version
+            // forge-lint: disable-next-line(unsafe-typecast)
+            account_.setAccountVersion(uint16(nextVersion + i));
 
             vm.prank(users.owner);
             factory.setNewAccountInfo(address(registry), address(account_), Constants.ROOT, "");
@@ -115,7 +116,7 @@ contract CreateAccount_Factory_Fuzz_Test is Factory_Fuzz_Test {
 
         vm.broadcast(sender);
         vm.expectRevert(CreateProxyLib.ProxyCreationFailed.selector);
-        factory.createAccount(salt, 0, address(0));
+        factory.createAccount(salt, 3, address(0));
     }
 
     function testFuzz_Revert_createAccount_ContractCollision(address sender, uint32 salt) public {
@@ -124,11 +125,11 @@ contract CreateAccount_Factory_Fuzz_Test is Factory_Fuzz_Test {
         vm.assume(sender != address(0));
 
         vm.broadcast(sender);
-        factory.createAccount(salt, 0, address(0));
+        factory.createAccount(salt, 3, address(0));
 
         vm.broadcast(sender);
         vm.expectRevert(CreateProxyLib.ProxyCreationFailed.selector);
-        factory.createAccount(salt, 0, address(0));
+        factory.createAccount(salt, 3, address(0));
     }
 
     function testFuzz_Success_ExactDeploymentBase() public {
@@ -159,7 +160,7 @@ contract CreateAccount_Factory_Fuzz_Test is Factory_Fuzz_Test {
         vm.assume(sender != address(0));
 
         uint256 amountBefore = factory.allAccountsLength();
-        address proxy_ = factory.getAccountAddress(sender, salt, 0);
+        address proxy_ = factory.getAccountAddress(sender, salt, 3);
 
         vm.expectEmit(address(factory));
         emit ERC721.Transfer(address(0), sender, amountBefore + 1);
@@ -168,7 +169,7 @@ contract CreateAccount_Factory_Fuzz_Test is Factory_Fuzz_Test {
 
         // Here we create an Account with no specific creditor
         vm.broadcast(sender);
-        address actualDeployed = factory.createAccount(salt, 0, address(0));
+        address actualDeployed = factory.createAccount(salt, 3, address(0));
 
         // And: Proxy address matches the calculated contract address.
         assertEq(actualDeployed, proxy_);
@@ -186,7 +187,7 @@ contract CreateAccount_Factory_Fuzz_Test is Factory_Fuzz_Test {
         vm.assume(sender != address(0));
 
         uint256 amountBefore = factory.allAccountsLength();
-        address proxy_ = factory.getAccountAddress(sender, salt, 0);
+        address proxy_ = factory.getAccountAddress(sender, salt, 3);
 
         vm.expectEmit(address(factory));
         emit ERC721.Transfer(address(0), sender, amountBefore + 1);
@@ -197,7 +198,7 @@ contract CreateAccount_Factory_Fuzz_Test is Factory_Fuzz_Test {
 
         // Here we create an Account by specifying the creditor address
         vm.broadcast(sender);
-        address actualDeployed = factory.createAccount(salt, 0, address(creditorStable1));
+        address actualDeployed = factory.createAccount(salt, 3, address(creditorStable1));
 
         // And: Proxy address matches the calculated contract address.
         assertEq(actualDeployed, proxy_);
@@ -216,10 +217,10 @@ contract CreateAccount_Factory_Fuzz_Test is Factory_Fuzz_Test {
         uint256 amountBefore = factory.allAccountsLength();
 
         vm.broadcast(sender);
-        address actualDeployed = factory.createAccount(salt, 0, address(0));
+        address actualDeployed = factory.createAccount(salt, 3, address(0));
 
         // And: Proxy address matches the calculated contract address.
-        assertEq(actualDeployed, factory.getAccountAddress(sender, salt, 0));
+        assertEq(actualDeployed, factory.getAccountAddress(sender, salt, 3));
 
         assertEq(amountBefore + 1, factory.allAccountsLength());
         assertEq(AccountV3(actualDeployed).owner(), sender);
@@ -232,16 +233,17 @@ contract CreateAccount_Factory_Fuzz_Test is Factory_Fuzz_Test {
     ) public {
         // We assume that salt > 0 as we already deployed an Account with all inputs to 0
         vm.assume(salt > 0);
-        vm.assume(sender0 != sender1);
+        // forge-lint: disable-next-line(unsafe-typecast)
+        vm.assume(uint32(uint160(sender0)) != uint32(uint160(sender1)));
         vm.assume(sender0 != address(0));
         vm.assume(sender1 != address(0));
 
         //Broadcast changes the tx.origin, prank only changes the msg.sender, not tx.origin
         vm.broadcast(sender0);
-        address proxy0 = factory.createAccount(salt, 0, address(0));
+        address proxy0 = factory.createAccount(salt, 3, address(0));
 
         vm.broadcast(sender1);
-        address proxy1 = factory.createAccount(salt, 0, address(0));
+        address proxy1 = factory.createAccount(salt, 3, address(0));
 
         assertTrue(proxy0 != proxy1);
     }

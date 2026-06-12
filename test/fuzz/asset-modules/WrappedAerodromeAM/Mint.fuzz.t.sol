@@ -24,7 +24,7 @@ contract Mint_WrappedAerodromeAM_Fuzz_Test is WrappedAerodromeAM_Fuzz_Test {
     }
 
     /*//////////////////////////////////////////////////////////////
-                              TESTS 
+                              TESTS
     //////////////////////////////////////////////////////////////*/
 
     function testFuzz_Revert_mint_ZeroAmount(address pool_) public {

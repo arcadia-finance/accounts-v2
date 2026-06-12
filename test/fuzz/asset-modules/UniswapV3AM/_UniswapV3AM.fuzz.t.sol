@@ -10,8 +10,9 @@ import { UniswapV3Fixture } from "../../../utils/fixtures/uniswap-v3/UniswapV3Fi
 import { UniswapV3AMFixture } from "../../../utils/fixtures/arcadia-accounts/UniswapV3AMFixture.f.sol";
 
 import { FixedPointMathLib } from "../../../../lib/solmate/src/utils/FixedPointMathLib.sol";
-import { IUniswapV3PoolExtension } from
-    "../../../utils/fixtures/uniswap-v3/extensions/interfaces/IUniswapV3PoolExtension.sol";
+import {
+    IUniswapV3PoolExtension
+} from "../../../utils/fixtures/uniswap-v3/extensions/interfaces/IUniswapV3PoolExtension.sol";
 import { NonfungiblePositionManagerMock } from "../../../utils/mocks/UniswapV3/NonfungiblePositionManager.sol";
 import { TickMath } from "../../../../src/asset-modules/UniswapV3/libraries/TickMath.sol";
 

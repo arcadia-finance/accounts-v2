@@ -7,7 +7,7 @@ import { Strings } from "../../../../src/libraries/Strings.sol";
 contract ERC721Mock is ERC721 {
     using Strings for uint256;
 
-    /// forge-lint: disable-next-line(mixed-case-variable)
+    // forge-lint: disable-next-line(mixed-case-variable)
     string baseURI;
     address owner;
 
@@ -28,7 +28,7 @@ contract ERC721Mock is ERC721 {
         baseURI = newBaseUri;
     }
 
-    /// forge-lint: disable-next-item(mixed-case-function,mixed-case-variable)
+    // forge-lint: disable-next-item(mixed-case-function,mixed-case-variable)
     function tokenURI(uint256 tokenId) public view override returns (string memory) {
         require(_ownerOf[tokenId] != address(0), "ERC721Metadata: URI query for nonexistent token");
         string memory currentBaseURI = baseURI;

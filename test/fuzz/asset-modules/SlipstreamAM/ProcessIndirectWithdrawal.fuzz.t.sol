@@ -16,6 +16,7 @@ import { TickMath } from "../../../../src/asset-modules/UniswapV3/libraries/Tick
 /**
  * @notice Fuzz tests for the function "ProcessIndirectWithdrawal" of contract "SlipstreamAM".
  */
+// forge-lint: disable-next-item(unsafe-typecast)
 contract ProcessIndirectWithdrawal_SlipstreamAM_Fuzz_Test is SlipstreamAM_Fuzz_Test {
     /* ///////////////////////////////////////////////////////////////
                             VARIABLES
@@ -36,7 +37,7 @@ contract ProcessIndirectWithdrawal_SlipstreamAM_Fuzz_Test is SlipstreamAM_Fuzz_T
 
         token0 = new ERC20Mock("Token 0", "TOK0", 18);
         token1 = new ERC20Mock("Token 1", "TOK1", 18);
-        (token0, token1) = token0 < token1 ? (token0, token1) : (token1, token0);
+        (token0, token1) = address(token0) < address(token1) ? (token0, token1) : (token1, token0);
     }
 
     /*//////////////////////////////////////////////////////////////

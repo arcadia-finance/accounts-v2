@@ -23,8 +23,8 @@ abstract contract SpotToMarginMigrator_Fuzz_Test is Fuzz_Test {
     /////////////////////////////////////////////////////////////// */
 
     AccountV3Extension internal accountV3ExtensionLogic;
+    AccountV4Extension internal accountV4ExtensionLogic;
     AccountV4Extension internal accountSpot;
-    AccountV4Extension internal accountSpotLogic;
     SpotToMarginMigratorExtension internal spotToMarginMigrator;
 
     /* ///////////////////////////////////////////////////////////////
@@ -37,15 +37,15 @@ abstract contract SpotToMarginMigrator_Fuzz_Test is Fuzz_Test {
         // Deploy AccountV3Extension logic contract to replace with AccountV3 logic for tests
         accountV3ExtensionLogic = new AccountV3Extension(address(factory), address(accountsGuard), address(0));
         bytes memory code = address(accountV3ExtensionLogic).code;
-        vm.etch(address(accountLogic), code);
+        vm.etch(address(accountV3Logic), code);
 
         // Deploy Migrator contract
         spotToMarginMigrator = new SpotToMarginMigratorExtension(address(factory));
 
         // Deploy a new Spot Account
-        accountSpotLogic = new AccountV4Extension(address(factory), address(accountsGuard), address(0));
-        vm.prank(users.owner);
-        factory.setNewAccountInfo(address(registry), address(accountSpotLogic), Constants.ROOT, "");
+        accountV4ExtensionLogic = new AccountV4Extension(address(factory), address(accountsGuard), address(0));
+        code = address(accountV4ExtensionLogic).code;
+        vm.etch(address(accountV4Logic), code);
 
         vm.prank(users.accountOwner);
         address payable proxyAddress = payable(factory.createAccount(1001, 4, address(0)));

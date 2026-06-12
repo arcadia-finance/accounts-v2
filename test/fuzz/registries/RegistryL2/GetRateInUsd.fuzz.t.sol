@@ -29,6 +29,7 @@ contract GetRateInUsd_RegistryL2_Fuzz_Test is RegistryL2_Fuzz_Test {
     function testFuzz_Revert_getRateInUsd_BaseAssetToQuoteAsset_Overflow(uint80 oracleId, uint256 rate) public {
         rate = bound(rate, type(uint256).max / 1e18 + 1, type(uint256).max);
 
+        // forge-lint: disable-next-line(unsafe-typecast)
         addMockedOracle(oracleId, rate, bytes16("A"), bytes16("USD"), true);
 
         uint80[] memory oraclesIds = new uint80[](1);
@@ -44,6 +45,7 @@ contract GetRateInUsd_RegistryL2_Fuzz_Test is RegistryL2_Fuzz_Test {
     function testFuzz_Success_getRateInUsd_BaseAssetToQuoteAsset(uint80 oracleId, uint256 rate) public {
         rate = bound(rate, 0, type(uint256).max / 1e18);
 
+        // forge-lint: disable-next-line(unsafe-typecast)
         addMockedOracle(oracleId, rate, bytes16("A"), bytes16("USD"), true);
 
         uint256 expectedRate = rate;
@@ -61,6 +63,7 @@ contract GetRateInUsd_RegistryL2_Fuzz_Test is RegistryL2_Fuzz_Test {
     function testFuzz_Success_getRateInUsd_QuoteAssetToBaseAsset(uint80 oracleId, uint256 rate) public {
         rate = bound(rate, 1, type(uint256).max);
 
+        // forge-lint: disable-next-line(unsafe-typecast)
         addMockedOracle(oracleId, rate, bytes16("A"), bytes16("USD"), true);
 
         uint256 expectedRate = 1e36 / rate;

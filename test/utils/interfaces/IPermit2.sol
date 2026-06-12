@@ -65,6 +65,6 @@ interface IPermit2 {
      * @notice Returns the domain separator for the current chain.
      * @dev Uses cached version if chainid and address are unchanged from construction.
      */
-    /// forge-lint: disable-next-item(mixed-case-function)
+    // forge-lint: disable-next-item(mixed-case-function)
     function DOMAIN_SEPARATOR() external view returns (bytes32);
 }

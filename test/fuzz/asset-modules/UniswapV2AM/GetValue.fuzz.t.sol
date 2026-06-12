@@ -100,9 +100,9 @@ contract GetValue_UniswapV2AM_Fuzz_Test is UniswapV2AM_Fuzz_Test {
             uint256(amountToken2) * uint256(_rateToken2ToUsd)
                 < type(uint256).max / 10 ** (_token1Decimals + _oracleToken1ToUsdDecimals)
         ); //Avoid overflow of amountToken1 in next line
-        uint256 amountToken1 = uint256(amountToken2) * uint256(_rateToken2ToUsd)
-            * 10 ** (_token1Decimals + _oracleToken1ToUsdDecimals) / _rateToken1ToUsd
-            / 10 ** (_token2Decimals + _oracleToken2ToUsdDecimals);
+        uint256 amountToken1 = uint256(amountToken2) * uint256(_rateToken2ToUsd) * 10
+            ** (_token1Decimals + _oracleToken1ToUsdDecimals) / _rateToken1ToUsd / 10
+            ** (_token2Decimals + _oracleToken2ToUsdDecimals);
         vm.assume(amountToken1 < type(uint112).max); //max reserve in Uniswap pool
         vm.assume(amountToken2 * amountToken1 > pairToken1Token2.MINIMUM_LIQUIDITY()); //min liquidity in uniswap pool
         pairToken1Token2.mint(users.tokenCreator, amountToken2, amountToken1);

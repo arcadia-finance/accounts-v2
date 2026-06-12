@@ -62,18 +62,13 @@ contract CalculateValueAndRiskFactors_AerodromePoolAM_Fuzz_Test is AerodromePool
 
         AssetValueAndRiskFactors[] memory rateUnderlyingAssetsToUsd = new AssetValueAndRiskFactors[](2);
         rateUnderlyingAssetsToUsd[0] = AssetValueAndRiskFactors({
-            assetValue: assetRates[0],
-            collateralFactor: collateralFactors[0],
-            liquidationFactor: liquidationFactors[0]
+            assetValue: assetRates[0], collateralFactor: collateralFactors[0], liquidationFactor: liquidationFactors[0]
         });
         rateUnderlyingAssetsToUsd[1] = AssetValueAndRiskFactors({
-            assetValue: assetRates[1],
-            collateralFactor: collateralFactors[1],
-            liquidationFactor: liquidationFactors[1]
+            assetValue: assetRates[1], collateralFactor: collateralFactors[1], liquidationFactor: liquidationFactors[1]
         });
 
-        (uint256 valueInUsd, uint256 collateralFactor, uint256 liquidationFactor) = aeroPoolAM
-            .calculateValueAndRiskFactors(
+        (uint256 valueInUsd, uint256 collateralFactor, uint256 liquidationFactor) = aeroPoolAM.calculateValueAndRiskFactors(
             creditor, Utils.castArrayStaticToDynamic(underlyingAssetsAmounts), rateUnderlyingAssetsToUsd
         );
         assertEq(valueInUsd, expectedValueInUsd);

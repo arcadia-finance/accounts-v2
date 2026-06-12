@@ -2,7 +2,7 @@
  * Created by Pragma Labs
  * SPDX-License-Identifier: BUSL-1.1
  */
-pragma solidity ^0.8.30;
+pragma solidity ^0.8.34;
 
 import { AssetValuationLib, AssetValueAndRiskFactors } from "../../libraries/AssetValuationLib.sol";
 import { DerivedAM, FixedPointMathLib, IRegistry } from "../abstracts/AbstractDerivedAM.sol";
@@ -54,7 +54,7 @@ contract StakedSlipstreamAM is DerivedAM, ERC721, ReentrancyGuard {
     ////////////////////////////////////////////////////////////// */
 
     // The baseURI of the ERC721 tokens.
-    /// forge-lint: disable-next-item(mixed-case-variable)
+    // forge-lint: disable-next-item(mixed-case-variable)
     string public baseURI;
 
     // The unique identifiers of the Underlying Assets of a Liquidity Position.
@@ -134,6 +134,7 @@ contract StakedSlipstreamAM is DerivedAM, ERC721, ReentrancyGuard {
 
         inAssetModule[address(this)] = true;
 
+        // forge-lint: disable-next-line(unsafe-typecast)
         IRegistry(REGISTRY).addAsset(uint96(ASSET_TYPE), address(this));
     }
 
@@ -320,6 +321,7 @@ contract StakedSlipstreamAM is DerivedAM, ERC721, ReentrancyGuard {
             _calculateValueAndRiskFactors(creditor, underlyingAssetsAmounts, rateUnderlyingAssetsToUsd);
 
         // Unsafe cast: collateralFactor_ and liquidationFactor_ are smaller than or equal to 1e4.
+        // forge-lint: disable-next-line(unsafe-typecast)
         return (uint16(collateralFactor_), uint16(liquidationFactor_));
     }
 
@@ -364,12 +366,12 @@ contract StakedSlipstreamAM is DerivedAM, ERC721, ReentrancyGuard {
 
         // Calculate weighted risk factors of principal and reward.
         unchecked {
-            collateralFactor = (
-                valuePrincipal * collateralFactor + valueReward * rateUnderlyingAssetsToUsd[2].collateralFactor
-            ) / valueInUsd;
-            liquidationFactor = (
-                valuePrincipal * liquidationFactor + valueReward * rateUnderlyingAssetsToUsd[2].liquidationFactor
-            ) / valueInUsd;
+            collateralFactor =
+                (valuePrincipal * collateralFactor + valueReward * rateUnderlyingAssetsToUsd[2].collateralFactor)
+                    / valueInUsd;
+            liquidationFactor =
+                (valuePrincipal * liquidationFactor + valueReward * rateUnderlyingAssetsToUsd[2].liquidationFactor)
+                    / valueInUsd;
         }
 
         // Lower risk factors with the protocol wide risk factor.
@@ -393,8 +395,15 @@ contract StakedSlipstreamAM is DerivedAM, ERC721, ReentrancyGuard {
         NON_FUNGIBLE_POSITION_MANAGER.safeTransferFrom(msg.sender, address(this), assetId);
 
         // Get position.
-        (,, address token0, address token1, int24 tickSpacing, int24 tickLower, int24 tickUpper, uint128 liquidity,,,,)
-        = NON_FUNGIBLE_POSITION_MANAGER.positions(assetId);
+        (
+            ,,
+            address token0,
+            address token1,
+            int24 tickSpacing,
+            int24 tickLower,
+            int24 tickUpper,
+            uint128 liquidity,,,,
+        ) = NON_FUNGIBLE_POSITION_MANAGER.positions(assetId);
         if (liquidity == 0) revert ZeroLiquidity();
 
         // Get the Gauge.
@@ -448,6 +457,7 @@ contract StakedSlipstreamAM is DerivedAM, ERC721, ReentrancyGuard {
         if (rewards > 0) {
             // Transfer reward
             REWARD_TOKEN.safeTransfer(msg.sender, rewards);
+            // forge-lint: disable-next-line(unsafe-typecast)
             emit RewardPaid(positionId, address(REWARD_TOKEN), uint128(rewards));
         }
 
@@ -471,6 +481,7 @@ contract StakedSlipstreamAM is DerivedAM, ERC721, ReentrancyGuard {
         if (rewards > 0) {
             // Transfer reward
             REWARD_TOKEN.safeTransfer(msg.sender, rewards);
+            // forge-lint: disable-next-line(unsafe-typecast)
             emit RewardPaid(positionId, address(REWARD_TOKEN), uint128(rewards));
         }
     }
@@ -492,7 +503,7 @@ contract StakedSlipstreamAM is DerivedAM, ERC721, ReentrancyGuard {
      * @notice Function that stores a new base URI.
      * @param newBaseURI The new base URI to store.
      */
-    /// forge-lint: disable-next-item(mixed-case-function,mixed-case-variable)
+    // forge-lint: disable-next-item(mixed-case-function,mixed-case-variable)
     function setBaseURI(string calldata newBaseURI) external onlyOwner {
         baseURI = newBaseURI;
     }
@@ -502,7 +513,7 @@ contract StakedSlipstreamAM is DerivedAM, ERC721, ReentrancyGuard {
      * @param tokenId The id of the Account.
      * @return uri The token URI.
      */
-    /// forge-lint: disable-next-item(mixed-case-function,mixed-case-variable)
+    // forge-lint: disable-next-item(mixed-case-function,mixed-case-variable)
     function tokenURI(uint256 tokenId) public view override returns (string memory uri) {
         return bytes(baseURI).length > 0 ? string(abi.encodePacked(baseURI, tokenId.toString())) : "";
     }
@@ -510,7 +521,7 @@ contract StakedSlipstreamAM is DerivedAM, ERC721, ReentrancyGuard {
     /**
      * @notice Returns the onERC721Received selector.
      */
-    /// forge-lint: disable-next-item(mixed-case-function)
+    // forge-lint: disable-next-item(mixed-case-function)
     function onERC721Received(address, address, uint256, bytes calldata) public pure returns (bytes4) {
         return this.onERC721Received.selector;
     }

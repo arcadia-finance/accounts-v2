@@ -120,9 +120,8 @@ contract BatchProcessWithdrawal_RegistryL1_Fuzz_Test is RegistryL1_Fuzz_Test {
         vm.assume(!registry_.inRegistry(asset));
         vm.assume(amountDeposited >= amountWithdrawn);
 
-        stdstore.target(address(registry_)).sig(registry_.inRegistry.selector).with_key(address(asset)).checked_write(
-            true
-        );
+        stdstore.target(address(registry_)).sig(registry_.inRegistry.selector).with_key(address(asset))
+            .checked_write(true);
 
         address[] memory assetAddresses = new address[](1);
         assetAddresses[0] = asset;
@@ -151,9 +150,8 @@ contract BatchProcessWithdrawal_RegistryL1_Fuzz_Test is RegistryL1_Fuzz_Test {
         amountWithdrawn = uint112(bound(amountWithdrawn, 1, type(uint112).max));
         vm.assume(amountDeposited >= amountWithdrawn);
 
-        stdstore.target(address(registry_)).sig(registry_.inRegistry.selector).with_key(address(asset)).checked_write(
-            true
-        );
+        stdstore.target(address(registry_)).sig(registry_.inRegistry.selector).with_key(address(asset))
+            .checked_write(true);
 
         address[] memory assetAddresses = new address[](1);
         assetAddresses[0] = asset;

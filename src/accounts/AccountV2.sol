@@ -19,7 +19,7 @@ import { IPermit2 } from "../interfaces/IPermit2.sol";
  * @notice Arcadia Spot Accounts enables individuals, DAOs, and other protocols to deposit and manage a variety of assets easily through Asset Managers.
  * Asset Managers are selected by Spot Account holders and can facilitate automation for tasks such as Liquidity Management and Compounding, among others.
  */
-/// forge-lint: disable-next-item(all)
+// forge-lint: disable-next-item(all)
 contract AccountSpot is AccountStorageV1, IAccount {
     using SafeTransferLib for ERC20;
 
@@ -431,15 +431,15 @@ contract AccountSpot is AccountStorageV1, IAccount {
             if (transferFromOwnerData.assetAmounts[i] == 0) continue;
 
             if (transferFromOwnerData.assetTypes[i] == 1) {
-                ERC20(transferFromOwnerData.assets[i]).safeTransferFrom(
-                    owner_, to, transferFromOwnerData.assetAmounts[i]
-                );
+                ERC20(transferFromOwnerData.assets[i])
+                    .safeTransferFrom(owner_, to, transferFromOwnerData.assetAmounts[i]);
             } else if (transferFromOwnerData.assetTypes[i] == 2) {
                 IERC721(transferFromOwnerData.assets[i]).safeTransferFrom(owner_, to, transferFromOwnerData.assetIds[i]);
             } else if (transferFromOwnerData.assetTypes[i] == 3) {
-                IERC1155(transferFromOwnerData.assets[i]).safeTransferFrom(
-                    owner_, to, transferFromOwnerData.assetIds[i], transferFromOwnerData.assetAmounts[i], ""
-                );
+                IERC1155(transferFromOwnerData.assets[i])
+                    .safeTransferFrom(
+                        owner_, to, transferFromOwnerData.assetIds[i], transferFromOwnerData.assetAmounts[i], ""
+                    );
             } else {
                 revert AccountErrors.UnknownAssetType();
             }
@@ -473,7 +473,7 @@ contract AccountSpot is AccountStorageV1, IAccount {
                         HELPER FUNCTIONS
     /////////////////////////////////////////////////////////////// */
 
-    /* 
+    /*
     @notice Returns the onERC721Received selector.
     @dev Needed to receive ERC721 tokens.
     */

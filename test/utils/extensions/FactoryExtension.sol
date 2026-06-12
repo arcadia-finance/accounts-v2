@@ -9,11 +9,19 @@ import { Factory } from "../../../src/Factory.sol";
 contract FactoryExtension is Factory {
     constructor(address owner_) Factory(owner_) { }
 
+    function setAccount(address account, uint256 index) external {
+        accountIndex[account] = index;
+    }
+
     function setLatestAccountVersion(uint88 latestAccountVersion_) external {
         latestAccountVersion = latestAccountVersion_;
     }
 
-    function setAccount(address account, uint256 index) external {
-        accountIndex[account] = index;
+    function setVersionInformation(uint256 version, VersionInformation memory information) external {
+        versionInformation[version] = information;
+    }
+
+    function setVersionRoot(bytes32 root) external {
+        versionRoot = root;
     }
 }

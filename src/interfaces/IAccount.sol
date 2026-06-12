@@ -4,7 +4,7 @@
  */
 pragma solidity ^0.8.0;
 
-/// forge-lint: disable-next-item(mixed-case-function)
+// forge-lint: disable-next-item(mixed-case-function)
 interface IAccount {
     /**
      * @notice Returns the Account version.
@@ -34,6 +34,16 @@ interface IAccount {
      * @param newVersion The new version of the Account logic.
      */
     function upgradeAccount(address newImplementation, address newRegistry, uint256 newVersion, bytes calldata data)
+        external;
+
+    /**
+     * @notice Finalizes the Upgrade to a new Account version on the new implementation Contract.
+     * @param oldImplementation The old contract address of the Account implementation.
+     * @param oldRegistry The Registry of the old version (might be identical to the new registry)
+     * @param oldVersion The old version of the Account implementation.
+     * @param data Arbitrary data, can contain instructions to execute in this function.
+     */
+    function upgradeHook(address oldImplementation, address oldRegistry, uint256 oldVersion, bytes calldata data)
         external;
 
     /**

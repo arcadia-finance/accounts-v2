@@ -37,7 +37,7 @@ contract AccountLogicMock is AccountStorageV2 {
     ////////////////////////////////////////////////////////////// */
 
     // The current Account Version.
-    uint256 public constant ACCOUNT_VERSION = 4;
+    uint256 public immutable ACCOUNT_VERSION;
     // Storage slot with the address of the current implementation.
     // This is the hardcoded keccak-256 hash of: "eip1967.proxy.implementation" subtracted by 1.
     bytes32 internal constant IMPLEMENTATION_SLOT = 0x360894a13ba1a3210667c828492db98dca3e2076cc3735a920a3ca505d382bbc;
@@ -120,11 +120,12 @@ contract AccountLogicMock is AccountStorageV2 {
     /**
      * @param factory The contract address of the Arcadia Accounts Factory.
      */
-    constructor(address factory) {
+    constructor(uint256 version, address factory) {
         // This will only be the owner of the Account logic implementation.
         // and will not affect any subsequent proxy implementation using this Account logic.
         owner = msg.sender;
 
+        ACCOUNT_VERSION = version;
         FACTORY = factory;
     }
 
@@ -282,6 +283,7 @@ contract AccountLogicMock is AccountStorageV2 {
 
         liquidator = liquidator_;
         creditor = creditor_;
+        // forge-lint: disable-next-line(unsafe-typecast)
         minimumMargin = uint96(minimumMargin_);
         if (numeraire != numeraire_) {
             _setNumeraire(numeraire_);
@@ -745,15 +747,15 @@ contract AccountLogicMock is AccountStorageV2 {
             }
 
             if (transferFromOwnerData.assetTypes[i] == 0) {
-                ERC20(transferFromOwnerData.assets[i]).safeTransferFrom(
-                    owner_, to, transferFromOwnerData.assetAmounts[i]
-                );
+                ERC20(transferFromOwnerData.assets[i])
+                    .safeTransferFrom(owner_, to, transferFromOwnerData.assetAmounts[i]);
             } else if (transferFromOwnerData.assetTypes[i] == 1) {
                 IERC721(transferFromOwnerData.assets[i]).safeTransferFrom(owner_, to, transferFromOwnerData.assetIds[i]);
             } else if (transferFromOwnerData.assetTypes[i] == 2) {
-                IERC1155(transferFromOwnerData.assets[i]).safeTransferFrom(
-                    owner_, to, transferFromOwnerData.assetIds[i], transferFromOwnerData.assetAmounts[i], ""
-                );
+                IERC1155(transferFromOwnerData.assets[i])
+                    .safeTransferFrom(
+                        owner_, to, transferFromOwnerData.assetIds[i], transferFromOwnerData.assetAmounts[i], ""
+                    );
             } else {
                 revert AccountErrors.UnknownAssetType();
             }
@@ -798,7 +800,7 @@ contract AccountLogicMock is AccountStorageV2 {
      * @dev Used for all tokens type == 0.
      * @dev If the token has not yet been deposited, the ERC20 token address is stored.
      */
-    /// forge-lint: disable-next-item(mixed-case-function,mixed-case-variable)
+    // forge-lint: disable-next-item(mixed-case-function,mixed-case-variable)
     function _depositERC20(address from, address ERC20Address, uint256 amount) internal {
         ERC20(ERC20Address).safeTransferFrom(from, address(this), amount);
 
@@ -822,7 +824,7 @@ contract AccountLogicMock is AccountStorageV2 {
      * @dev After successful transfer, the function pushes the ERC721 address to the stored token and stored ID array.
      * This may cause duplicates in the ERC721 stored addresses array, but this is intended.
      */
-    /// forge-lint: disable-next-item(mixed-case-function,mixed-case-variable)
+    // forge-lint: disable-next-item(mixed-case-function,mixed-case-variable)
     function _depositERC721(address from, address ERC721Address, uint256 id) internal {
         IERC721(ERC721Address).safeTransferFrom(from, address(this), id);
 
@@ -841,7 +843,7 @@ contract AccountLogicMock is AccountStorageV2 {
      * If not, the function pushes the new address and ID to the stored arrays.
      * This may cause duplicates in the ERC1155 stored addresses array, this is intended.
      */
-    /// forge-lint: disable-next-item(mixed-case-function,mixed-case-variable)
+    // forge-lint: disable-next-item(mixed-case-function,mixed-case-variable)
     function _depositERC1155(address from, address ERC1155Address, uint256 id, uint256 amount) internal {
         IERC1155(ERC1155Address).safeTransferFrom(from, address(this), id, amount, "");
 
@@ -869,7 +871,7 @@ contract AccountLogicMock is AccountStorageV2 {
      * @dev This check is done using a loop:
      * gas usage of writing it in a mapping vs extra loops is in favor of extra loops in this case.
      */
-    /// forge-lint: disable-next-item(mixed-case-function,mixed-case-variable)
+    // forge-lint: disable-next-item(mixed-case-function,mixed-case-variable)
     function _withdrawERC20(address to, address ERC20Address, uint256 amount) internal {
         erc20Balances[ERC20Address] -= amount;
 
@@ -908,7 +910,7 @@ contract AccountLogicMock is AccountStorageV2 {
      * then replaces it with the last index, followed by a pop().
      * @dev Sensitive to ReEntrance attacks! SafeTransferFrom therefore done at the end of the function.
      */
-    /// forge-lint: disable-next-item(mixed-case-function,mixed-case-variable)
+    // forge-lint: disable-next-item(mixed-case-function,mixed-case-variable)
     function _withdrawERC721(address to, address ERC721Address, uint256 id) internal {
         uint256 tokenIdLength = erc721TokenIds.length;
 
@@ -953,7 +955,7 @@ contract AccountLogicMock is AccountStorageV2 {
      * and then replaces it with the last index, followed by a pop().
      * @dev Sensitive to ReEntrance attacks! SafeTransferFrom therefore done at the end of the function.
      */
-    /// forge-lint: disable-next-item(mixed-case-function,mixed-case-variable)
+    // forge-lint: disable-next-item(mixed-case-function,mixed-case-variable)
     function _withdrawERC1155(address to, address ERC1155Address, uint256 id, uint256 amount) internal {
         uint256 tokenIdLength = erc1155TokenIds.length;
 
@@ -994,7 +996,8 @@ contract AccountLogicMock is AccountStorageV2 {
      */
     function skim(address token, uint256 id, uint256 type_) public onlyOwner {
         if (token == address(0)) {
-            payable(owner).transfer(address(this).balance);
+            (bool success,) = payable(owner).call{ value: address(this).balance }("");
+            require(success, "ETH transfer failed");
             return;
         }
 
@@ -1102,12 +1105,12 @@ contract AccountLogicMock is AccountStorageV2 {
         }
     }
 
-    /// forge-lint: disable-next-item(mixed-case-function)
+    // forge-lint: disable-next-item(mixed-case-function)
     function onERC721Received(address, address, uint256, bytes calldata) public pure returns (bytes4) {
         return this.onERC721Received.selector;
     }
 
-    /// forge-lint: disable-next-item(mixed-case-function)
+    // forge-lint: disable-next-item(mixed-case-function)
     function onERC1155Received(address, address, uint256, uint256, bytes calldata) public pure returns (bytes4) {
         return this.onERC1155Received.selector;
     }

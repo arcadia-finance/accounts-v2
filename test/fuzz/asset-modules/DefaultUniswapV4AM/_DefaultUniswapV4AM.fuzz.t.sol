@@ -9,8 +9,9 @@ import { ERC20 } from "../../../../lib/solmate/src/tokens/ERC20.sol";
 import { Fuzz_Test } from "../../Fuzz.t.sol";
 import { FixedPointMathLib } from "../../../../lib/solmate/src/utils/FixedPointMathLib.sol";
 import { LiquidityAmounts } from "../../../../src/asset-modules/UniswapV3/libraries/LiquidityAmounts.sol";
-import { LiquidityAmountsExtension } from
-    "../../../utils/fixtures/uniswap-v3/extensions/libraries/LiquidityAmountsExtension.sol";
+import {
+    LiquidityAmountsExtension
+} from "../../../utils/fixtures/uniswap-v3/extensions/libraries/LiquidityAmountsExtension.sol";
 import { PoolKey } from "../../../../lib/v4-periphery/lib/v4-core/src/types/PoolKey.sol";
 import { TickMath } from "../../../../lib/v4-periphery/lib/v4-core/src/libraries/TickMath.sol";
 import { UniswapV4Fixture } from "../../../utils/fixtures/uniswap-v4/UniswapV4Fixture.f.sol";
@@ -24,7 +25,7 @@ abstract contract DefaultUniswapV4AM_Fuzz_Test is Fuzz_Test, UniswapV4Fixture {
                               CONSTANTS
     /////////////////////////////////////////////////////////////// */
 
-    /// forge-lint: disable-next-line(mixed-case-variable)
+    // forge-lint: disable-next-line(mixed-case-variable)
     DefaultUniswapV4AMExtension internal uniswapV4AM;
     UniswapV4HooksRegistryExtension internal v4HooksRegistry;
     PoolKey internal stablePoolKey;

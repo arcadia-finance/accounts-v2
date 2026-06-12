@@ -40,7 +40,7 @@ contract AddAsset_WrappedAerodromeAM_Fuzz_Test is WrappedAerodromeAM_Fuzz_Test {
         wrappedAerodromeAM.addAsset(address(aeroPool));
 
         // Then : Asset and gauge info should be updated
-        if (mockERC20.token1 < mockERC20.stable1) {
+        if (address(mockERC20.token1) < address(mockERC20.stable1)) {
             assertEq(wrappedAerodromeAM.token0(address(aeroPool)), address(mockERC20.token1));
             assertEq(wrappedAerodromeAM.token1(address(aeroPool)), address(mockERC20.stable1));
         } else {

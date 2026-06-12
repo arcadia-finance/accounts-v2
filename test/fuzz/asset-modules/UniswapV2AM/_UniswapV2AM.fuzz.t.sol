@@ -42,7 +42,7 @@ abstract contract UniswapV2AM_Fuzz_Test is Fuzz_Test {
                           TEST CONTRACTS
     /////////////////////////////////////////////////////////////// */
 
-    /// forge-lint: disable-next-line(mixed-case-variable)
+    // forge-lint: disable-next-line(mixed-case-variable)
     UniswapV2AMExtension internal uniswapV2AM;
 
     /* ///////////////////////////////////////////////////////////////
@@ -87,8 +87,9 @@ abstract contract UniswapV2AM_Fuzz_Test is Fuzz_Test {
         uint256 rate,
         string memory label
     ) internal returns (ERC20Mock token) {
-        token =
-            new ERC20Mock(string(abi.encodePacked(label, " Mock")), string(abi.encodePacked("m", label)), tokenDecimals);
+        token = new ERC20Mock(
+            string(abi.encodePacked(label, " Mock")), string(abi.encodePacked("m", label)), tokenDecimals
+        );
         oracleTokenToUsd = initMockedOracle(oracleTokenToUsdDecimals, string(abi.encodePacked(label, " / USD")), rate);
 
         vm.startPrank(users.owner);

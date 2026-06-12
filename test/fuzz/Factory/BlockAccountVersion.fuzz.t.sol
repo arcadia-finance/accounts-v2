@@ -23,9 +23,7 @@ contract BlockAccountVersion_Factory_Fuzz_Test is Factory_Fuzz_Test {
     /*//////////////////////////////////////////////////////////////
                               TESTS
     //////////////////////////////////////////////////////////////*/
-    function testFuzz_Revert_blockAccountVersion_NonOwner(uint256 accountVersion, address unprivilegedAddress_)
-        public
-    {
+    function testFuzz_Revert_blockAccountVersion_NonOwner(uint256 accountVersion, address unprivilegedAddress_) public {
         vm.assume(unprivilegedAddress_ != users.owner);
 
         uint256 currentVersion = factory.latestAccountVersion();
@@ -60,6 +58,7 @@ contract BlockAccountVersion_Factory_Fuzz_Test is Factory_Fuzz_Test {
 
         vm.startPrank(users.owner);
         vm.expectEmit(true, true, true, true);
+        // forge-lint: disable-next-line(unsafe-typecast)
         emit Factory.AccountVersionBlocked(uint88(accountVersion));
         factory.blockAccountVersion(accountVersion);
         vm.stopPrank();

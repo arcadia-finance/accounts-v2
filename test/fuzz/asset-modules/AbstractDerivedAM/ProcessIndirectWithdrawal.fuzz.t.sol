@@ -10,7 +10,7 @@ import { AssetModule } from "../../../../src/asset-modules/abstracts/AbstractAM.
 /**
  * @notice Fuzz tests for the function "processIndirectWithdrawal" of contract "AbstractDerivedAM".
  */
-/// forge-lint: disable-next-item(mixed-case-variable)
+// forge-lint: disable-next-item(mixed-case-variable,unsafe-typecast)
 contract ProcessIndirectWithdrawal_AbstractDerivedAM_Fuzz_Test is AbstractDerivedAM_Fuzz_Test {
     /* ///////////////////////////////////////////////////////////////
                               SETUP
@@ -55,9 +55,9 @@ contract ProcessIndirectWithdrawal_AbstractDerivedAM_Fuzz_Test is AbstractDerive
 
         // And: Withdrawal does not revert.
         (protocolState, assetState, underlyingPMState, exposureUpperAssetToAsset, deltaExposureUpperAssetToAsset_) =
-        givenNonRevertingWithdrawal(
-            protocolState, assetState, underlyingPMState, exposureUpperAssetToAsset, deltaExposureUpperAssetToAsset_
-        );
+            givenNonRevertingWithdrawal(
+                protocolState, assetState, underlyingPMState, exposureUpperAssetToAsset, deltaExposureUpperAssetToAsset_
+            );
 
         // And: State is persisted.
         setDerivedAMProtocolState(protocolState, assetState.creditor);
@@ -90,9 +90,9 @@ contract ProcessIndirectWithdrawal_AbstractDerivedAM_Fuzz_Test is AbstractDerive
 
         // And: Withdrawal does not revert.
         (protocolState, assetState, underlyingPMState, exposureUpperAssetToAsset, deltaExposureUpperAssetToAsset) =
-        givenNonRevertingWithdrawal(
-            protocolState, assetState, underlyingPMState, exposureUpperAssetToAsset, deltaExposureUpperAssetToAsset
-        );
+            givenNonRevertingWithdrawal(
+                protocolState, assetState, underlyingPMState, exposureUpperAssetToAsset, deltaExposureUpperAssetToAsset
+            );
 
         // And: State is persisted.
         setDerivedAMProtocolState(protocolState, assetState.creditor);
@@ -125,9 +125,9 @@ contract ProcessIndirectWithdrawal_AbstractDerivedAM_Fuzz_Test is AbstractDerive
 
         // And: Withdrawal does not revert.
         (protocolState, assetState, underlyingPMState, exposureUpperAssetToAsset, deltaExposureUpperAssetToAsset) =
-        givenNonRevertingWithdrawal(
-            protocolState, assetState, underlyingPMState, exposureUpperAssetToAsset, deltaExposureUpperAssetToAsset
-        );
+            givenNonRevertingWithdrawal(
+                protocolState, assetState, underlyingPMState, exposureUpperAssetToAsset, deltaExposureUpperAssetToAsset
+            );
 
         // And: exposureAsset is not zero (test-case).
         uint256 exposureAsset;

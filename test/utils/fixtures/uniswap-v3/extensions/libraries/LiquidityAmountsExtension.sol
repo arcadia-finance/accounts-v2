@@ -4,7 +4,7 @@ pragma solidity ^0.8.0;
 import { FullMath } from "../../../../../../src/asset-modules/UniswapV3/libraries/FullMath.sol";
 import { FixedPoint96 } from "../../../../../../src/asset-modules/UniswapV3/libraries/FixedPoint96.sol";
 
-/// forge-lint: disable-next-item(mixed-case-variable)
+// forge-lint: disable-next-item(mixed-case-variable)
 library LiquidityAmountsExtension {
     /// @notice Computes the amount of liquidity received for a given amount of token0 and price range
     /// @dev Calculates amount0 * (sqrt(upper) * sqrt(lower)) / (sqrt(upper) - sqrt(lower))
@@ -52,7 +52,9 @@ library LiquidityAmountsExtension {
         uint256 amount0,
         uint256 amount1
     ) internal pure returns (uint256 liquidity) {
-        if (sqrtRatioAX96 > sqrtRatioBX96) (sqrtRatioAX96, sqrtRatioBX96) = (sqrtRatioBX96, sqrtRatioAX96);
+        if (sqrtRatioAX96 > sqrtRatioBX96) {
+            (sqrtRatioAX96, sqrtRatioBX96) = (sqrtRatioBX96, sqrtRatioAX96);
+        }
 
         if (sqrtRatioX96 <= sqrtRatioAX96) {
             liquidity = getLiquidityForAmount0(sqrtRatioAX96, sqrtRatioBX96, amount0);

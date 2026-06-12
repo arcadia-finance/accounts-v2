@@ -8,8 +8,9 @@ import { UniswapV3AM_Fuzz_Test } from "./_UniswapV3AM.fuzz.t.sol";
 
 import { AssetValueAndRiskFactors } from "../../../../src/libraries/AssetValuationLib.sol";
 import { ERC20Mock } from "../../../utils/mocks/tokens/ERC20Mock.sol";
-import { IUniswapV3PoolExtension } from
-    "../../../utils/fixtures/uniswap-v3/extensions/interfaces/IUniswapV3PoolExtension.sol";
+import {
+    IUniswapV3PoolExtension
+} from "../../../utils/fixtures/uniswap-v3/extensions/interfaces/IUniswapV3PoolExtension.sol";
 import { LiquidityAmounts } from "../../../../src/asset-modules/UniswapV3/libraries/LiquidityAmounts.sol";
 import { NonfungiblePositionManagerMock } from "../../../utils/mocks/UniswapV3/NonfungiblePositionManager.sol";
 import { TickMath } from "../../../../src/asset-modules/UniswapV3/libraries/TickMath.sol";
@@ -44,7 +45,7 @@ contract GetUnderlyingAssetsAmounts_UniswapV3AM_Fuzz_Test is UniswapV3AM_Fuzz_Te
 
         ERC20Mock token0 = new ERC20Mock("Token 0", "TOK0", uint8(asset0.decimals));
         ERC20Mock token1 = new ERC20Mock("Token 1", "TOK1", uint8(asset1.decimals));
-        if (token0 > token1) {
+        if (address(token0) > address(token1)) {
             (token0, token1) = (token1, token0);
             (asset0, asset1) = (asset1, asset0);
         }
@@ -90,7 +91,7 @@ contract GetUnderlyingAssetsAmounts_UniswapV3AM_Fuzz_Test is UniswapV3AM_Fuzz_Te
 
         ERC20Mock token0 = new ERC20Mock("Token 0", "TOK0", uint8(asset0.decimals));
         ERC20Mock token1 = new ERC20Mock("Token 1", "TOK1", uint8(asset1.decimals));
-        if (token0 > token1) {
+        if (address(token0) > address(token1)) {
             (token0, token1) = (token1, token0);
             (asset0, asset1) = (asset1, asset0);
         }
@@ -130,7 +131,7 @@ contract GetUnderlyingAssetsAmounts_UniswapV3AM_Fuzz_Test is UniswapV3AM_Fuzz_Te
 
         ERC20Mock token0 = new ERC20Mock("Token 0", "TOK0", uint8(asset0.decimals));
         ERC20Mock token1 = new ERC20Mock("Token 1", "TOK1", uint8(asset1.decimals));
-        if (token0 > token1) {
+        if (address(token0) > address(token1)) {
             (token0, token1) = (token1, token0);
             (asset0, asset1) = (asset1, asset0);
         }
@@ -180,8 +181,7 @@ contract GetUnderlyingAssetsAmounts_UniswapV3AM_Fuzz_Test is UniswapV3AM_Fuzz_Te
         // And: The correct "underlyingAssetsAmounts" rates are returned.
         uint160 sqrtPriceX96 =
             uniV3AM.getSqrtPriceX96(expectedRateUnderlyingAssetsToUsd0, expectedRateUnderlyingAssetsToUsd1);
-        (uint256 expectedUnderlyingAssetsAmount0, uint256 expectedUnderlyingAssetsAmount1) = LiquidityAmounts
-            .getAmountsForLiquidity(
+        (uint256 expectedUnderlyingAssetsAmount0, uint256 expectedUnderlyingAssetsAmount1) = LiquidityAmounts.getAmountsForLiquidity(
             sqrtPriceX96,
             TickMath.getSqrtRatioAtTick(position.tickLower),
             TickMath.getSqrtRatioAtTick(position.tickUpper),

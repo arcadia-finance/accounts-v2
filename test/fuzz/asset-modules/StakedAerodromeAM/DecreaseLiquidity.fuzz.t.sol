@@ -12,6 +12,7 @@ import { stdError } from "../../../../lib/forge-std/src/StdError.sol";
 /**
  * @notice Fuzz tests for the function "decreaseLiquidity" of contract "StakedAerodromeAM".
  */
+// forge-lint: disable-next-item(unsafe-typecast)
 contract DecreaseLiquidity_StakedAerodromeAM_Fuzz_Test is StakedAerodromeAM_Fuzz_Test {
     using FixedPointMathLib for uint256;
     /* ///////////////////////////////////////////////////////////////
@@ -506,9 +507,7 @@ contract DecreaseLiquidity_StakedAerodromeAM_Fuzz_Test is StakedAerodromeAM_Fuzz
 
         // Given : Valid state
         StakingAMStateForAsset memory assetState = StakingAMStateForAsset({
-            currentRewardGlobal: 123_456 * 1e18,
-            lastRewardPerTokenGlobal: 0,
-            totalStaked: 1_111_111 * 1e18
+            currentRewardGlobal: 123_456 * 1e18, lastRewardPerTokenGlobal: 0, totalStaked: 1_111_111 * 1e18
         });
 
         StakingAM.PositionState memory positionState = StakingAM.PositionState({

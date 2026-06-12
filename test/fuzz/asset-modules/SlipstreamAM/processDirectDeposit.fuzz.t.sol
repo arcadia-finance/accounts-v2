@@ -10,8 +10,9 @@ import { AssetModule } from "../../../../src/asset-modules/abstracts/AbstractAM.
 import { ERC20 } from "../../../../lib/solmate/src/tokens/ERC20.sol";
 import { ERC20Mock } from "../../../utils/mocks/tokens/ERC20Mock.sol";
 import { ICLPoolExtension } from "../../../utils/fixtures/slipstream/extensions/interfaces/ICLPoolExtension.sol";
-import { INonfungiblePositionManagerExtension } from
-    "../../../utils/fixtures/slipstream/extensions/interfaces/INonfungiblePositionManagerExtension.sol";
+import {
+    INonfungiblePositionManagerExtension
+} from "../../../utils/fixtures/slipstream/extensions/interfaces/INonfungiblePositionManagerExtension.sol";
 import { LiquidityAmounts } from "../../../../src/asset-modules/UniswapV3/libraries/LiquidityAmounts.sol";
 import { SlipstreamAM } from "../../../../src/asset-modules/Slipstream/SlipstreamAM.sol";
 import { TickMath } from "../../../../src/asset-modules/UniswapV3/libraries/TickMath.sol";
@@ -19,6 +20,7 @@ import { TickMath } from "../../../../src/asset-modules/UniswapV3/libraries/Tick
 /**
  * @notice Fuzz tests for the function "processDirectDeposit" of contract "SlipstreamAM".
  */
+// forge-lint: disable-next-item(unsafe-typecast)
 contract ProcessDirectDeposit_SlipstreamAM_Fuzz_Test is SlipstreamAM_Fuzz_Test {
     /* ///////////////////////////////////////////////////////////////
                             VARIABLES
@@ -39,7 +41,7 @@ contract ProcessDirectDeposit_SlipstreamAM_Fuzz_Test is SlipstreamAM_Fuzz_Test {
 
         token0 = new ERC20Mock("Token 0", "TOK0", 18);
         token1 = new ERC20Mock("Token 1", "TOK1", 18);
-        (token0, token1) = token0 < token1 ? (token0, token1) : (token1, token0);
+        (token0, token1) = address(token0) < address(token1) ? (token0, token1) : (token1, token0);
     }
 
     /*//////////////////////////////////////////////////////////////
@@ -96,11 +98,7 @@ contract ProcessDirectDeposit_SlipstreamAM_Fuzz_Test is SlipstreamAM_Fuzz_Test {
         vm.prank(users.liquidityProvider);
         slipstreamPositionManager.decreaseLiquidity(
             INonfungiblePositionManagerExtension.DecreaseLiquidityParams({
-                tokenId: tokenId,
-                liquidity: liquidity_,
-                amount0Min: 0,
-                amount1Min: 0,
-                deadline: type(uint160).max
+                tokenId: tokenId, liquidity: liquidity_, amount0Min: 0, amount1Min: 0, deadline: type(uint160).max
             })
         );
 
@@ -603,6 +601,7 @@ contract ProcessDirectDeposit_SlipstreamAM_Fuzz_Test is SlipstreamAM_Fuzz_Test {
             slipstreamAM.processDirectDeposit(address(creditorUsd), address(slipstreamPositionManager), tokenId, 0);
 
             // Then: Exposure of the asset is still one.
+            // forge-lint: disable-next-line(unsafe-typecast)
             bytes32 assetKey = bytes32(abi.encodePacked(uint96(tokenId), address(slipstreamPositionManager)));
             (uint256 lastExposureAsset,) = slipstreamAM.getAssetExposureLast(address(creditorUsd), assetKey);
             assertEq(lastExposureAsset, 1);

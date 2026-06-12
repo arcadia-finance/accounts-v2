@@ -13,7 +13,7 @@ import { Constants } from "../../../utils/Constants.sol";
 /**
  * @notice Fuzz tests for the function "getValue" of contract "StandardERC4626AM".
  */
-/// forge-lint: disable-next-item(divide-before-multiply)
+// forge-lint: disable-next-item(divide-before-multiply,unsafe-typecast)
 contract GetValue_StandardERC4626AM_Fuzz_Test is StandardERC4626AM_Fuzz_Test {
     using stdStorage for StdStorage;
     /* ///////////////////////////////////////////////////////////////

@@ -2,7 +2,7 @@
  * Created by Pragma Labs
  * SPDX-License-Identifier: BUSL-1.1
  */
-pragma solidity ^0.8.30;
+pragma solidity ^0.8.34;
 
 import { AccountErrors } from "../libraries/Errors.sol";
 import { AccountStorageV1 } from "./AccountStorageV1.sol";
@@ -253,6 +253,7 @@ contract AccountV4 is AccountStorageV1, IAccount {
      * This prevents the old Owner from frontrunning a transferFrom().
      */
     function transferOwnership(address newOwner) external onlyFactory nonReentrant(WITHOUT_PAUSE_CHECK) {
+        // forge-lint: disable-next-line(block-timestamp)
         if (block.timestamp <= lastActionTimestamp + COOL_DOWN_PERIOD) revert AccountErrors.CoolDownPeriodNotPassed();
 
         // The Factory will check that the new owner is not address(0).
@@ -547,15 +548,15 @@ contract AccountV4 is AccountStorageV1, IAccount {
             if (transferFromOwnerData.assetAmounts[i] == 0) continue;
 
             if (transferFromOwnerData.assetTypes[i] == 1) {
-                ERC20(transferFromOwnerData.assets[i]).safeTransferFrom(
-                    owner_, to, transferFromOwnerData.assetAmounts[i]
-                );
+                ERC20(transferFromOwnerData.assets[i])
+                    .safeTransferFrom(owner_, to, transferFromOwnerData.assetAmounts[i]);
             } else if (transferFromOwnerData.assetTypes[i] == 2) {
                 IERC721(transferFromOwnerData.assets[i]).safeTransferFrom(owner_, to, transferFromOwnerData.assetIds[i]);
             } else if (transferFromOwnerData.assetTypes[i] == 3) {
-                IERC1155(transferFromOwnerData.assets[i]).safeTransferFrom(
-                    owner_, to, transferFromOwnerData.assetIds[i], transferFromOwnerData.assetAmounts[i], ""
-                );
+                IERC1155(transferFromOwnerData.assets[i])
+                    .safeTransferFrom(
+                        owner_, to, transferFromOwnerData.assetIds[i], transferFromOwnerData.assetAmounts[i], ""
+                    );
             } else {
                 revert AccountErrors.UnknownAssetType();
             }
@@ -612,11 +613,11 @@ contract AccountV4 is AccountStorageV1, IAccount {
                         HELPER FUNCTIONS
     /////////////////////////////////////////////////////////////// */
 
-    /* 
+    /*
     @notice Returns the onERC721Received selector.
     @dev Needed to receive ERC721 tokens.
     */
-    /// forge-lint: disable-next-item(mixed-case-function)
+    // forge-lint: disable-next-item(mixed-case-function)
     function onERC721Received(address, address, uint256, bytes calldata) public pure returns (bytes4) {
         return this.onERC721Received.selector;
     }
@@ -625,7 +626,7 @@ contract AccountV4 is AccountStorageV1, IAccount {
     @notice Returns the onERC1155Received selector.
     @dev Needed to receive ERC1155 tokens.
     */
-    /// forge-lint: disable-next-item(mixed-case-function)
+    // forge-lint: disable-next-item(mixed-case-function)
     function onERC1155Received(address, address, uint256, uint256, bytes calldata) public pure returns (bytes4) {
         return this.onERC1155Received.selector;
     }

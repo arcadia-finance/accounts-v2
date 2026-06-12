@@ -12,6 +12,7 @@ import { UniswapV4HooksRegistry_Fuzz_Test } from "./_UniswapV4HooksRegistry.fuzz
 /**
  * @notice Fuzz tests for the function "processDirectDeposit" of contract "UniswapV4HooksRegistry".
  */
+// forge-lint: disable-next-item(unsafe-typecast)
 contract ProcessDirectDeposit_UniswapV4HooksRegistry_Fuzz_Test is UniswapV4HooksRegistry_Fuzz_Test {
     /* ///////////////////////////////////////////////////////////////
                               SETUP
@@ -22,7 +23,7 @@ contract ProcessDirectDeposit_UniswapV4HooksRegistry_Fuzz_Test is UniswapV4Hooks
 
         token0 = new ERC20Mock("Token 0", "TOK0", 18);
         token1 = new ERC20Mock("Token 1", "TOK1", 18);
-        (token0, token1) = token0 < token1 ? (token0, token1) : (token1, token0);
+        (token0, token1) = address(token0) < address(token1) ? (token0, token1) : (token1, token0);
     }
 
     /*//////////////////////////////////////////////////////////////

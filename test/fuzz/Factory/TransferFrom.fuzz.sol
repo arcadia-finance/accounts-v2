@@ -35,14 +35,14 @@ contract TransferFrom_Factory_Fuzz_Test is Factory_Fuzz_Test {
     //////////////////////////////////////////////////////////////*/
 
     function coolDownPeriodPassed(address account_, uint32 lastActionTimestamp, uint32 timePassed) public {
-        AccountV3 account__ = AccountV3(account_);
+        AccountV3 _account_ = AccountV3(account_);
         timePassed = uint32(bound(timePassed, coolDownPeriod + 1, type(uint32).max));
 
         vm.warp(lastActionTimestamp);
 
         // Update the lastActionTimestamp.
-        vm.prank(account__.owner());
-        account__.withdraw(new address[](0), new uint256[](0), new uint256[](0));
+        vm.prank(_account_.owner());
+        _account_.withdraw(new address[](0), new uint256[](0), new uint256[](0));
 
         vm.warp(uint256(lastActionTimestamp) + timePassed);
     }
@@ -59,7 +59,7 @@ contract TransferFrom_Factory_Fuzz_Test is Factory_Fuzz_Test {
         vm.assume(owner != address(0));
 
         vm.broadcast(owner);
-        address newAccount = factory.createAccount(salt, 0, address(0));
+        address newAccount = factory.createAccount(salt, 3, address(0));
 
         coolDownPeriodPassed(newAccount, lastActionTimestamp, timePassed);
 
@@ -74,7 +74,7 @@ contract TransferFrom_Factory_Fuzz_Test is Factory_Fuzz_Test {
         vm.assume(owner != address(0));
 
         vm.broadcast(owner);
-        address newAccount = factory.createAccount(salt, 0, address(0));
+        address newAccount = factory.createAccount(salt, 3, address(0));
 
         coolDownPeriodPassed(newAccount, lastActionTimestamp, timePassed);
 
@@ -97,7 +97,7 @@ contract TransferFrom_Factory_Fuzz_Test is Factory_Fuzz_Test {
         vm.assume(to != address(0));
 
         vm.broadcast(owner);
-        address newAccount = factory.createAccount(salt, 0, address(0));
+        address newAccount = factory.createAccount(salt, 3, address(0));
 
         vm.assume(to != newAccount);
 
@@ -117,7 +117,7 @@ contract TransferFrom_Factory_Fuzz_Test is Factory_Fuzz_Test {
         vm.assume(owner != address(0));
 
         vm.broadcast(owner);
-        address newAccount = factory.createAccount(salt, 0, address(0));
+        address newAccount = factory.createAccount(salt, 3, address(0));
 
         coolDownPeriodPassed(newAccount, lastActionTimestamp, timePassed);
 
@@ -136,7 +136,7 @@ contract TransferFrom_Factory_Fuzz_Test is Factory_Fuzz_Test {
         vm.assume(owner != address(0));
 
         vm.broadcast(owner);
-        address newAccount = factory.createAccount(salt, 0, address(0));
+        address newAccount = factory.createAccount(salt, 3, address(0));
 
         coolDownPeriodPassed(newAccount, lastActionTimestamp, timePassed);
 
@@ -160,7 +160,7 @@ contract TransferFrom_Factory_Fuzz_Test is Factory_Fuzz_Test {
         vm.assume(to != address(0));
 
         vm.broadcast(owner);
-        address newAccount = factory.createAccount(salt, 0, address(0));
+        address newAccount = factory.createAccount(salt, 3, address(0));
 
         vm.assume(to != newAccount);
 
@@ -181,7 +181,7 @@ contract TransferFrom_Factory_Fuzz_Test is Factory_Fuzz_Test {
         vm.assume(owner != address(0));
 
         vm.broadcast(owner);
-        address newAccount = factory.createAccount(salt, 0, address(0));
+        address newAccount = factory.createAccount(salt, 3, address(0));
 
         coolDownPeriodPassed(newAccount, lastActionTimestamp, timePassed);
 
@@ -197,7 +197,7 @@ contract TransferFrom_Factory_Fuzz_Test is Factory_Fuzz_Test {
         vm.assume(owner != address(0));
 
         vm.broadcast(owner);
-        address newAccount = factory.createAccount(salt, 0, address(0));
+        address newAccount = factory.createAccount(salt, 3, address(0));
 
         coolDownPeriodPassed(newAccount, lastActionTimestamp, timePassed);
 
@@ -221,7 +221,7 @@ contract TransferFrom_Factory_Fuzz_Test is Factory_Fuzz_Test {
         vm.assume(to != address(0));
 
         vm.broadcast(owner);
-        address newAccount = factory.createAccount(salt, 0, address(0));
+        address newAccount = factory.createAccount(salt, 3, address(0));
 
         vm.assume(to != newAccount);
 
@@ -242,14 +242,14 @@ contract TransferFrom_Factory_Fuzz_Test is Factory_Fuzz_Test {
         vm.assume(owner != address(0));
 
         vm.broadcast(owner);
-        address newAccount = factory.createAccount(salt, 0, address(0));
+        address newAccount = factory.createAccount(salt, 3, address(0));
 
         coolDownPeriodPassed(newAccount, lastActionTimestamp, timePassed);
 
         uint256 latestId = factory.allAccountsLength();
         vm.prank(owner);
         vm.expectRevert("INVALID_RECIPIENT");
-        /// forge-lint: disable-next-line(erc20-unchecked-transfer)
+        // forge-lint: disable-next-line(erc20-unchecked-transfer)
         factory.transferFrom(owner, address(0), latestId);
     }
 
@@ -262,14 +262,14 @@ contract TransferFrom_Factory_Fuzz_Test is Factory_Fuzz_Test {
         vm.assume(owner != address(0));
 
         vm.broadcast(owner);
-        address newAccount = factory.createAccount(salt, 0, address(0));
+        address newAccount = factory.createAccount(salt, 3, address(0));
 
         coolDownPeriodPassed(newAccount, lastActionTimestamp, timePassed);
 
         uint256 latestId = factory.allAccountsLength();
         vm.prank(owner);
         vm.expectRevert(FactoryErrors.InvalidRecipient.selector);
-        /// forge-lint: disable-next-line(erc20-unchecked-transfer)
+        // forge-lint: disable-next-line(erc20-unchecked-transfer)
         factory.transferFrom(owner, newAccount, latestId);
     }
 
@@ -287,7 +287,7 @@ contract TransferFrom_Factory_Fuzz_Test is Factory_Fuzz_Test {
         vm.assume(to != address(0));
 
         vm.broadcast(owner);
-        address newAccount = factory.createAccount(salt, 0, address(0));
+        address newAccount = factory.createAccount(salt, 3, address(0));
 
         vm.assume(to != newAccount);
 
@@ -296,7 +296,7 @@ contract TransferFrom_Factory_Fuzz_Test is Factory_Fuzz_Test {
         uint256 latestId = factory.allAccountsLength();
         vm.prank(caller);
         vm.expectRevert("NOT_AUTHORIZED");
-        /// forge-lint: disable-next-line(erc20-unchecked-transfer)
+        // forge-lint: disable-next-line(erc20-unchecked-transfer)
         factory.transferFrom(owner, to, latestId);
     }
 
@@ -310,7 +310,7 @@ contract TransferFrom_Factory_Fuzz_Test is Factory_Fuzz_Test {
         vm.assume(owner != address(0));
 
         vm.broadcast(owner);
-        address newAccount = factory.createAccount(salt, 0, address(0));
+        address newAccount = factory.createAccount(salt, 3, address(0));
 
         coolDownPeriodPassed(newAccount, lastActionTimestamp, timePassed);
 
@@ -330,7 +330,7 @@ contract TransferFrom_Factory_Fuzz_Test is Factory_Fuzz_Test {
         vm.assume(owner != address(0));
 
         vm.broadcast(owner);
-        address newAccount = factory.createAccount(salt, 0, address(0));
+        address newAccount = factory.createAccount(salt, 3, address(0));
 
         vm.assume(to != newAccount);
 
@@ -353,7 +353,7 @@ contract TransferFrom_Factory_Fuzz_Test is Factory_Fuzz_Test {
         vm.assume(owner != address(0));
 
         vm.broadcast(owner);
-        address newAccount = factory.createAccount(salt, 0, address(0));
+        address newAccount = factory.createAccount(salt, 3, address(0));
 
         vm.assume(to != newAccount);
 
@@ -376,7 +376,7 @@ contract TransferFrom_Factory_Fuzz_Test is Factory_Fuzz_Test {
         vm.assume(owner != address(0));
 
         vm.broadcast(owner);
-        address newAccount = factory.createAccount(salt, 0, address(0));
+        address newAccount = factory.createAccount(salt, 3, address(0));
 
         vm.assume(to != newAccount);
 
@@ -384,7 +384,7 @@ contract TransferFrom_Factory_Fuzz_Test is Factory_Fuzz_Test {
 
         uint256 latestId = factory.allAccountsLength();
         vm.prank(owner);
-        /// forge-lint: disable-next-line(erc20-unchecked-transfer)
+        // forge-lint: disable-next-line(erc20-unchecked-transfer)
         factory.transferFrom(owner, to, latestId);
 
         assertEq(factory.ownerOfAccount(newAccount), to);

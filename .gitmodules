@@ -4,6 +4,10 @@
 [submodule "lib/forge-std"]
 	path = lib/forge-std
 	url = https://github.com/foundry-rs/forge-std
+[submodule "forge-std-v1.13"]
+	path = lib/forge-std-v1.13
+	url = https://github.com/foundry-rs/forge-std
+	branch = v1.13.0
 [submodule "lib/openzeppelin-contracts-v3.4"]
 	path = lib/openzeppelin-contracts-v3.4
 	url = https://github.com/OpenZeppelin/openzeppelin-contracts
@@ -37,3 +41,6 @@
 [submodule "lib/solady"]
 	path = lib/solady
 	url = https://github.com/Vectorized/solady
+[submodule "forge-std-v1.13"]
+	path = lib/forge-std-v1.13
+	url = https://github.com/foundry-rs/forge-std

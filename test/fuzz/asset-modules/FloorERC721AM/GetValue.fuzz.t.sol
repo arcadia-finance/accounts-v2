@@ -11,6 +11,7 @@ import { Constants } from "../../../utils/Constants.sol";
 /**
  * @notice Fuzz tests for the function "getValue" of contract "FloorERC721AM".
  */
+// forge-lint: disable-next-item(unsafe-typecast)
 contract GetValue_FloorERC721AM_Fuzz_Test is FloorERC721AM_Fuzz_Test {
     /* ///////////////////////////////////////////////////////////////
                               SETUP

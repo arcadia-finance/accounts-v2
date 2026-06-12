@@ -18,6 +18,7 @@ import { AssetModule } from "../../../../src/asset-modules/abstracts/AbstractAM.
 /**
  * @notice Fuzz tests for the function "processIndirectDeposit" of contract "SlipstreamAM".
  */
+// forge-lint: disable-next-item(unsafe-typecast)
 contract ProcessIndirectDeposit_SlipstreamAM_Fuzz_Test is SlipstreamAM_Fuzz_Test {
     /* ///////////////////////////////////////////////////////////////
                             VARIABLES
@@ -38,7 +39,7 @@ contract ProcessIndirectDeposit_SlipstreamAM_Fuzz_Test is SlipstreamAM_Fuzz_Test
 
         token0 = new ERC20Mock("Token 0", "TOK0", 18);
         token1 = new ERC20Mock("Token 1", "TOK1", 18);
-        (token0, token1) = token0 < token1 ? (token0, token1) : (token1, token0);
+        (token0, token1) = address(token0) < address(token1) ? (token0, token1) : (token1, token0);
     }
 
     /*//////////////////////////////////////////////////////////////

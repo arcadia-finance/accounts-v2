@@ -2,7 +2,7 @@
  * Created by Pragma Labs
  * SPDX-License-Identifier: BUSL-1.1
  */
-pragma solidity ^0.8.30;
+pragma solidity ^0.8.34;
 
 import { OracleModule } from "./abstracts/AbstractOM.sol";
 import { IChainLinkData } from "../interfaces/IChainLinkData.sol";
@@ -78,8 +78,9 @@ contract ChainlinkOM is OracleModule {
 
         oracleToOracleId[oracle] = oracleId;
         assetPair[oracleId] = AssetPair({ baseAsset: baseAsset, quoteAsset: quoteAsset });
-        oracleInformation[oracleId] =
-            OracleInformation({ cutOffTime: cutOffTime, unitCorrection: uint64(10 ** (18 - decimals)), oracle: oracle });
+        oracleInformation[oracleId] = OracleInformation({
+            cutOffTime: cutOffTime, unitCorrection: uint64(10 ** (18 - decimals)), oracle: oracle
+        });
     }
 
     /*///////////////////////////////////////////////////////////////
@@ -119,11 +120,13 @@ contract ChainlinkOM is OracleModule {
         try IChainLinkData(oracleInformation_.oracle).latestRoundData() returns (
             uint80 roundId, int256 answer_, uint256, uint256 updatedAt, uint80
         ) {
+            // forge-lint: disable-next-item(block-timestamp)
             if (
                 roundId > 0 && answer_ >= 0 && updatedAt > block.timestamp - oracleInformation_.cutOffTime
                     && updatedAt <= block.timestamp
             ) {
                 success = true;
+                // forge-lint: disable-next-line(unsafe-typecast)
                 answer = uint256(answer_);
             }
         } catch { }

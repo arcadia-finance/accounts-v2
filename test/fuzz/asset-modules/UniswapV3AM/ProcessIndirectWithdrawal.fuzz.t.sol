@@ -8,14 +8,16 @@ import { UniswapV3AM_Fuzz_Test } from "./_UniswapV3AM.fuzz.t.sol";
 
 import { ERC20 } from "../../../../lib/solmate/src/tokens/ERC20.sol";
 import { ERC20Mock } from "../../../utils/mocks/tokens/ERC20Mock.sol";
-import { IUniswapV3PoolExtension } from
-    "../../../utils/fixtures/uniswap-v3/extensions/interfaces/IUniswapV3PoolExtension.sol";
+import {
+    IUniswapV3PoolExtension
+} from "../../../utils/fixtures/uniswap-v3/extensions/interfaces/IUniswapV3PoolExtension.sol";
 import { LiquidityAmounts } from "../../../../src/asset-modules/UniswapV3/libraries/LiquidityAmounts.sol";
 import { TickMath } from "../../../../src/asset-modules/UniswapV3/libraries/TickMath.sol";
 
 /**
  * @notice Fuzz tests for the function "ProcessIndirectWithdrawal" of contract "UniswapV3AM".
  */
+// forge-lint: disable-next-item(unsafe-typecast)
 contract ProcessIndirectWithdrawal_UniswapV3AM_Fuzz_Test is UniswapV3AM_Fuzz_Test {
     /* ///////////////////////////////////////////////////////////////
                             VARIABLES
@@ -36,7 +38,7 @@ contract ProcessIndirectWithdrawal_UniswapV3AM_Fuzz_Test is UniswapV3AM_Fuzz_Tes
 
         token0 = new ERC20Mock("Token 0", "TOK0", 18);
         token1 = new ERC20Mock("Token 1", "TOK1", 18);
-        (token0, token1) = token0 < token1 ? (token0, token1) : (token1, token0);
+        (token0, token1) = address(token0) < address(token1) ? (token0, token1) : (token1, token0);
     }
 
     /*//////////////////////////////////////////////////////////////

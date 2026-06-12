@@ -4,22 +4,22 @@
  */
 pragma solidity ^0.8.0;
 
-import { Math } from "../../mocks/openzeppelin-0.8/Math.sol";
+import { Math } from "../../../../lib/openzeppelin-contracts-v4.9/contracts/utils/math/Math.sol";
 import { IReward } from "./interfaces/IReward.sol";
 import { IGauge } from "./interfaces/IGauge.sol";
 import { IPool } from "./interfaces/IPool.sol";
 import { IVoter } from "./interfaces/IVoter.sol";
 import { IVotingEscrow } from "./interfaces/IVotingEscrow.sol";
-import { IERC20 } from "../../mocks/openzeppelin-0.8/IERC20.sol";
-import { SafeERC20 } from "../../mocks/openzeppelin-0.8/SafeERC20.sol";
-import { ERC2771Context } from "../../mocks/openzeppelin-0.8/ERC2771Context.sol";
-import { ReentrancyGuard } from "../../mocks/openzeppelin-0.8/ReentrancyGuard.sol";
+import { IERC20 } from "../../../../lib/openzeppelin-contracts-v4.9/contracts/token/ERC20/IERC20.sol";
+import { SafeERC20 } from "../../../../lib/openzeppelin-contracts-v4.9/contracts/token/ERC20/utils/SafeERC20.sol";
+import { ERC2771Context } from "../../../../lib/openzeppelin-contracts-v4.9/contracts/metatx/ERC2771Context.sol";
+import { ReentrancyGuard } from "../../../../lib/openzeppelin-contracts-v4.9/contracts/security/ReentrancyGuard.sol";
 import { ProtocolTimeLibrary } from "./libraries/ProtocolTimeLibrary.sol";
 
 /// @title Protocol Gauge
 /// @author veldorome.finance, @figs999, @pegahcarter
 /// @notice Gauge contract for distribution of emissions by address
-/// forge-lint: disable-next-item(all)
+// forge-lint: disable-next-item(all)
 contract Gauge is IGauge, ERC2771Context, ReentrancyGuard {
     using SafeERC20 for IERC20;
     /// @inheritdoc IGauge
@@ -113,8 +113,9 @@ contract Gauge is IGauge, ERC2771Context, ReentrancyGuard {
         if (totalSupply == 0) {
             return rewardPerTokenStored;
         }
-        return rewardPerTokenStored
-            + ((lastTimeRewardApplicable() - lastUpdateTime) * rewardRate * PRECISION) / totalSupply;
+        return
+            rewardPerTokenStored + ((lastTimeRewardApplicable() - lastUpdateTime) * rewardRate * PRECISION)
+                / totalSupply;
     }
 
     /// @inheritdoc IGauge
@@ -139,8 +140,9 @@ contract Gauge is IGauge, ERC2771Context, ReentrancyGuard {
 
     /// @inheritdoc IGauge
     function earned(address _account) public view returns (uint256) {
-        return (balanceOf[_account] * (rewardPerToken() - userRewardPerTokenPaid[_account])) / PRECISION
-            + rewards[_account];
+        return
+            (balanceOf[_account] * (rewardPerToken() - userRewardPerTokenPaid[_account])) / PRECISION
+                + rewards[_account];
     }
 
     /// @inheritdoc IGauge

@@ -7,7 +7,8 @@ import { IPositionDescriptor } from "../../../../../lib/v4-periphery/src/interfa
 import { IWETH9 } from "../../../../../lib/v4-periphery/src/interfaces/external/IWETH9.sol";
 import { PoolKey } from "../../../../../lib/v4-periphery/lib/v4-core/src/types/PoolKey.sol";
 import {
-    PositionInfo, PositionInfoLibrary
+    PositionInfo,
+    PositionInfoLibrary
 } from "../../../../../lib/v4-periphery/src/libraries/PositionInfoLibrary.sol";
 import { PositionManager } from "../../../../../lib/v4-periphery/src/PositionManager.sol";
 

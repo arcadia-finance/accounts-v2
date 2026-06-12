@@ -8,6 +8,7 @@ import { ERC20 } from "../../../../lib/solmate/src/tokens/ERC20.sol";
 import { FixedPointMathLib } from "../../../../lib/solmate/src/utils/FixedPointMathLib.sol";
 import { IUniswapV2Factory } from "./../asset-modules/interfaces/IUniswapV2Factory.sol";
 
+// forge-lint: disable-next-item(unsafe-typecast)
 contract UniswapV2PairMock is ERC20 {
     uint256 public constant MINIMUM_LIQUIDITY = 10 ** 3;
 

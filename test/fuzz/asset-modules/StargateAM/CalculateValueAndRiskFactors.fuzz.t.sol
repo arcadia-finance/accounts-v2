@@ -54,13 +54,12 @@ contract CalculateValueAndRiskFactors_StargateAM_Fuzz_Test is StargateAM_Fuzz_Te
 
         AssetValueAndRiskFactors[] memory rateUnderlyingAssetsToUsd = new AssetValueAndRiskFactors[](1);
         rateUnderlyingAssetsToUsd[0] = AssetValueAndRiskFactors({
-            assetValue: assetRate,
-            collateralFactor: collateralFactor,
-            liquidationFactor: liquidationFactor
+            assetValue: assetRate, collateralFactor: collateralFactor, liquidationFactor: liquidationFactor
         });
 
-        (uint256 valueInUsd, uint256 collateralFactor_, uint256 liquidationFactor_) = stargateAssetModule
-            .calculateValueAndRiskFactors(creditor, underlyingAssetsAmounts, rateUnderlyingAssetsToUsd);
+        (uint256 valueInUsd, uint256 collateralFactor_, uint256 liquidationFactor_) = stargateAssetModule.calculateValueAndRiskFactors(
+            creditor, underlyingAssetsAmounts, rateUnderlyingAssetsToUsd
+        );
         assertEq(valueInUsd, expectedValueInUsd);
         assertEq(collateralFactor_, expectedCollateralFactor);
         assertEq(liquidationFactor_, expectedLiquidationFactor);

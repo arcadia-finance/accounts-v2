@@ -10,7 +10,7 @@ import { AssetModule } from "../../../../src/asset-modules/abstracts/AbstractAM.
 /**
  * @notice Fuzz tests for the function "processIndirectDeposit" of contract "AbstractDerivedAM".
  */
-/// forge-lint: disable-next-item(mixed-case-variable)
+// forge-lint: disable-next-item(mixed-case-variable,unsafe-typecast)
 contract ProcessIndirectDeposit_AbstractDerivedAM_Fuzz_Test is AbstractDerivedAM_Fuzz_Test {
     /* ///////////////////////////////////////////////////////////////
                               SETUP
@@ -53,9 +53,9 @@ contract ProcessIndirectDeposit_AbstractDerivedAM_Fuzz_Test is AbstractDerivedAM
 
         // And: Deposit does not revert.
         (protocolState, assetState, underlyingPMState, exposureUpperAssetToAsset, deltaExposureUpperAssetToAsset_) =
-        givenNonRevertingDeposit(
-            protocolState, assetState, underlyingPMState, exposureUpperAssetToAsset, deltaExposureUpperAssetToAsset_
-        );
+            givenNonRevertingDeposit(
+                protocolState, assetState, underlyingPMState, exposureUpperAssetToAsset, deltaExposureUpperAssetToAsset_
+            );
 
         // And: State is persisted.
         setDerivedAMProtocolState(protocolState, assetState.creditor);
@@ -91,9 +91,9 @@ contract ProcessIndirectDeposit_AbstractDerivedAM_Fuzz_Test is AbstractDerivedAM
 
         // And: Deposit does not revert.
         (protocolState, assetState, underlyingPMState, exposureUpperAssetToAsset, deltaExposureUpperAssetToAsset) =
-        givenNonRevertingDeposit(
-            protocolState, assetState, underlyingPMState, exposureUpperAssetToAsset, deltaExposureUpperAssetToAsset
-        );
+            givenNonRevertingDeposit(
+                protocolState, assetState, underlyingPMState, exposureUpperAssetToAsset, deltaExposureUpperAssetToAsset
+            );
 
         // And: State is persisted.
         setDerivedAMProtocolState(protocolState, assetState.creditor);
@@ -129,9 +129,9 @@ contract ProcessIndirectDeposit_AbstractDerivedAM_Fuzz_Test is AbstractDerivedAM
 
         // And: Deposit does not revert.
         (protocolState, assetState, underlyingPMState, exposureUpperAssetToAsset, deltaExposureUpperAssetToAsset) =
-        givenNonRevertingDeposit(
-            protocolState, assetState, underlyingPMState, exposureUpperAssetToAsset, deltaExposureUpperAssetToAsset
-        );
+            givenNonRevertingDeposit(
+                protocolState, assetState, underlyingPMState, exposureUpperAssetToAsset, deltaExposureUpperAssetToAsset
+            );
 
         // And: exposureAsset is not zero (test-case).
         uint256 exposureAsset;

@@ -13,12 +13,17 @@ jobs:
 
       - name: Install Foundry
         uses: foundry-rs/foundry-toolchain@v1
+        with:
+          version: stable
 
       - name: Run format
         run: forge fmt --check
 
       - name: Install Tenderly CLI
         run: curl https://raw.githubusercontent.com/Tenderly/tenderly-cli/master/scripts/install-linux.sh | sudo sh
+
+      - name: Build
+        run: FOUNDRY_PROFILE=gh forge build
 
       - name: Run tests
         run: |

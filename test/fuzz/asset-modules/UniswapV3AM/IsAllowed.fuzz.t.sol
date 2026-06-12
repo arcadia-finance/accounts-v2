@@ -7,8 +7,9 @@ pragma solidity ^0.8.0;
 import { UniswapV3AM_Fuzz_Test } from "./_UniswapV3AM.fuzz.t.sol";
 
 import { ERC20 } from "../../../../lib/solmate/src/tokens/ERC20.sol";
-import { INonfungiblePositionManagerExtension } from
-    "../../../utils/fixtures/uniswap-v3/extensions/interfaces/INonfungiblePositionManagerExtension.sol";
+import {
+    INonfungiblePositionManagerExtension
+} from "../../../utils/fixtures/uniswap-v3/extensions/interfaces/INonfungiblePositionManagerExtension.sol";
 
 /**
  * @notice Fuzz tests for the function "isAllowed" of contract "UniswapV3AM".
@@ -44,7 +45,7 @@ contract IsAllowed_UniswapV3AM_Fuzz_Test is UniswapV3AM_Fuzz_Test {
         // Token 4 has no exposure set
         ERC20 tokenA = ERC20(address(mockERC20.token1));
         ERC20 tokenB = ERC20(address(mockERC20.token4));
-        (tokenA, tokenB) = tokenA < tokenB ? (tokenA, tokenB) : (tokenB, tokenA);
+        (tokenA, tokenB) = address(tokenA) < address(tokenB) ? (tokenA, tokenB) : (tokenB, tokenA);
         address pool = nonfungiblePositionManager.createAndInitializePoolIfNecessary(
             address(tokenA), address(tokenB), 100, 1 << 96
         );
@@ -87,7 +88,7 @@ contract IsAllowed_UniswapV3AM_Fuzz_Test is UniswapV3AM_Fuzz_Test {
         // Create a LP-position of two underlying assets: token1 and token2.
         ERC20 tokenA = ERC20(address(mockERC20.token1));
         ERC20 tokenB = ERC20(address(mockERC20.token2));
-        (tokenA, tokenB) = tokenA < tokenB ? (tokenA, tokenB) : (tokenB, tokenA);
+        (tokenA, tokenB) = address(tokenA) < address(tokenB) ? (tokenA, tokenB) : (tokenB, tokenA);
         address pool = nonfungiblePositionManager.createAndInitializePoolIfNecessary(
             address(tokenA), address(tokenB), 100, 1 << 96
         );
@@ -119,11 +120,7 @@ contract IsAllowed_UniswapV3AM_Fuzz_Test is UniswapV3AM_Fuzz_Test {
         (,,,,,,, uint128 liquidity,,,,) = nonfungiblePositionManager.positions(tokenId);
         nonfungiblePositionManager.decreaseLiquidity(
             INonfungiblePositionManagerExtension.DecreaseLiquidityParams({
-                tokenId: tokenId,
-                liquidity: liquidity,
-                amount0Min: 0,
-                amount1Min: 0,
-                deadline: type(uint256).max
+                tokenId: tokenId, liquidity: liquidity, amount0Min: 0, amount1Min: 0, deadline: type(uint256).max
             })
         );
         vm.stopPrank();
@@ -142,7 +139,7 @@ contract IsAllowed_UniswapV3AM_Fuzz_Test is UniswapV3AM_Fuzz_Test {
         // Create a LP-position of two underlying assets: token1 and token2.
         ERC20 tokenA = ERC20(address(mockERC20.token1));
         ERC20 tokenB = ERC20(address(mockERC20.token2));
-        (tokenA, tokenB) = tokenA < tokenB ? (tokenA, tokenB) : (tokenB, tokenA);
+        (tokenA, tokenB) = address(tokenA) < address(tokenB) ? (tokenA, tokenB) : (tokenB, tokenA);
         address pool = nonfungiblePositionManager.createAndInitializePoolIfNecessary(
             address(tokenA), address(tokenB), 100, 1 << 96
         );

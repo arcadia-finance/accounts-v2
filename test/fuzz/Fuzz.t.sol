@@ -32,7 +32,7 @@ abstract contract Fuzz_Test is Base_Test, ArcadiaAccountsFixture {
                                      VARIABLES
     //////////////////////////////////////////////////////////////////////////*/
 
-    /// forge-lint: disable-start(mixed-case-variable)
+    // forge-lint: disable-start(mixed-case-variable)
     FloorERC721AMExtension internal floorERC721AM;
     FloorERC1155AMExtension internal floorERC1155AM;
     NativeTokenAMExtension internal nativeTokenAM;
@@ -41,7 +41,7 @@ abstract contract Fuzz_Test is Base_Test, ArcadiaAccountsFixture {
     MockERC721 internal mockERC721;
     MockERC1155 internal mockERC1155;
     Rates internal rates;
-    /// forge-lint: disable-end(mixed-case-variable)
+    // forge-lint: disable-end(mixed-case-variable)
 
     // ERC20 oracle arrays
     uint80[] internal oracleStable1ToUsdArr = new uint80[](1);
@@ -155,8 +155,12 @@ abstract contract Fuzz_Test is Base_Test, ArcadiaAccountsFixture {
 
         // Deploy Oracles
         mockOracles = MockOracles({
-            stable1ToUsd: initMockedOracle(uint8(Constants.STABLE_ORACLE_DECIMALS), "STABLE1 / USD", rates.stable1ToUsd),
-            stable2ToUsd: initMockedOracle(uint8(Constants.STABLE_ORACLE_DECIMALS), "STABLE2 / USD", rates.stable2ToUsd),
+            stable1ToUsd: initMockedOracle(
+                uint8(Constants.STABLE_ORACLE_DECIMALS), "STABLE1 / USD", rates.stable1ToUsd
+            ),
+            stable2ToUsd: initMockedOracle(
+                uint8(Constants.STABLE_ORACLE_DECIMALS), "STABLE2 / USD", rates.stable2ToUsd
+            ),
             token1ToUsd: initMockedOracle(uint8(Constants.TOKEN_ORACLE_DECIMALS), "TOKEN1 / USD", rates.token1ToUsd),
             token2ToUsd: initMockedOracle(uint8(Constants.TOKEN_ORACLE_DECIMALS), "TOKEN2 / USD", rates.token2ToUsd),
             token3ToToken4: initMockedOracle(
@@ -379,7 +383,7 @@ abstract contract Fuzz_Test is Base_Test, ArcadiaAccountsFixture {
         nativeTokenAM.setExposure(address(creditorUsd), asset, initialExposure, maxExposure);
     }
 
-    /// forge-lint: disable-next-item(mixed-case-function)
+    // forge-lint: disable-next-item(mixed-case-function)
     function deployNativeTokenAM() internal {
         vm.startPrank(users.owner);
         nativeTokenAM = new NativeTokenAMExtension(users.owner, address(registry), 18);

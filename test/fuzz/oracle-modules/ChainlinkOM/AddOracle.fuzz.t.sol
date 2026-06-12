@@ -58,7 +58,7 @@ contract AddOracle_ChainlinkOM_Fuzz_Test is ChainlinkOM_Fuzz_Test {
         uint32 cutOffTime
     ) public canReceiveERC721(oracle) {
         vm.assume(oracle != address(account));
-        vm.assume(oracle != address(accountLogic));
+        vm.assume(oracle != address(accountV3Logic));
         vm.assume(!isPrecompile(oracle));
 
         vm.prank(users.owner);

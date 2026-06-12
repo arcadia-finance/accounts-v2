@@ -12,6 +12,7 @@ import { stdError } from "../../../../lib/forge-std/src/StdError.sol";
 /**
  * @notice Fuzz tests for the function "decreaseLiquidity" of contract "StakingAM".
  */
+// forge-lint: disable-next-item(unsafe-typecast)
 contract DecreaseLiquidity_AbstractStakingAM_Fuzz_Test is AbstractStakingAM_Fuzz_Test {
     using FixedPointMathLib for uint256;
 

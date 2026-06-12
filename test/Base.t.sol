@@ -6,6 +6,7 @@ pragma solidity ^0.8.0;
 
 import { AccountsGuardExtension } from "./utils/extensions/AccountsGuardExtension.sol";
 import { AccountV3 } from "../src/accounts/AccountV3.sol";
+import { AccountV4 } from "../src/accounts/AccountV4.sol";
 import { ChainlinkOMExtension } from "./utils/extensions/ChainlinkOMExtension.sol";
 import { ERC20PrimaryAMExtension } from "./utils/extensions/ERC20PrimaryAMExtension.sol";
 import { ERC721TokenReceiver } from "../lib/solmate/src/tokens/ERC721.sol";
@@ -22,10 +23,10 @@ abstract contract Base_Test is Test {
     //////////////////////////////////////////////////////////////////////////*/
 
     // baseToQuoteAsset arrays
-    /// forge-lint: disable-start(mixed-case-variable)
+    // forge-lint: disable-start(mixed-case-variable)
     bool[] internal BA_TO_QA_SINGLE = new bool[](1);
     bool[] internal BA_TO_QA_DOUBLE = new bool[](2);
-    /// forge-lint: disable-end(mixed-case-variable)
+    // forge-lint: disable-end(mixed-case-variable)
 
     /*//////////////////////////////////////////////////////////////////////////
                                      VARIABLES
@@ -37,16 +38,17 @@ abstract contract Base_Test is Test {
                                    TEST CONTRACTS
     //////////////////////////////////////////////////////////////////////////*/
 
-    /// forge-lint: disable-start(mixed-case-variable)
+    // forge-lint: disable-start(mixed-case-variable)
     AccountsGuardExtension internal accountsGuard;
     AccountV3 internal account;
-    AccountV3 internal accountLogic;
+    AccountV3 internal accountV3Logic;
+    AccountV4 internal accountV4Logic;
     ChainlinkOMExtension internal chainlinkOM;
     ERC20PrimaryAMExtension internal erc20AM;
     FactoryExtension internal factory;
     RegistryL2Extension internal registry;
     SequencerUptimeOracle internal sequencerUptimeOracle;
-    /// forge-lint: disable-end(mixed-case-variable)
+    // forge-lint: disable-end(mixed-case-variable)
 
     /*//////////////////////////////////////////////////////////////////////////
                                   SET-UP FUNCTION
@@ -86,7 +88,7 @@ abstract contract Base_Test is Test {
         return user;
     }
 
-    /// forge-lint: disable-next-item(mixed-case-function)
+    // forge-lint: disable-next-item(mixed-case-function)
     modifier canReceiveERC721(address to) {
         vm.assume(to != address(0));
         vm.assume(to != 0x4200000000000000000000000000000000000006);
@@ -110,6 +112,8 @@ abstract contract Base_Test is Test {
 
         // These should be present on all EVM-compatible chains.
         if (addr >= address(0x1) && addr <= address(0x11)) return true;
+        // RIP-7212 / EIP-7951 P256VERIFY precompile.
+        if (addr == address(0x100)) return true;
 
         // forgefmt: disable-start
         if (chainId == 10 || chainId == 420) {

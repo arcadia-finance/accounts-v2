@@ -12,12 +12,13 @@ import { StakingAMMock } from "../../../utils/mocks/asset-modules/StakingAMMock.
 /**
  * @notice Common logic needed by "StakingAM" fuzz tests.
  */
+// forge-lint: disable-next-item(unsafe-typecast)
 abstract contract AbstractStakingAM_Fuzz_Test is Fuzz_Test {
     /*////////////////////////////////////////////////////////////////
                             VARIABLES
     /////////////////////////////////////////////////////////////// */
 
-    /// forge-lint: disable-start(pascal-case-struct)
+    // forge-lint: disable-start(pascal-case-struct)
     struct StakingAMStateForAsset {
         uint256 currentRewardGlobal;
         uint128 lastRewardPerTokenGlobal;
@@ -30,14 +31,14 @@ abstract contract AbstractStakingAM_Fuzz_Test is Fuzz_Test {
         uint128 lastRewardPerTokenPosition;
         uint128 lastRewardPosition;
     }
-    /// forge-lint: disable-end(pascal-case-struct)
+    // forge-lint: disable-end(pascal-case-struct)
 
     /*////////////////////////////////////////////////////////////////
                             TEST CONTRACTS
     /////////////////////////////////////////////////////////////// */
 
     ERC20Mock internal rewardToken;
-    /// forge-lint: disable-next-line(mixed-case-variable)
+    // forge-lint: disable-next-line(mixed-case-variable)
     StakingAMMock internal stakingAM;
 
     /* ///////////////////////////////////////////////////////////////
@@ -57,7 +58,7 @@ abstract contract AbstractStakingAM_Fuzz_Test is Fuzz_Test {
                           HELPER FUNCTIONS
     /////////////////////////////////////////////////////////////// */
 
-    /// forge-lint: disable-next-item(mixed-case-function,mixed-case-variable)
+    // forge-lint: disable-next-item(mixed-case-function,mixed-case-variable)
     function setStakingAMState(
         StakingAMStateForAsset memory stakingAMStateForAsset,
         StakingAM.PositionState memory stakingAMStateForPosition,
@@ -74,7 +75,7 @@ abstract contract AbstractStakingAM_Fuzz_Test is Fuzz_Test {
         stakingAM.setAssetInPosition(asset, id);
     }
 
-    /// forge-lint: disable-next-item(mixed-case-function,mixed-case-variable)
+    // forge-lint: disable-next-item(mixed-case-function,mixed-case-variable)
     function givenValidStakingAMState(
         StakingAMStateForAsset memory stakingAMStateForAsset,
         StakingAM.PositionState memory stakingAMStateForPosition

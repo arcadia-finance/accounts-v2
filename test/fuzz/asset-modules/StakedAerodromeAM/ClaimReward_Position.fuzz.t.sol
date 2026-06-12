@@ -11,6 +11,7 @@ import { FixedPointMathLib } from "../../../../lib/solmate/src/utils/FixedPointM
 /**
  * @notice Fuzz tests for the "ClaimReward" function (position rewards) of contract "StakedAerodromeAM".
  */
+// forge-lint: disable-next-item(unsafe-typecast)
 contract ClaimReward_Position_StakedAerodromeAM_Fuzz_Test is StakedAerodromeAM_Fuzz_Test {
     using FixedPointMathLib for uint256;
     /*///////////////////////////////////////////////////////////////

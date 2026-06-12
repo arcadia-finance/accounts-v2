@@ -8,7 +8,7 @@ import { Vm } from "../../lib/forge-std/src/Vm.sol";
 import { IPermit2 } from "./interfaces/IPermit2.sol";
 
 library Utils {
-    /// forge-lint: disable-next-line(screaming-snake-case-const)
+    // forge-lint: disable-next-line(screaming-snake-case-const)
     Vm private constant vm = Vm(address(uint160(uint256(keccak256("hevm cheat code")))));
 
     bytes32 public constant _TOKEN_PERMISSIONS_TYPEHASH = keccak256("TokenPermissions(address token,uint256 amount)");
@@ -47,7 +47,7 @@ library Utils {
         return bytes.concat(r, s, bytes1(v));
     }
 
-    /// forge-lint: disable-next-item(mixed-case-function)
+    // forge-lint: disable-next-item(mixed-case-function)
     function defaultERC20PermitMultiple(
         address[] memory tokens,
         uint256[] memory amounts,

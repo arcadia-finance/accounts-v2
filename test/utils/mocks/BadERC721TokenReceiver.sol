@@ -5,6 +5,6 @@
 pragma solidity ^0.8.0;
 
 contract BadERC721TokenReceiver {
-    /// forge-lint: disable-next-item(mixed-case-function)
+    // forge-lint: disable-next-item(mixed-case-function)
     function onERC721Received(address, address, uint256, bytes calldata) external virtual returns (bytes4) { }
 }

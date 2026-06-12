@@ -11,8 +11,9 @@ import { ERC1967Proxy } from "../../../../lib/openzeppelin-contracts-v4.9/contra
 import { IAccessControlManager } from "../../../../lib/merkl-contracts/contracts/interfaces/IAccessControlManager.sol";
 import { ProxyAdmin } from "../../../../lib/openzeppelin-contracts-v4.9/contracts/proxy/transparent/ProxyAdmin.sol";
 import { Test } from "../../../../lib/forge-std/src/Test.sol";
-import { TransparentUpgradeableProxy } from
-    "../../../../lib/openzeppelin-contracts-v4.9/contracts/proxy/transparent/TransparentUpgradeableProxy.sol";
+import {
+    TransparentUpgradeableProxy
+} from "../../../../lib/openzeppelin-contracts-v4.9/contracts/proxy/transparent/TransparentUpgradeableProxy.sol";
 
 contract MerklFixture is Test {
     /*//////////////////////////////////////////////////////////////////////////

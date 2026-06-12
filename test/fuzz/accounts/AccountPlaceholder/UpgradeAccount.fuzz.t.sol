@@ -7,7 +7,6 @@ pragma solidity ^0.8.0;
 import { AccountErrors } from "../../../../src/libraries/Errors.sol";
 import { AccountsGuard } from "../../../../src/accounts/helpers/AccountsGuard.sol";
 import { AccountPlaceholder_Fuzz_Test } from "./_AccountPlaceholder.fuzz.t.sol";
-import { Constants } from "../../../utils/Constants.sol";
 import { Factory } from "../../../../src/Factory.sol";
 
 /**
@@ -58,24 +57,28 @@ contract UpgradeAccount_AccountPlaceholder_Fuzz_Test is AccountPlaceholder_Fuzz_
     }
 
     function testFuzz_revert_upgradeAccountVersion_ToAccountPlaceholder(uint32 time) public {
-        bytes32[] memory proofs = new bytes32[](1);
-        proofs[0] = Constants.PROOF_4_TO_3;
+        uint256 accountPlaceholderVersion = factory.latestAccountVersion();
+        bytes32 root = keccak256(abi.encodePacked(account.ACCOUNT_VERSION(), accountPlaceholderVersion));
+        factory.setVersionRoot(root);
 
         vm.warp(time);
 
         // When: "users.accountOwner" Upgrade the account to AccountPlaceholder.
+        bytes32[] memory proofs = new bytes32[](0);
         vm.prank(users.accountOwner);
         vm.expectRevert(AccountErrors.InvalidUpgrade.selector);
-        factory.upgradeAccountVersion(address(account), 4, proofs);
+        factory.upgradeAccountVersion(address(account), accountPlaceholderVersion, proofs);
     }
 
-    function testFuzz_Success_upgradeAccountVersion(uint32 time) public {
-        bytes32[] memory proofs = new bytes32[](1);
-        proofs[0] = Constants.PROOF_3_TO_4;
+    function testFuzz_Success_upgradeAccountVersion_ToVersion3(uint32 time) public {
+        uint256 accountPlaceholderVersion = factory.latestAccountVersion();
+        bytes32 root = keccak256(abi.encodePacked(accountPlaceholderVersion, uint256(3)));
+        factory.setVersionRoot(root);
 
         vm.warp(time);
 
         // When: "users.accountOwner" Upgrade the account to AccountV3Logic.
+        bytes32[] memory proofs = new bytes32[](0);
         vm.startPrank(users.accountOwner);
         vm.expectEmit();
         emit Factory.AccountUpgraded(address(account_), 3);
@@ -84,6 +87,34 @@ contract UpgradeAccount_AccountPlaceholder_Fuzz_Test is AccountPlaceholder_Fuzz_
 
         // And: The Account version is updated.
         assertEq(account_.ACCOUNT_VERSION(), 3);
+
+        // And: lastActionTimestamp is updated.
+        assertEq(account_.lastActionTimestamp(), time);
+
+        // And: registry is valid.
+        assertEq(account_.registry(), address(registry));
+
+        // And: owner is the same.
+        assertEq(account_.owner(), users.accountOwner);
+    }
+
+    function testFuzz_Success_upgradeAccountVersion_ToVersion4(uint32 time) public {
+        uint256 accountPlaceholderVersion = factory.latestAccountVersion();
+        bytes32 root = keccak256(abi.encodePacked(accountPlaceholderVersion, uint256(4)));
+        factory.setVersionRoot(root);
+
+        vm.warp(time);
+
+        // When: "users.accountOwner" Upgrade the account to AccountV4Logic.
+        bytes32[] memory proofs = new bytes32[](0);
+        vm.startPrank(users.accountOwner);
+        vm.expectEmit();
+        emit Factory.AccountUpgraded(address(account_), 4);
+        factory.upgradeAccountVersion(address(account_), 4, proofs);
+        vm.stopPrank();
+
+        // And: The Account version is updated.
+        assertEq(account_.ACCOUNT_VERSION(), 4);
 
         // And: lastActionTimestamp is updated.
         assertEq(account_.lastActionTimestamp(), time);

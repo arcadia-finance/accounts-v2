@@ -2,7 +2,7 @@
  * Created by Pragma Labs
  * SPDX-License-Identifier: BUSL-1.1
  */
-pragma solidity ^0.8.30;
+pragma solidity ^0.8.34;
 
 import { AssetValuationLib, AssetValueAndRiskFactors } from "../../libraries/AssetValuationLib.sol";
 import { DerivedAM, FixedPointMathLib, IRegistry } from "../abstracts/AbstractDerivedAM.sol";
@@ -33,7 +33,7 @@ contract WrappedAerodromeAM is DerivedAM, ERC721, ReentrancyGuard {
     uint256 internal lastPositionId;
 
     // The baseURI of the ERC721 tokens.
-    /// forge-lint: disable-next-item(mixed-case-variable)
+    // forge-lint: disable-next-item(mixed-case-variable)
     string public baseURI;
 
     // Map a Pool to its corresponding token0.
@@ -111,6 +111,7 @@ contract WrappedAerodromeAM is DerivedAM, ERC721, ReentrancyGuard {
     function initialize() external onlyOwner {
         inAssetModule[address(this)] = true;
 
+        // forge-lint: disable-next-line(unsafe-typecast)
         IRegistry(REGISTRY).addAsset(uint96(ASSET_TYPE), address(this));
     }
 
@@ -224,6 +225,7 @@ contract WrappedAerodromeAM is DerivedAM, ERC721, ReentrancyGuard {
             _calculateValueAndRiskFactors(creditor, underlyingAssetsAmounts, rateUnderlyingAssetsToUsd);
 
         // Unsafe cast: collateralFactor_ and liquidationFactor_ are smaller than or equal to 1e4.
+        // forge-lint: disable-next-line(unsafe-typecast)
         return (uint16(collateralFactor_), uint16(liquidationFactor_));
     }
 
@@ -254,16 +256,20 @@ contract WrappedAerodromeAM is DerivedAM, ERC721, ReentrancyGuard {
         // Calculate weighted risk factors.
         if (valueInUsd > 0) {
             unchecked {
-                collateralFactor = (
-                    valuePool * rateUnderlyingAssetsToUsd[0].collateralFactor
-                        + valueToken0 * rateUnderlyingAssetsToUsd[1].collateralFactor
-                        + valueToken1 * rateUnderlyingAssetsToUsd[2].collateralFactor
-                ) / valueInUsd;
-                liquidationFactor = (
-                    valuePool * rateUnderlyingAssetsToUsd[0].liquidationFactor
-                        + valueToken0 * rateUnderlyingAssetsToUsd[1].liquidationFactor
-                        + valueToken1 * rateUnderlyingAssetsToUsd[2].liquidationFactor
-                ) / valueInUsd;
+                collateralFactor =
+                    (valuePool
+                            * rateUnderlyingAssetsToUsd[0].collateralFactor
+                            + valueToken0
+                            * rateUnderlyingAssetsToUsd[1].collateralFactor
+                            + valueToken1
+                            * rateUnderlyingAssetsToUsd[2].collateralFactor) / valueInUsd;
+                liquidationFactor =
+                    (valuePool
+                            * rateUnderlyingAssetsToUsd[0].liquidationFactor
+                            + valueToken0
+                            * rateUnderlyingAssetsToUsd[1].liquidationFactor
+                            + valueToken1
+                            * rateUnderlyingAssetsToUsd[2].liquidationFactor) / valueInUsd;
             }
         }
 
@@ -415,6 +421,7 @@ contract WrappedAerodromeAM is DerivedAM, ERC721, ReentrancyGuard {
         // Pay out the fees to the position owner.
         if (fee0Position > 0) ERC20(token0[pool]).safeTransfer(msg.sender, fee0Position);
         if (fee1Position > 0) ERC20(token1[pool]).safeTransfer(msg.sender, fee1Position);
+        // forge-lint: disable-next-line(unsafe-typecast)
         emit FeesPaid(positionId, uint128(fee0Position), uint128(fee1Position));
 
         // Transfer the liquidity back to the position owner.
@@ -456,6 +463,7 @@ contract WrappedAerodromeAM is DerivedAM, ERC721, ReentrancyGuard {
         // Pay out the fees to the position owner.
         if (fee0Position > 0) ERC20(token0[pool]).safeTransfer(msg.sender, fee0Position);
         if (fee1Position > 0) ERC20(token1[pool]).safeTransfer(msg.sender, fee1Position);
+        // forge-lint: disable-next-line(unsafe-typecast)
         emit FeesPaid(positionId, uint128(fee0Position), uint128(fee1Position));
     }
 
@@ -616,7 +624,7 @@ contract WrappedAerodromeAM is DerivedAM, ERC721, ReentrancyGuard {
      * @notice Function that stores a new base URI.
      * @param newBaseURI The new base URI to store.
      */
-    /// forge-lint: disable-next-item(mixed-case-function,mixed-case-variable)
+    // forge-lint: disable-next-item(mixed-case-function,mixed-case-variable)
     function setBaseURI(string calldata newBaseURI) external onlyOwner {
         baseURI = newBaseURI;
     }
@@ -626,7 +634,7 @@ contract WrappedAerodromeAM is DerivedAM, ERC721, ReentrancyGuard {
      * @param tokenId The id of the Account.
      * @return uri The token URI.
      */
-    /// forge-lint: disable-next-item(mixed-case-function,mixed-case-variable)
+    // forge-lint: disable-next-item(mixed-case-function,mixed-case-variable)
     function tokenURI(uint256 tokenId) public view override returns (string memory uri) {
         return bytes(baseURI).length > 0 ? string(abi.encodePacked(baseURI, tokenId.toString())) : "";
     }

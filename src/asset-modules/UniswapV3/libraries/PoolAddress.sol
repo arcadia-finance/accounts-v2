@@ -1,6 +1,6 @@
 // https://github.com/Uniswap/v3-periphery/blob/main/contracts/libraries/PoolAddress.sol
 // SPDX-License-Identifier: GPL-2.0-or-later
-pragma solidity ^0.8.0;
+pragma solidity ^0.8.34;
 
 /// @title Provides functions for deriving a pool address from the factory, tokens, and the fee
 library PoolAddress {

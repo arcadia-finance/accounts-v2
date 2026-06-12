@@ -11,11 +11,7 @@ library PoolAddressExtension {
     /// @param tokenB The second token of a pool, unsorted
     /// @param fee The fee level of the pool
     /// @return Poolkey The pool details with ordered token0 and token1 assignments
-    function getPoolKey(address tokenA, address tokenB, uint24 fee)
-        internal
-        pure
-        returns (PoolAddress.PoolKey memory)
-    {
+    function getPoolKey(address tokenA, address tokenB, uint24 fee) internal pure returns (PoolAddress.PoolKey memory) {
         if (tokenA > tokenB) (tokenA, tokenB) = (tokenB, tokenA);
         return PoolAddress.PoolKey({ token0: tokenA, token1: tokenB, fee: fee });
     }
