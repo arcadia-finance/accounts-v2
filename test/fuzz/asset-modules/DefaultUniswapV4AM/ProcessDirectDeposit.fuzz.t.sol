@@ -235,18 +235,12 @@ contract ProcessDirectDeposit_DefaultUniswapV4AM_Fuzz_Test is DefaultUniswapV4AM
         // And: Exposures to the underlying assets are updated.
         // Token0:
         bytes32 underlyingAssetKey = bytes32(abi.encodePacked(uint96(0), address(token0)));
-        assertEq(
-            uniswapV4AM.getExposureAssetToUnderlyingAssetsLast(address(creditorUsd), assetKey, underlyingAssetKey),
-            amount0
-        );
+        assertEq(uniswapV4AM.getExposureAssetToUnderlyingAssetsLast(address(creditorUsd), assetKey, 0), amount0);
         (uint128 exposure,,,) = erc20AM.riskParams(address(creditorUsd), underlyingAssetKey);
         assertEq(exposure, amount0 + initialExposure0);
         // Token1:
         underlyingAssetKey = bytes32(abi.encodePacked(uint96(0), address(token1)));
-        assertEq(
-            uniswapV4AM.getExposureAssetToUnderlyingAssetsLast(address(creditorUsd), assetKey, underlyingAssetKey),
-            amount1
-        );
+        assertEq(uniswapV4AM.getExposureAssetToUnderlyingAssetsLast(address(creditorUsd), assetKey, 1), amount1);
         (exposure,,,) = erc20AM.riskParams(address(creditorUsd), underlyingAssetKey);
         assertEq(exposure, amount1 + initialExposure1);
     }
@@ -311,18 +305,12 @@ contract ProcessDirectDeposit_DefaultUniswapV4AM_Fuzz_Test is DefaultUniswapV4AM
             // And: Exposures to the underlying assets are updated.
             // Token0:
             bytes32 underlyingAssetKey = bytes32(abi.encodePacked(uint96(0), address(token0)));
-            assertEq(
-                uniswapV4AM.getExposureAssetToUnderlyingAssetsLast(address(creditorUsd), assetKey, underlyingAssetKey),
-                0
-            );
+            assertEq(uniswapV4AM.getExposureAssetToUnderlyingAssetsLast(address(creditorUsd), assetKey, 0), 0);
             (uint128 exposure,,,) = erc20AM.riskParams(address(creditorUsd), underlyingAssetKey);
             assertEq(exposure, initialExposure0);
             // Token1:
             underlyingAssetKey = bytes32(abi.encodePacked(uint96(0), address(token1)));
-            assertEq(
-                uniswapV4AM.getExposureAssetToUnderlyingAssetsLast(address(creditorUsd), assetKey, underlyingAssetKey),
-                0
-            );
+            assertEq(uniswapV4AM.getExposureAssetToUnderlyingAssetsLast(address(creditorUsd), assetKey, 1), 0);
             (exposure,,,) = erc20AM.riskParams(address(creditorUsd), underlyingAssetKey);
             assertEq(exposure, initialExposure1);
         }
@@ -386,18 +374,12 @@ contract ProcessDirectDeposit_DefaultUniswapV4AM_Fuzz_Test is DefaultUniswapV4AM
             // And: Exposures to the underlying assets are of the old liquidity.
             // Token0:
             bytes32 underlyingAssetKey = bytes32(abi.encodePacked(uint96(0), address(token0)));
-            assertEq(
-                uniswapV4AM.getExposureAssetToUnderlyingAssetsLast(address(creditorUsd), assetKey, underlyingAssetKey),
-                amount0
-            );
+            assertEq(uniswapV4AM.getExposureAssetToUnderlyingAssetsLast(address(creditorUsd), assetKey, 0), amount0);
             (uint128 exposure,,,) = erc20AM.riskParams(address(creditorUsd), underlyingAssetKey);
             assertEq(exposure, amount0 + initialExposure0);
             // Token1:
             underlyingAssetKey = bytes32(abi.encodePacked(uint96(0), address(token1)));
-            assertEq(
-                uniswapV4AM.getExposureAssetToUnderlyingAssetsLast(address(creditorUsd), assetKey, underlyingAssetKey),
-                amount1
-            );
+            assertEq(uniswapV4AM.getExposureAssetToUnderlyingAssetsLast(address(creditorUsd), assetKey, 1), amount1);
             (exposure,,,) = erc20AM.riskParams(address(creditorUsd), underlyingAssetKey);
             assertEq(exposure, amount1 + initialExposure1);
         }
@@ -465,18 +447,12 @@ contract ProcessDirectDeposit_DefaultUniswapV4AM_Fuzz_Test is DefaultUniswapV4AM
         // And: Exposures to the underlying assets are updated.
         // Token0:
         bytes32 underlyingAssetKey = bytes32(abi.encodePacked(uint96(0), address(token0)));
-        assertEq(
-            uniswapV4AM.getExposureAssetToUnderlyingAssetsLast(address(creditorUsd), assetKey, underlyingAssetKey),
-            amount0
-        );
+        assertEq(uniswapV4AM.getExposureAssetToUnderlyingAssetsLast(address(creditorUsd), assetKey, 0), amount0);
         (uint128 exposure,,,) = nativeTokenAM.riskParams(address(creditorUsd), underlyingAssetKey);
         assertEq(exposure, amount0 + initialExposure0);
         // Token1:
         underlyingAssetKey = bytes32(abi.encodePacked(uint96(0), address(token1)));
-        assertEq(
-            uniswapV4AM.getExposureAssetToUnderlyingAssetsLast(address(creditorUsd), assetKey, underlyingAssetKey),
-            amount1
-        );
+        assertEq(uniswapV4AM.getExposureAssetToUnderlyingAssetsLast(address(creditorUsd), assetKey, 1), amount1);
         (exposure,,,) = erc20AM.riskParams(address(creditorUsd), underlyingAssetKey);
         assertEq(exposure, amount1 + initialExposure1);
     }

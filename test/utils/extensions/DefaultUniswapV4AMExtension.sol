@@ -23,13 +23,12 @@ contract DefaultUniswapV4AMExtension is DefaultUniswapV4AM {
         lastUsdExposureAsset = lastExposuresAsset[creditor][assetKey].lastUsdExposureAsset;
     }
 
-    function getExposureAssetToUnderlyingAssetsLast(address creditor, bytes32 assetKey, bytes32 underlyingAssetKey)
+    function getExposureAssetToUnderlyingAssetsLast(address creditor, bytes32 assetKey, uint256 index)
         external
         view
         returns (uint256 exposureAssetToUnderlyingAssetsLast_)
     {
-        exposureAssetToUnderlyingAssetsLast_ =
-            lastExposureAssetToUnderlyingAsset[creditor][assetKey][underlyingAssetKey];
+        exposureAssetToUnderlyingAssetsLast_ = lastExposureAssetToUnderlyingAsset[creditor][assetKey][index];
     }
 
     function getPositionManager() public view returns (address positionManager) {
