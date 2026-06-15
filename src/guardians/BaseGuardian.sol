@@ -82,22 +82,19 @@ abstract contract BaseGuardian is Owned {
 
     /**
      * @notice This function is used to pause all the flags of the contract.
-     * @dev The Guardian can only pause the protocol again after 32 days have passed since the last pause.
-     * This is to prevent that a malicious owner or guardian can take user funds hostage for an indefinite time.
-     * After the guardian has paused the protocol, the owner has 30 days to find potential problems,
-     * find a solution and unpause the protocol. If the protocol is not unpaused after 30 days,
-     * an emergency procedure can be started by any user to unpause the protocol.
-     * All users have now at least a two-day window to withdraw assets and close positions before
-     * the protocol can again be paused 32 days after the contract was previously paused.
+     * @dev The Guardian can only pause the protocol again after the cool-down period has passed since the last pause.
+     * This prevents a malicious owner or guardian from taking user funds hostage for an indefinite time.
+     * After the guardian has paused the protocol, the owner can investigate and unpause functionalities one-by-one.
+     * If the protocol is not unpaused before the cool-down period elapses, any user can unpause it via unpause().
+     * The length of the cool-down period is set by the implementation.
      */
     function pause() external virtual;
 
     /**
      * @notice This function is used to unpause flags that could be abused to lock user assets.
-     * @dev If the protocol is not unpaused after 30 days, any user can unpause the protocol.
+     * @dev Once the cool-down period has passed since the last pause, any user can unpause the protocol.
      * This ensures that no rogue owner or guardian can lock user funds for an indefinite amount of time.
-     * All users have now at least a two-day window to withdraw assets and close positions before
-     * the protocol can again be paused 32 days after the contract was previously paused.
+     * The length of the cool-down period is set by the implementation.
      */
     function unpause() external virtual;
 }
