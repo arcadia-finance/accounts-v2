@@ -581,11 +581,17 @@ contract WrappedAerodromeAM is DerivedAM, ERC721, ReentrancyGuard {
             // Calculate the change in FeePerLiquidity.
             uint256 deltaFee0PerLiquidity = fee0.mulDivDown(1e18, poolState_.totalWrapped);
             uint256 deltaFee1PerLiquidity = fee1.mulDivDown(1e18, poolState_.totalWrapped);
+            // Cap the deltas so an overflow can't block valuation and the downcasts can't truncate.
+            // Excess is lost, but a realistic reward accrual never approaches type(uint128).max.
+            if (deltaFee0PerLiquidity > type(uint128).max) deltaFee0PerLiquidity = type(uint128).max;
+            if (deltaFee1PerLiquidity > type(uint128).max) deltaFee1PerLiquidity = type(uint128).max;
             // Calculate and update the new FeePerLiquidity of the Pool.
             // unchecked: FeePerLiquidity can overflow, what matters is the delta in FeePerLiquidity between two interactions.
             unchecked {
-                poolState_.fee0PerLiquidity = poolState_.fee0PerLiquidity + deltaFee0PerLiquidity.safeCastTo128();
-                poolState_.fee1PerLiquidity = poolState_.fee1PerLiquidity + deltaFee1PerLiquidity.safeCastTo128();
+                // forge-lint: disable-next-item(unsafe-typecast)
+                poolState_.fee0PerLiquidity = poolState_.fee0PerLiquidity + uint128(deltaFee0PerLiquidity);
+                // forge-lint: disable-next-item(unsafe-typecast)
+                poolState_.fee1PerLiquidity = poolState_.fee1PerLiquidity + uint128(deltaFee1PerLiquidity);
             }
 
             if (positionState_.amountWrapped > 0) {
