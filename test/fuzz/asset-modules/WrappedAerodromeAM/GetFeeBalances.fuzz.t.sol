@@ -67,54 +67,6 @@ contract GetFeeBalances_WrappedAerodromeAM_Fuzz_Test is WrappedAerodromeAM_Fuzz_
         wrappedAerodromeAM.getFeeBalances(poolState, positionState, fee0, fee1);
     }
 
-    function testFuzz_Revert_getFeeBalances_NonZeroTotalWrapped_OverflowDeltaFee0PerLiquidity_SafeCast(
-        WrappedAerodromeAM.PoolState memory poolState,
-        WrappedAerodromeAM.PositionState memory positionState,
-        uint256 fee0,
-        uint256 fee1
-    ) public {
-        // Given: more than 1 gwei is staked.
-        poolState.totalWrapped = uint128(bound(poolState.totalWrapped, 1, type(uint128).max - 1));
-
-        // And: deltaFee0PerLiquidity is bigger as type(uint128).max (overflow safeCastTo128).
-        uint256 lowerBound = (poolState.totalWrapped < 1e18)
-            ? uint256(type(uint128).max).mulDivUp(poolState.totalWrapped, 1e18)
-            : uint256(type(uint128).max) * poolState.totalWrapped / 1e18 + poolState.totalWrapped;
-        fee0 = bound(fee0, lowerBound + 1, type(uint256).max);
-
-        // And: deltaFee1PerLiquidity does not overflow.
-        fee1 = bound(fee1, 0, type(uint256).max / 1e18);
-
-        // When: Calling _getFeeBalances().
-        // Then: transaction reverts.
-        vm.expectRevert(bytes(""));
-        wrappedAerodromeAM.getFeeBalances(poolState, positionState, fee0, fee1);
-    }
-
-    function testFuzz_Revert_getFeeBalances_NonZeroTotalWrapped_OverflowDeltaFee1PerLiquidity_SafeCast(
-        WrappedAerodromeAM.PoolState memory poolState,
-        WrappedAerodromeAM.PositionState memory positionState,
-        uint256 fee0,
-        uint256 fee1
-    ) public {
-        // Given: more than 1 gwei is staked.
-        poolState.totalWrapped = uint128(bound(poolState.totalWrapped, 1, type(uint128).max - 1));
-
-        // And: deltaFee0PerLiquidity is smaller or equal as type(uint128).max (no overflow safeCastTo128).
-        fee0 = bound(fee0, 0, uint256(type(uint128).max) * poolState.totalWrapped / 1e18);
-
-        // And: deltaFee1PerLiquidity is bigger as type(uint128).max (overflow safeCastTo128).
-        uint256 lowerBound = (poolState.totalWrapped < 1e18)
-            ? uint256(type(uint128).max).mulDivUp(poolState.totalWrapped, 1e18)
-            : uint256(type(uint128).max) * poolState.totalWrapped / 1e18 + poolState.totalWrapped;
-        fee1 = bound(fee1, lowerBound + 1, type(uint256).max);
-
-        // When: Calling _getFeeBalances().
-        // Then: transaction reverts.
-        vm.expectRevert(bytes(""));
-        wrappedAerodromeAM.getFeeBalances(poolState, positionState, fee0, fee1);
-    }
-
     function testFuzz_Revert_getFeeBalances_NonZeroTotalWrapped_OverflowDeltaFee0(
         WrappedAerodromeAM.PoolState memory poolState,
         WrappedAerodromeAM.PositionState memory positionState,
@@ -326,6 +278,88 @@ contract GetFeeBalances_WrappedAerodromeAM_Fuzz_Test is WrappedAerodromeAM_Fuzz_
 
         vm.expectRevert(bytes(""));
         wrappedAerodromeAM.getFeeBalances(poolState, positionState, fee0, fee1);
+    }
+
+    function testFuzz_Success_getFeeBalances_NonZeroTotalWrapped_CapDeltaFee0PerLiquidity(
+        WrappedAerodromeAM.PoolState memory poolState,
+        WrappedAerodromeAM.PositionState memory positionState,
+        uint256 fee0,
+        uint256 fee1
+    ) public view {
+        // Given: totalWrapped is bounded so mulDivDown does not overflow.
+        poolState.totalWrapped = uint128(bound(poolState.totalWrapped, 1, 1e18));
+
+        // And: deltaFee0PerLiquidity is bigger as type(uint128).max (capped instead of reverting).
+        fee0 = bound(fee0, uint256(type(uint128).max) * poolState.totalWrapped / 1e18 + 1, type(uint256).max / 1e18);
+
+        // And: deltaFee1PerLiquidity does not overflow.
+        fee1 = bound(fee1, 0, uint256(type(uint128).max) * poolState.totalWrapped / 1e18);
+
+        // And: no fees accrue to the position.
+        positionState.amountWrapped = 0;
+
+        // When : Calling _getFeeBalances().
+        (WrappedAerodromeAM.PoolState memory poolState_, WrappedAerodromeAM.PositionState memory positionState_) =
+            wrappedAerodromeAM.getFeeBalances(poolState, positionState, fee0, fee1);
+
+        // Then : deltaFee0PerLiquidity is capped at type(uint128).max.
+        uint128 fee0PerLiquidity;
+        uint128 fee1PerLiquidity;
+        unchecked {
+            fee0PerLiquidity = poolState.fee0PerLiquidity + type(uint128).max;
+            fee1PerLiquidity = poolState.fee1PerLiquidity + uint128(fee1.mulDivDown(1e18, poolState.totalWrapped));
+        }
+        assertEq(poolState_.fee0PerLiquidity, fee0PerLiquidity);
+        assertEq(poolState_.fee1PerLiquidity, fee1PerLiquidity);
+        assertEq(poolState_.totalWrapped, poolState.totalWrapped);
+
+        assertEq(positionState_.fee0PerLiquidity, fee0PerLiquidity);
+        assertEq(positionState_.fee1PerLiquidity, fee1PerLiquidity);
+        assertEq(positionState_.fee0, positionState.fee0);
+        assertEq(positionState_.fee1, positionState.fee1);
+        assertEq(positionState_.amountWrapped, 0);
+        assertEq(positionState_.pool, positionState.pool);
+    }
+
+    function testFuzz_Success_getFeeBalances_NonZeroTotalWrapped_CapDeltaFee1PerLiquidity(
+        WrappedAerodromeAM.PoolState memory poolState,
+        WrappedAerodromeAM.PositionState memory positionState,
+        uint256 fee0,
+        uint256 fee1
+    ) public view {
+        // Given: totalWrapped is bounded so mulDivDown does not overflow.
+        poolState.totalWrapped = uint128(bound(poolState.totalWrapped, 1, 1e18));
+
+        // And: deltaFee0PerLiquidity does not overflow.
+        fee0 = bound(fee0, 0, uint256(type(uint128).max) * poolState.totalWrapped / 1e18);
+
+        // And: deltaFee1PerLiquidity is bigger as type(uint128).max (capped instead of reverting).
+        fee1 = bound(fee1, uint256(type(uint128).max) * poolState.totalWrapped / 1e18 + 1, type(uint256).max / 1e18);
+
+        // And: no fees accrue to the position.
+        positionState.amountWrapped = 0;
+
+        // When : Calling _getFeeBalances().
+        (WrappedAerodromeAM.PoolState memory poolState_, WrappedAerodromeAM.PositionState memory positionState_) =
+            wrappedAerodromeAM.getFeeBalances(poolState, positionState, fee0, fee1);
+
+        // Then : deltaFee1PerLiquidity is capped at type(uint128).max.
+        uint128 fee0PerLiquidity;
+        uint128 fee1PerLiquidity;
+        unchecked {
+            fee0PerLiquidity = poolState.fee0PerLiquidity + uint128(fee0.mulDivDown(1e18, poolState.totalWrapped));
+            fee1PerLiquidity = poolState.fee1PerLiquidity + type(uint128).max;
+        }
+        assertEq(poolState_.fee0PerLiquidity, fee0PerLiquidity);
+        assertEq(poolState_.fee1PerLiquidity, fee1PerLiquidity);
+        assertEq(poolState_.totalWrapped, poolState.totalWrapped);
+
+        assertEq(positionState_.fee0PerLiquidity, fee0PerLiquidity);
+        assertEq(positionState_.fee1PerLiquidity, fee1PerLiquidity);
+        assertEq(positionState_.fee0, positionState.fee0);
+        assertEq(positionState_.fee1, positionState.fee1);
+        assertEq(positionState_.amountWrapped, 0);
+        assertEq(positionState_.pool, positionState.pool);
     }
 
     function testFuzz_Success_getFeeBalances_ZeroTotalWrapped(
