@@ -537,11 +537,16 @@ abstract contract StakingAM is DerivedAM, ERC721, ReentrancyGuard {
             // Fetch the current reward balance from the staking contract and calculate the change in RewardPerToken.
             uint256 deltaRewardPerToken =
                 _getCurrentReward(positionState_.asset).mulDivDown(1e18, assetState_.totalStaked);
+            // Cap the delta at the largest value the accumulator can represent, so an overflow can't
+            // block valuation.
+            // Excess is lost, but a realistic reward accrual never approaches type(uint128).max.
+            if (deltaRewardPerToken > type(uint128).max) deltaRewardPerToken = type(uint128).max;
             // Calculate and update the new RewardPerToken of the asset.
             // unchecked: RewardPerToken can overflow, what matters is the delta in RewardPerToken between two interactions.
             unchecked {
+                // forge-lint: disable-next-item(unsafe-typecast)
                 assetState_.lastRewardPerTokenGlobal =
-                    assetState_.lastRewardPerTokenGlobal + SafeCastLib.safeCastTo128(deltaRewardPerToken);
+                    assetState_.lastRewardPerTokenGlobal + uint128(deltaRewardPerToken);
             }
 
             // Calculate the new positionState.

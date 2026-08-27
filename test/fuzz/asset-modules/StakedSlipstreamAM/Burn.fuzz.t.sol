@@ -76,7 +76,8 @@ contract Burn_StakedSlipstreamAM_Fuzz_Test is StakedSlipstreamAM_Fuzz_Test {
         deployAndAddGauge(tick);
 
         // Given : An initial rewardGrowthGlobalX128.
-        stdstore.target(address(pool)).sig(pool.rewardGrowthGlobalX128.selector)
+        stdstore.target(address(pool))
+            .sig(pool.rewardGrowthGlobalX128.selector)
             .checked_write(rewardGrowthGlobalX128Last);
 
         // And : assetId is minted.
@@ -92,7 +93,8 @@ contract Burn_StakedSlipstreamAM_Fuzz_Test is StakedSlipstreamAM_Fuzz_Test {
         vm.warp(block.timestamp + 1);
         deal(AERO, address(gauge), type(uint256).max, true);
         stdstore.target(address(pool)).sig(pool.rewardReserve.selector).checked_write(type(uint256).max);
-        stdstore.target(address(pool)).sig(pool.rewardGrowthGlobalX128.selector)
+        stdstore.target(address(pool))
+            .sig(pool.rewardGrowthGlobalX128.selector)
             .checked_write(rewardGrowthGlobalX128Current);
 
         // And : Rewards amount is not zero.

@@ -41,42 +41,7 @@ contract GetRewardBalances_AbstractStakingAM_Fuzz_Test is AbstractStakingAM_Fuzz
         assetState.totalStaked = uint128(bound(assetState.totalStaked, 1, type(uint128).max));
 
         // And: deltaRewardPerToken mulDivDown overflows.
-        currentRewardGlobal = bound(currentRewardGlobal, type(uint256).max / 1e18, type(uint256).max);
-
-        // And: State is persisted.
-        setStakingAMState(assetState, positionState, asset, positionId);
-        stakingAM.setActualRewardBalance(asset, currentRewardGlobal);
-
-        // When: Calling _getRewardBalances().
-        // Then: transaction reverts in safe cast.
-        StakingAM.AssetState memory assetState_ = StakingAM.AssetState({
-            allowed: true,
-            lastRewardPerTokenGlobal: assetState.lastRewardPerTokenGlobal,
-            totalStaked: assetState.totalStaked
-        });
-        vm.expectRevert(bytes(""));
-        stakingAM.getRewardBalances(assetState_, positionState);
-    }
-
-    function testFuzz_Revert_getRewardBalances_NonZeroTotalStaked_OverflowDeltaRewardPerToken_SafeCast(
-        StakingAMStateForAsset memory assetState,
-        StakingAM.PositionState memory positionState,
-        uint256 currentRewardGlobal,
-        uint96 positionId,
-        uint8 assetDecimals
-    ) public {
-        // Given : Add an asset
-        address asset = addAsset(assetDecimals);
-
-        // more than 1gwei is staked.
-        assetState.totalStaked = uint128(bound(assetState.totalStaked, 1, type(uint128).max - 1));
-
-        // And: deltaRewardPerToken is bigger as type(uint128).max (overflow safeCastTo128).
-        uint256 lowerBound = 1
-            + ((assetState.totalStaked < 1e18)
-                    ? uint256(type(uint128).max).mulDivUp(assetState.totalStaked, 1e18)
-                    : uint256(type(uint128).max) * assetState.totalStaked / 1e18 + assetState.totalStaked);
-        currentRewardGlobal = bound(currentRewardGlobal, lowerBound, type(uint256).max);
+        currentRewardGlobal = bound(currentRewardGlobal, type(uint256).max / 1e18 + 1, type(uint256).max);
 
         // And: State is persisted.
         setStakingAMState(assetState, positionState, asset, positionId);
@@ -200,6 +165,67 @@ contract GetRewardBalances_AbstractStakingAM_Fuzz_Test is AbstractStakingAM_Fuzz
         });
         vm.expectRevert(bytes(""));
         stakingAM.getRewardBalances(assetState_, positionState);
+    }
+
+    function testFuzz_Success_getRewardBalances_NonZeroTotalStaked_CapDeltaRewardPerToken(
+        StakingAMStateForAsset memory assetState,
+        StakingAM.PositionState memory positionState,
+        uint256 currentRewardGlobal,
+        uint96 positionId,
+        uint8 assetDecimals
+    ) public {
+        // Given : Add an asset
+        address asset = addAsset(assetDecimals);
+
+        // And: totalStaked is bounded so mulDivDown does not overflow.
+        assetState.totalStaked = uint128(bound(assetState.totalStaked, 1, 1e18));
+
+        // And: deltaRewardPerToken is bigger as type(uint128).max (capped instead of reverting).
+        uint256 lowerBound = uint256(type(uint128).max) * assetState.totalStaked / 1e18 + 1;
+        currentRewardGlobal = bound(currentRewardGlobal, lowerBound, type(uint256).max / 1e18);
+
+        // And: the position holds any amount up to totalStaked, zero included.
+        positionState.amountStaked = uint128(bound(positionState.amountStaked, 0, assetState.totalStaked));
+
+        // And: the new RewardPerToken of the asset, with deltaRewardPerToken capped.
+        uint128 rewardPerToken;
+        unchecked {
+            rewardPerToken = assetState.lastRewardPerTokenGlobal + type(uint128).max;
+        }
+
+        // And: the rewards earned by the position since its last interaction.
+        uint128 deltaRewardPerToken;
+        unchecked {
+            deltaRewardPerToken = rewardPerToken - positionState.lastRewardPerTokenPosition;
+        }
+        uint256 deltaReward = uint256(deltaRewardPerToken) * positionState.amountStaked / 1e18;
+
+        // And: the reward balance of the position does not overflow.
+        positionState.lastRewardPosition =
+            uint128(bound(positionState.lastRewardPosition, 0, type(uint128).max - deltaReward));
+
+        // And: State is persisted.
+        setStakingAMState(assetState, positionState, asset, positionId);
+        stakingAM.setActualRewardBalance(asset, currentRewardGlobal);
+
+        // When : Calling _getRewardBalances().
+        StakingAM.AssetState memory assetState_ = StakingAM.AssetState({
+            allowed: true,
+            lastRewardPerTokenGlobal: assetState.lastRewardPerTokenGlobal,
+            totalStaked: assetState.totalStaked
+        });
+        StakingAM.PositionState memory positionState_;
+        (assetState_, positionState_) = stakingAM.getRewardBalances(assetState_, positionState);
+
+        // Then : deltaRewardPerToken is capped at type(uint128).max.
+        assertEq(assetState_.lastRewardPerTokenGlobal, rewardPerToken);
+        assertEq(assetState_.totalStaked, assetState.totalStaked);
+
+        // And : the capped delta is credited to the position.
+        assertEq(positionState_.asset, positionState.asset);
+        assertEq(positionState_.amountStaked, positionState.amountStaked);
+        assertEq(positionState_.lastRewardPerTokenPosition, rewardPerToken);
+        assertEq(positionState_.lastRewardPosition, positionState.lastRewardPosition + deltaReward);
     }
 
     function testFuzz_Success_getRewardBalances_ZeroTotalStaked(

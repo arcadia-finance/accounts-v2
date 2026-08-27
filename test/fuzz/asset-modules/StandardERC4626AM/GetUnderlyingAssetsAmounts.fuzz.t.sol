@@ -42,7 +42,9 @@ contract GetUnderlyingAssetsAmounts_StandardERC4626AM_Fuzz_Test is StandardERC46
         //Cheat totalSupply
         stdstore.target(address(ybToken1)).sig(ybToken1.totalSupply.selector).checked_write(totalSupply);
         //Cheat balance of
-        stdstore.target(address(mockERC20.token1)).sig(ybToken1.balanceOf.selector).with_key(address(ybToken1))
+        stdstore.target(address(mockERC20.token1))
+            .sig(ybToken1.balanceOf.selector)
+            .with_key(address(ybToken1))
             .checked_write(totalAssets);
 
         // When: "_getUnderlyingAssetsAmounts" is called with 'shares'.

@@ -79,7 +79,7 @@ contract SetNewAccountInfo_Factory_Fuzz_Test is Factory_Fuzz_Test {
         vm.startPrank(users.owner);
         registry2 = new RegistryL2Extension(users.owner, address(factory), address(sequencerUptimeOracle));
         if (logic.code.length == 0 && !isPrecompile(logic)) {
-            vm.expectRevert(abi.encodePacked("call to non-contract address ", vm.toString(logic)));
+            vm.expectRevert(bytes(""));
         } else {
             try AccountLogicMock(logic).ACCOUNT_VERSION() returns (uint256) {
                 vm.assume(false);

@@ -120,7 +120,9 @@ contract BatchProcessWithdrawal_RegistryL2_Fuzz_Test is RegistryL2_Fuzz_Test {
         vm.assume(!registry.inRegistry(asset));
         vm.assume(amountDeposited >= amountWithdrawn);
 
-        stdstore.target(address(registry)).sig(registry.inRegistry.selector).with_key(address(asset))
+        stdstore.target(address(registry))
+            .sig(registry.inRegistry.selector)
+            .with_key(address(asset))
             .checked_write(true);
 
         address[] memory assetAddresses = new address[](1);
@@ -150,7 +152,9 @@ contract BatchProcessWithdrawal_RegistryL2_Fuzz_Test is RegistryL2_Fuzz_Test {
         amountWithdrawn = uint112(bound(amountWithdrawn, 1, type(uint112).max));
         vm.assume(amountDeposited >= amountWithdrawn);
 
-        stdstore.target(address(registry)).sig(registry.inRegistry.selector).with_key(address(asset))
+        stdstore.target(address(registry))
+            .sig(registry.inRegistry.selector)
+            .with_key(address(asset))
             .checked_write(true);
 
         address[] memory assetAddresses = new address[](1);
@@ -167,7 +171,7 @@ contract BatchProcessWithdrawal_RegistryL2_Fuzz_Test is RegistryL2_Fuzz_Test {
         assetAmounts[0] = amountWithdrawn;
 
         vm.prank(address(account));
-        vm.expectRevert(abi.encodePacked("call to non-contract address ", vm.toString(address(0))));
+        vm.expectRevert(bytes(""));
         registry.batchProcessWithdrawal(address(creditorUsd), assetAddresses, assetIds, assetAmounts);
     }
 

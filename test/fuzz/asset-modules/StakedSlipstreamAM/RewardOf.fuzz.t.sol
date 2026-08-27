@@ -45,7 +45,8 @@ contract RewardOf_StakedSlipstreamAM_Fuzz_Test is StakedSlipstreamAM_Fuzz_Test {
         deployAndAddGauge(tick);
 
         // Given : An initial rewardGrowthGlobalX128.
-        stdstore.target(address(pool)).sig(pool.rewardGrowthGlobalX128.selector)
+        stdstore.target(address(pool))
+            .sig(pool.rewardGrowthGlobalX128.selector)
             .checked_write(rewardGrowthGlobalX128Last);
 
         // And : assetId is minted.
@@ -59,7 +60,8 @@ contract RewardOf_StakedSlipstreamAM_Fuzz_Test is StakedSlipstreamAM_Fuzz_Test {
 
         // And : Rewards are earned.
         stdstore.target(address(pool)).sig(pool.rewardReserve.selector).checked_write(type(uint256).max);
-        stdstore.target(address(pool)).sig(pool.rewardGrowthGlobalX128.selector)
+        stdstore.target(address(pool))
+            .sig(pool.rewardGrowthGlobalX128.selector)
             .checked_write(rewardGrowthGlobalX128Current);
 
         // When : rewardOf is called.
@@ -91,7 +93,8 @@ contract RewardOf_StakedSlipstreamAM_Fuzz_Test is StakedSlipstreamAM_Fuzz_Test {
         deployAndAddGauge(tick);
 
         // Given : An initial rewardGrowthGlobalX128.
-        stdstore.target(address(pool)).sig(pool.rewardGrowthGlobalX128.selector)
+        stdstore.target(address(pool))
+            .sig(pool.rewardGrowthGlobalX128.selector)
             .checked_write(rewardGrowthGlobalX128Last);
 
         // And : assetId is minted.
@@ -105,7 +108,8 @@ contract RewardOf_StakedSlipstreamAM_Fuzz_Test is StakedSlipstreamAM_Fuzz_Test {
 
         // And : Rewards are earned.
         stdstore.target(address(pool)).sig(pool.rewardReserve.selector).checked_write(type(uint256).max);
-        stdstore.target(address(pool)).sig(pool.rewardGrowthGlobalX128.selector)
+        stdstore.target(address(pool))
+            .sig(pool.rewardGrowthGlobalX128.selector)
             .checked_write(rewardGrowthGlobalX128Current);
 
         // When : rewardOf is called.
@@ -132,7 +136,8 @@ contract RewardOf_StakedSlipstreamAM_Fuzz_Test is StakedSlipstreamAM_Fuzz_Test {
         deployAndAddGauge(tick);
 
         // Given : An initial rewardGrowthGlobalX128.
-        stdstore.target(address(pool)).sig(pool.rewardGrowthGlobalX128.selector)
+        stdstore.target(address(pool))
+            .sig(pool.rewardGrowthGlobalX128.selector)
             .checked_write(rewardGrowthGlobalX128Last);
 
         // And : assetId is minted.
@@ -146,7 +151,8 @@ contract RewardOf_StakedSlipstreamAM_Fuzz_Test is StakedSlipstreamAM_Fuzz_Test {
 
         // And : Rewards are earned.
         stdstore.target(address(pool)).sig(pool.rewardReserve.selector).checked_write(type(uint256).max);
-        stdstore.target(address(pool)).sig(pool.rewardGrowthGlobalX128.selector)
+        stdstore.target(address(pool))
+            .sig(pool.rewardGrowthGlobalX128.selector)
             .checked_write(rewardGrowthGlobalX128Current);
 
         // When : rewardOf is called.
