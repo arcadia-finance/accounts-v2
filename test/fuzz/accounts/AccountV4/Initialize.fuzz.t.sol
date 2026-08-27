@@ -29,7 +29,9 @@ contract Initialize_AccountV4_Fuzz_Test is AccountV4_Fuzz_Test {
         AccountV4_Fuzz_Test.setUp();
 
         account_ = new AccountV4Extension(address(factory), address(accountsGuard), address(0));
-        stdstore.target(address(factory)).sig(factory.isAccount.selector).with_key(address(account_))
+        stdstore.target(address(factory))
+            .sig(factory.isAccount.selector)
+            .with_key(address(account_))
             .checked_write(true);
     }
 

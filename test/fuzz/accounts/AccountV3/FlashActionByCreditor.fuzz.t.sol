@@ -181,7 +181,9 @@ contract FlashActionByCreditor_AccountV3_Fuzz_Test is AccountV3_Fuzz_Test, Permi
         accountExtension.setCreditor(address(creditorToken1));
 
         // Set the account as initialised in the factory
-        stdstore.target(address(factory)).sig(factory.isAccount.selector).with_key(address(accountExtension))
+        stdstore.target(address(factory))
+            .sig(factory.isAccount.selector)
+            .with_key(address(accountExtension))
             .checked_write(true);
 
         uint256[] memory amounts = new uint256[](2);
@@ -247,7 +249,9 @@ contract FlashActionByCreditor_AccountV3_Fuzz_Test is AccountV3_Fuzz_Test, Permi
         accountExtension.setCreditor(address(creditorToken1));
 
         // Set the account as initialised in the factory
-        stdstore.target(address(factory)).sig(factory.isAccount.selector).with_key(address(accountExtension))
+        stdstore.target(address(factory))
+            .sig(factory.isAccount.selector)
+            .with_key(address(accountExtension))
             .checked_write(true);
 
         uint256[] memory amounts = new uint256[](2);
@@ -324,7 +328,9 @@ contract FlashActionByCreditor_AccountV3_Fuzz_Test is AccountV3_Fuzz_Test, Permi
         accountExtension.setCreditor(address(creditorToken1));
 
         // Set the account as initialised in the factory
-        stdstore.target(address(factory)).sig(factory.isAccount.selector).with_key(address(accountExtension))
+        stdstore.target(address(factory))
+            .sig(factory.isAccount.selector)
+            .with_key(address(accountExtension))
             .checked_write(true);
 
         uint256[] memory amounts = new uint256[](2);
@@ -838,7 +844,9 @@ contract FlashActionByCreditor_AccountV3_Fuzz_Test is AccountV3_Fuzz_Test, Permi
         accountExtension.setCreditor(address(creditorToken1));
 
         // Set the account as initialised in the factory
-        stdstore.target(address(factory)).sig(factory.isAccount.selector).with_key(address(accountExtension))
+        stdstore.target(address(factory))
+            .sig(factory.isAccount.selector)
+            .with_key(address(accountExtension))
             .checked_write(true);
 
         uint256[] memory amounts = new uint256[](2);

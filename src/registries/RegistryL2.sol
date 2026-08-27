@@ -352,7 +352,8 @@ contract RegistryL2 is IRegistry, RegistryGuardian {
         for (uint256 i; i < length; ++i) {
             (collateralFactors[i], liquidationFactors[i]) = IAssetModule(
                     assetToAssetInformation[assetAddresses[i]].assetModule
-                ).getRiskFactors(creditor, assetAddresses[i], assetIds[i]);
+                )
+                .getRiskFactors(creditor, assetAddresses[i], assetIds[i]);
         }
     }
 

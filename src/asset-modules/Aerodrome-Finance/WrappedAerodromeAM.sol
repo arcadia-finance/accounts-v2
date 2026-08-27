@@ -581,7 +581,8 @@ contract WrappedAerodromeAM is DerivedAM, ERC721, ReentrancyGuard {
             // Calculate the change in FeePerLiquidity.
             uint256 deltaFee0PerLiquidity = fee0.mulDivDown(1e18, poolState_.totalWrapped);
             uint256 deltaFee1PerLiquidity = fee1.mulDivDown(1e18, poolState_.totalWrapped);
-            // Cap the deltas so an overflow can't block valuation and the downcasts can't truncate.
+            // Cap the deltas at the largest value the accumulators can represent, so an overflow can't
+            // block valuation.
             // Excess is lost, but a realistic reward accrual never approaches type(uint128).max.
             if (deltaFee0PerLiquidity > type(uint128).max) deltaFee0PerLiquidity = type(uint128).max;
             if (deltaFee1PerLiquidity > type(uint128).max) deltaFee1PerLiquidity = type(uint128).max;

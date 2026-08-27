@@ -63,7 +63,7 @@ contract AddOracle_ChainlinkOM_Fuzz_Test is ChainlinkOM_Fuzz_Test {
 
         vm.prank(users.owner);
         if (oracle.code.length == 0 && !isPrecompile(oracle)) {
-            vm.expectRevert(abi.encodePacked("call to non-contract address ", vm.toString(oracle)));
+            vm.expectRevert(bytes(""));
         } else {
             vm.expectRevert(bytes(""));
         }

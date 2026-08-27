@@ -34,7 +34,9 @@ contract startLiquidation_AccountV3_Fuzz_Test is AccountV3_Fuzz_Test {
 
         vm.prank(users.accountOwner);
         accountExtension2 = new AccountV3Extension(address(factory), address(accountsGuard), address(0));
-        stdstore.target(address(factory)).sig(factory.isAccount.selector).with_key(address(accountExtension2))
+        stdstore.target(address(factory))
+            .sig(factory.isAccount.selector)
+            .with_key(address(accountExtension2))
             .checked_write(true);
 
         assetValuationLib = new AssetValuationLibExtension();
@@ -81,7 +83,9 @@ contract startLiquidation_AccountV3_Fuzz_Test is AccountV3_Fuzz_Test {
         accountExtension2.initialize(users.accountOwner, address(registry), address(creditorToken1));
         accountExtension2.setMinimumMargin(minimumMargin);
         creditorToken1.setOpenPosition(address(accountExtension2), openDebt);
-        stdstore.target(address(factory)).sig(factory.isAccount.selector).with_key(address(accountExtension2))
+        stdstore.target(address(factory))
+            .sig(factory.isAccount.selector)
+            .with_key(address(accountExtension2))
             .checked_write(true);
 
         AssetValueAndRiskFactors[] memory assetAndRiskValues = registry.getValuesInNumeraire(
@@ -119,7 +123,9 @@ contract startLiquidation_AccountV3_Fuzz_Test is AccountV3_Fuzz_Test {
         accountExtension2.initialize(users.accountOwner, address(registry), address(creditorToken1));
         accountExtension2.setMinimumMargin(minimumMargin);
         creditorToken1.setOpenPosition(address(accountExtension2), openDebt);
-        stdstore.target(address(factory)).sig(factory.isAccount.selector).with_key(address(accountExtension2))
+        stdstore.target(address(factory))
+            .sig(factory.isAccount.selector)
+            .with_key(address(accountExtension2))
             .checked_write(true);
 
         // Assert openDebt of Account == 0
@@ -161,7 +167,9 @@ contract startLiquidation_AccountV3_Fuzz_Test is AccountV3_Fuzz_Test {
             accountExtension2.initialize(users.accountOwner, address(registry), address(creditorToken1));
             accountExtension2.setMinimumMargin(minimumMargin);
             creditorToken1.setOpenPosition(address(accountExtension2), openDebt);
-            stdstore.target(address(factory)).sig(factory.isAccount.selector).with_key(address(accountExtension2))
+            stdstore.target(address(factory))
+                .sig(factory.isAccount.selector)
+                .with_key(address(accountExtension2))
                 .checked_write(true);
 
             assetAndRiskValues = registry.getValuesInNumeraire(

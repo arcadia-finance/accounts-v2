@@ -39,7 +39,9 @@ contract SetMerklOperators_AccountV3_Fuzz_Test is AccountV3_Fuzz_Test, MerklFixt
         accountExtension = new AccountV3Extension(address(factory), address(accountsGuard), address(distributor));
 
         // Set account in factory.
-        stdstore.target(address(factory)).sig(factory.isAccount.selector).with_key(address(accountExtension))
+        stdstore.target(address(factory))
+            .sig(factory.isAccount.selector)
+            .with_key(address(accountExtension))
             .checked_write(true);
 
         // Initiate Account (set owner and numeraire).

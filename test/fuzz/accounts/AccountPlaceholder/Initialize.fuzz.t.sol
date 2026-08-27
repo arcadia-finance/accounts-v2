@@ -24,7 +24,9 @@ contract Initialize_AccountPlaceholder_Fuzz_Test is AccountPlaceholder_Fuzz_Test
         AccountPlaceholder_Fuzz_Test.setUp();
 
         account_ = new AccountPlaceholderExtension(address(factory), address(accountsGuard), 1);
-        stdstore.target(address(factory)).sig(factory.isAccount.selector).with_key(address(account_))
+        stdstore.target(address(factory))
+            .sig(factory.isAccount.selector)
+            .with_key(address(account_))
             .checked_write(true);
     }
 
