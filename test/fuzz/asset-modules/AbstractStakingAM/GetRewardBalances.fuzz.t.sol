@@ -184,8 +184,25 @@ contract GetRewardBalances_AbstractStakingAM_Fuzz_Test is AbstractStakingAM_Fuzz
         uint256 lowerBound = uint256(type(uint128).max) * assetState.totalStaked / 1e18 + 1;
         currentRewardGlobal = bound(currentRewardGlobal, lowerBound, type(uint256).max / 1e18);
 
-        // And: no rewards accrue to the position.
-        positionState.amountStaked = 0;
+        // And: the position holds any amount up to totalStaked, zero included.
+        positionState.amountStaked = uint128(bound(positionState.amountStaked, 0, assetState.totalStaked));
+
+        // And: the new RewardPerToken of the asset, with deltaRewardPerToken capped.
+        uint128 rewardPerToken;
+        unchecked {
+            rewardPerToken = assetState.lastRewardPerTokenGlobal + type(uint128).max;
+        }
+
+        // And: the rewards earned by the position since its last interaction.
+        uint128 deltaRewardPerToken;
+        unchecked {
+            deltaRewardPerToken = rewardPerToken - positionState.lastRewardPerTokenPosition;
+        }
+        uint256 deltaReward = uint256(deltaRewardPerToken) * positionState.amountStaked / 1e18;
+
+        // And: the reward balance of the position does not overflow.
+        positionState.lastRewardPosition =
+            uint128(bound(positionState.lastRewardPosition, 0, type(uint128).max - deltaReward));
 
         // And: State is persisted.
         setStakingAMState(assetState, positionState, asset, positionId);
@@ -201,17 +218,14 @@ contract GetRewardBalances_AbstractStakingAM_Fuzz_Test is AbstractStakingAM_Fuzz
         (assetState_, positionState_) = stakingAM.getRewardBalances(assetState_, positionState);
 
         // Then : deltaRewardPerToken is capped at type(uint128).max.
-        uint128 rewardPerToken;
-        unchecked {
-            rewardPerToken = assetState.lastRewardPerTokenGlobal + type(uint128).max;
-        }
         assertEq(assetState_.lastRewardPerTokenGlobal, rewardPerToken);
         assertEq(assetState_.totalStaked, assetState.totalStaked);
 
+        // And : the capped delta is credited to the position.
         assertEq(positionState_.asset, positionState.asset);
-        assertEq(positionState_.amountStaked, 0);
+        assertEq(positionState_.amountStaked, positionState.amountStaked);
         assertEq(positionState_.lastRewardPerTokenPosition, rewardPerToken);
-        assertEq(positionState_.lastRewardPosition, positionState.lastRewardPosition);
+        assertEq(positionState_.lastRewardPosition, positionState.lastRewardPosition + deltaReward);
     }
 
     function testFuzz_Success_getRewardBalances_ZeroTotalStaked(
