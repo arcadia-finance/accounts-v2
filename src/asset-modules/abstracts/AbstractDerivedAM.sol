@@ -29,10 +29,9 @@ abstract contract DerivedAM is AssetModule {
     mapping(address creditor => RiskParameters riskParameters) public riskParams;
     // Map with the last exposures of each asset for each Creditor.
     mapping(address creditor => mapping(bytes32 assetKey => ExposuresPerAsset)) public lastExposuresAsset;
-    // Map with the last amount of exposure of each underlying asset for each asset for each Creditor.
-    mapping(
-        address creditor => mapping(bytes32 assetKey => mapping(bytes32 underlyingAssetKey => uint256 exposure))
-    ) public lastExposureAssetToUnderlyingAsset;
+    // Map with the last amount of exposure of each underlying asset, by index, for each asset for each Creditor.
+    mapping(address creditor => mapping(bytes32 assetKey => mapping(uint256 index => uint256 exposure))) public
+        lastExposureAssetToUnderlyingAsset;
 
     // Struct with the risk parameters of the protocol for a specific Creditor.
     struct RiskParameters {
@@ -82,6 +81,8 @@ abstract contract DerivedAM is AssetModule {
      * @notice Returns the unique identifiers of the underlying assets.
      * @param assetKey The unique identifier of the asset.
      * @return underlyingAssetKeys The unique identifiers of the underlying assets.
+     * @dev The order and length of the returned array must be constant for a given asset,
+     * since exposures to underlying assets are tracked per index (the same underlying asset can occur at multiple indexes).
      */
     function _getUnderlyingAssets(bytes32 assetKey) internal view virtual returns (bytes32[] memory underlyingAssetKeys);
 
@@ -381,11 +382,10 @@ abstract contract DerivedAM is AssetModule {
             for (uint256 i; i < underlyingAssetKeys.length; ++i) {
                 // Calculate the change in exposure to the underlying assets since last interaction.
                 deltaExposureAssetToUnderlyingAsset = int256(exposureAssetToUnderlyingAssets[i])
-                    - int256(uint256(lastExposureAssetToUnderlyingAsset[creditor][assetKey][underlyingAssetKeys[i]]));
+                    - int256(lastExposureAssetToUnderlyingAsset[creditor][assetKey][i]);
 
                 // Update "lastExposureAssetToUnderlyingAsset".
-                lastExposureAssetToUnderlyingAsset[creditor][assetKey][underlyingAssetKeys[i]] =
-                    exposureAssetToUnderlyingAssets[i];
+                lastExposureAssetToUnderlyingAsset[creditor][assetKey][i] = exposureAssetToUnderlyingAssets[i];
 
                 // Get the USD Value of the total exposure of "Asset" for its "Underlying Assets" at index "i".
                 // If the "underlyingAsset" has one or more underlying assets itself, the lower level
@@ -469,11 +469,10 @@ abstract contract DerivedAM is AssetModule {
         for (uint256 i; i < underlyingAssetKeys.length; ++i) {
             // Calculate the change in exposure to the underlying assets since last interaction.
             deltaExposureAssetToUnderlyingAsset = int256(exposureAssetToUnderlyingAssets[i])
-                - int256(uint256(lastExposureAssetToUnderlyingAsset[creditor][assetKey][underlyingAssetKeys[i]]));
+                - int256(lastExposureAssetToUnderlyingAsset[creditor][assetKey][i]);
 
             // Update "lastExposureAssetToUnderlyingAsset".
-            lastExposureAssetToUnderlyingAsset[creditor][assetKey][underlyingAssetKeys[i]] =
-                exposureAssetToUnderlyingAssets[i];
+            lastExposureAssetToUnderlyingAsset[creditor][assetKey][i] = exposureAssetToUnderlyingAssets[i];
 
             // Get the USD Value of the total exposure of "Asset" for for all of its "Underlying Assets".
             // If an "underlyingAsset" has one or more underlying assets itself, the lower level
