@@ -89,7 +89,7 @@ contract Mint_StakedSlipstreamAM_Fuzz_Test is StakedSlipstreamAM_Fuzz_Test {
         // When : Calling mint().
         // Then : It should revert.
         vm.prank(users.liquidityProvider);
-        vm.expectRevert(abi.encodePacked("call to non-contract address ", vm.toString(address(0))));
+        vm.expectRevert(bytes(""));
         stakedSlipstreamAM.mint(assetId);
     }
 

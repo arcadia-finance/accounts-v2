@@ -30,7 +30,9 @@ contract Initialize_AccountV3_Fuzz_Test is AccountV3_Fuzz_Test {
         AccountV3_Fuzz_Test.setUp();
 
         accountNotInitialised = new AccountV3Extension(address(factory), address(accountsGuard), address(0));
-        stdstore.target(address(factory)).sig(factory.isAccount.selector).with_key(address(accountNotInitialised))
+        stdstore.target(address(factory))
+            .sig(factory.isAccount.selector)
+            .with_key(address(accountNotInitialised))
             .checked_write(true);
     }
 

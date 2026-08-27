@@ -58,7 +58,9 @@ contract GetValue_StandardERC4626AM_Fuzz_Test is StandardERC4626AM_Fuzz_Test {
         stdstore.target(address(ybToken1)).sig(ybToken1.totalSupply.selector).checked_write(totalSupply);
 
         //Cheat balance of
-        stdstore.target(address(mockERC20.token1)).sig(ybToken1.balanceOf.selector).with_key(address(ybToken1))
+        stdstore.target(address(mockERC20.token1))
+            .sig(ybToken1.balanceOf.selector)
+            .with_key(address(ybToken1))
             .checked_write(totalAssets);
 
         //Arithmetic overflow.
@@ -103,7 +105,9 @@ contract GetValue_StandardERC4626AM_Fuzz_Test is StandardERC4626AM_Fuzz_Test {
         stdstore.target(address(ybToken1)).sig(ybToken1.totalSupply.selector).checked_write(totalSupply);
 
         //Cheat balance of
-        stdstore.target(address(mockERC20.token1)).sig(ybToken1.balanceOf.selector).with_key(address(ybToken1))
+        stdstore.target(address(mockERC20.token1))
+            .sig(ybToken1.balanceOf.selector)
+            .with_key(address(ybToken1))
             .checked_write(totalAssets);
 
         (uint256 actualValueInUsd,,) = erc4626AM.getValue(address(creditorUsd), address(ybToken1), 0, shares);

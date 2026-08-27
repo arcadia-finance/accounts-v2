@@ -5,12 +5,21 @@ libs = ['lib']
 optimizer = true
 optimizer_runs = 200
 auto_detect_solc = true
+dynamic_test_linking = false
+isolate = false
 fuzz = { runs = 50, max_test_rejects = 100_000_000}
 no_match_path = "**/{script/,test/fork/}*"
+compilation_restrictions = [
+    { paths = "lib/slipstream/contracts/**", version = "=0.7.6" },
+    { paths = "lib/v3-core/contracts/**", version = "=0.7.6" },
+    { paths = "lib/v3-periphery/contracts/**", version = "=0.7.6" },
+    { paths = "lib/swap-router-contracts/contracts/**", version = "=0.7.6" },
+]
 remappings = [
     "@uniswap/v2-core/contracts=./test/utils/fixtures/swap-router-02",
     "@uniswap/v3-core/contracts/=lib/v3-core/contracts/",
     "@uniswap/v3-periphery/contracts/=lib/v3-periphery/contracts/",
+    "@uniswap/v4-core/=lib/v4-periphery/lib/v4-core/",
     "contracts/=lib/slipstream/contracts",
     "solmate/=lib/solmate/",
     "lib/openzeppelin-contracts-upgradeable-v4.9:@openzeppelin/=lib/openzeppelin-contracts-v4.9/",

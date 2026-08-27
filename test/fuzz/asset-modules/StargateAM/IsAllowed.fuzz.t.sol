@@ -34,7 +34,9 @@ contract IsAllowed_StargateAM_Fuzz_Test is StargateAM_Fuzz_Test {
 
     function testFuzz_Success_isAllowed_True(address asset, uint256 id) public {
         // Given: asset is in the stargateModule.
-        stdstore.target(address(stargateAssetModule)).sig(stargateAssetModule.inAssetModule.selector).with_key(asset)
+        stdstore.target(address(stargateAssetModule))
+            .sig(stargateAssetModule.inAssetModule.selector)
+            .with_key(asset)
             .checked_write(true);
 
         // When : Calling isAllowed()
