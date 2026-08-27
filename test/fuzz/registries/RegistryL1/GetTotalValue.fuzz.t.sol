@@ -44,7 +44,7 @@ contract GetTotalValue_RegistryL1_Fuzz_Test is RegistryL1_Fuzz_Test {
         assetAmounts[0] = 10;
         assetAmounts[1] = 10;
 
-        vm.expectRevert(abi.encodePacked("call to non-contract address ", vm.toString(address(0))));
+        vm.expectRevert(bytes(""));
         registry_.getTotalValue(numeraire, address(creditorToken1), assetAddresses, assetIds, assetAmounts);
     }
 

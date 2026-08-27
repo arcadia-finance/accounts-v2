@@ -170,7 +170,7 @@ contract BatchProcessDeposit_RegistryL2_Fuzz_Test is RegistryL2_Fuzz_Test {
         assetAmounts[0] = 1;
 
         vm.startPrank(address(account));
-        vm.expectRevert(abi.encodePacked("call to non-contract address ", vm.toString(address(0))));
+        vm.expectRevert(bytes(""));
         registry.batchProcessDeposit(address(0), assetAddresses, assetIds, assetAmounts);
         vm.stopPrank();
     }
@@ -215,7 +215,7 @@ contract BatchProcessDeposit_RegistryL2_Fuzz_Test is RegistryL2_Fuzz_Test {
         assetAmounts[0] = 1;
 
         vm.startPrank(address(account));
-        vm.expectRevert(abi.encodePacked("call to non-contract address ", vm.toString(address(0))));
+        vm.expectRevert(bytes(""));
         registry.batchProcessDeposit(address(creditorUsd), assetAddresses, assetIds, assetAmounts);
         vm.stopPrank();
     }

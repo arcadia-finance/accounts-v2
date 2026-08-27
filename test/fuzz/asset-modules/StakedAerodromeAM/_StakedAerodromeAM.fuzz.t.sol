@@ -73,7 +73,9 @@ abstract contract StakedAerodromeAM_Fuzz_Test is Fuzz_Test, AbstractStakingAM_Fu
         stakedAerodromeAM.setLastRewardPerTokenPosition(id, stakingAMStateForPosition.lastRewardPerTokenPosition);
         stakedAerodromeAM.setLastRewardPerTokenGlobal(asset, stakingAMStateForAsset.lastRewardPerTokenGlobal);
         // Set current rewards earned in the aeroGauge
-        stdstore.target(address(aeroGauge)).sig(aeroGauge.rewards.selector).with_key(address(stakedAerodromeAM))
+        stdstore.target(address(aeroGauge))
+            .sig(aeroGauge.rewards.selector)
+            .with_key(address(stakedAerodromeAM))
             .checked_write(stakingAMStateForAsset.currentRewardGlobal);
         deal(AERO, address(aeroGauge), stakingAMStateForAsset.currentRewardGlobal);
         stakedAerodromeAM.setAmountStakedForPosition(id, stakingAMStateForPosition.amountStaked);

@@ -64,7 +64,9 @@ contract GetUsdValueExposureToUnderlyingAssetAfterWithdrawal_RegistryL1_Fuzz_Tes
             address(creditorUsd), underlyingAsset, underlyingAssetId, type(uint112).max, 100, 100
         );
 
-        stdstore.target(address(registry_)).sig(registry_.isAssetModule.selector).with_key(address(upperAssetModule))
+        stdstore.target(address(registry_))
+            .sig(registry_.isAssetModule.selector)
+            .with_key(address(upperAssetModule))
             .checked_write(true);
 
         // Prepare expected internal call.

@@ -45,7 +45,9 @@ contract FlashAction_AccountV3_Fuzz_Test is AccountV3_Fuzz_Test, Permit2Fixture 
         routerMock = new RouterMock();
 
         accountNotInitialised = new AccountV3Extension(address(factory), address(accountsGuard), address(0));
-        stdstore.target(address(factory)).sig(factory.isAccount.selector).with_key(address(accountNotInitialised))
+        stdstore.target(address(factory))
+            .sig(factory.isAccount.selector)
+            .with_key(address(accountNotInitialised))
             .checked_write(true);
     }
 
@@ -187,7 +189,9 @@ contract FlashAction_AccountV3_Fuzz_Test is AccountV3_Fuzz_Test, Permit2Fixture 
         vm.stopPrank();
 
         // Set the account as initialised in the factory
-        stdstore.target(address(factory)).sig(factory.isAccount.selector).with_key(address(accountNotInitialised))
+        stdstore.target(address(factory))
+            .sig(factory.isAccount.selector)
+            .with_key(address(accountNotInitialised))
             .checked_write(true);
 
         uint256 token1AmountForAction = 1000 * 10 ** Constants.TOKEN_DECIMALS;
@@ -287,7 +291,9 @@ contract FlashAction_AccountV3_Fuzz_Test is AccountV3_Fuzz_Test, Permit2Fixture 
         accountNotInitialised.setCreditor(address(creditorStable1));
 
         // Set the account as initialised in the factory
-        stdstore.target(address(factory)).sig(factory.isAccount.selector).with_key(address(accountNotInitialised))
+        stdstore.target(address(factory))
+            .sig(factory.isAccount.selector)
+            .with_key(address(accountNotInitialised))
             .checked_write(true);
 
         uint256[] memory amounts = new uint256[](2);
@@ -351,7 +357,9 @@ contract FlashAction_AccountV3_Fuzz_Test is AccountV3_Fuzz_Test, Permit2Fixture 
         accountNotInitialised.setCreditor(address(creditorStable1));
 
         // Set the account as initialised in the factory
-        stdstore.target(address(factory)).sig(factory.isAccount.selector).with_key(address(accountNotInitialised))
+        stdstore.target(address(factory))
+            .sig(factory.isAccount.selector)
+            .with_key(address(accountNotInitialised))
             .checked_write(true);
 
         uint256[] memory amounts = new uint256[](2);
@@ -425,7 +433,9 @@ contract FlashAction_AccountV3_Fuzz_Test is AccountV3_Fuzz_Test, Permit2Fixture 
         accountNotInitialised.setCreditor(address(creditorStable1));
 
         // Set the account as initialised in the factory
-        stdstore.target(address(factory)).sig(factory.isAccount.selector).with_key(address(accountNotInitialised))
+        stdstore.target(address(factory))
+            .sig(factory.isAccount.selector)
+            .with_key(address(accountNotInitialised))
             .checked_write(true);
 
         uint256[] memory amounts = new uint256[](2);
@@ -501,7 +511,9 @@ contract FlashAction_AccountV3_Fuzz_Test is AccountV3_Fuzz_Test, Permit2Fixture 
         accountNotInitialised.setCreditor(address(creditorStable1));
 
         // Set the account as initialized in the factory
-        stdstore.target(address(factory)).sig(factory.isAccount.selector).with_key(address(accountNotInitialised))
+        stdstore.target(address(factory))
+            .sig(factory.isAccount.selector)
+            .with_key(address(accountNotInitialised))
             .checked_write(true);
 
         uint256[] memory amounts = new uint256[](2);
@@ -564,7 +576,9 @@ contract FlashAction_AccountV3_Fuzz_Test is AccountV3_Fuzz_Test, Permit2Fixture 
         creditorStable1.setOpenPosition(address(accountNotInitialised), debtAmount);
 
         // Set the account as initialised in the factory
-        stdstore.target(address(factory)).sig(factory.isAccount.selector).with_key(address(accountNotInitialised))
+        stdstore.target(address(factory))
+            .sig(factory.isAccount.selector)
+            .with_key(address(accountNotInitialised))
             .checked_write(true);
 
         uint256 token1AmountForAction = 1000 * 10 ** Constants.TOKEN_DECIMALS;
@@ -771,7 +785,9 @@ contract FlashAction_AccountV3_Fuzz_Test is AccountV3_Fuzz_Test, Permit2Fixture 
         creditorStable1.setOpenPosition(address(accountNotInitialised), debtAmount);
 
         // Set the account as initialised in the factory
-        stdstore.target(address(factory)).sig(factory.isAccount.selector).with_key(address(accountNotInitialised))
+        stdstore.target(address(factory))
+            .sig(factory.isAccount.selector)
+            .with_key(address(accountNotInitialised))
             .checked_write(true);
 
         uint256 token1AmountForAction = 1000 * 10 ** Constants.TOKEN_DECIMALS;
@@ -900,7 +916,9 @@ contract FlashAction_AccountV3_Fuzz_Test is AccountV3_Fuzz_Test, Permit2Fixture 
         accountNotInitialised.setCreditor(address(creditorStable1));
 
         // Set the account as initialised in the factory
-        stdstore.target(address(factory)).sig(factory.isAccount.selector).with_key(address(accountNotInitialised))
+        stdstore.target(address(factory))
+            .sig(factory.isAccount.selector)
+            .with_key(address(accountNotInitialised))
             .checked_write(true);
 
         uint256[] memory amounts = new uint256[](2);

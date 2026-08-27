@@ -78,8 +78,10 @@ contract GetUsdValueExposureToUnderlyingAssetAfterDeposit_UniswapV4HooksRegistry
             address(creditorUsd), underlyingAsset, underlyingAssetId, type(uint112).max, 100, 100
         );
 
-        stdstore.target(address(v4HooksRegistry)).sig(registry.isAssetModule.selector)
-            .with_key(address(upperAssetModule)).checked_write(true);
+        stdstore.target(address(v4HooksRegistry))
+            .sig(registry.isAssetModule.selector)
+            .with_key(address(upperAssetModule))
+            .checked_write(true);
 
         // Prepare expected internal call.
         bytes memory data = abi.encodeCall(

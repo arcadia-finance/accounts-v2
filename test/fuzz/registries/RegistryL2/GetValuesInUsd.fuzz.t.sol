@@ -38,7 +38,7 @@ contract GetValuesInUsd_RegistryL2_Fuzz_Test is RegistryL2_Fuzz_Test {
         uint256[] memory assetAmounts = new uint256[](1);
         assetAmounts[0] = assetAmount;
 
-        vm.expectRevert(abi.encodePacked("call to non-contract address ", vm.toString(address(0))));
+        vm.expectRevert(bytes(""));
         registry.getValuesInUsd(address(creditorUsd), assetAddresses, assetIds, assetAmounts);
     }
 

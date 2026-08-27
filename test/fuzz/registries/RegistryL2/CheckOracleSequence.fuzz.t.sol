@@ -72,7 +72,7 @@ contract CheckOracleSequence_RegistryL2_Fuzz_Test is RegistryL2_Fuzz_Test {
 
         bytes32 oracleSequence = BitPackingLib.pack(baseToQuoteAsset, oraclesIds);
 
-        vm.expectRevert(abi.encodePacked("call to non-contract address ", vm.toString(address(0))));
+        vm.expectRevert(bytes(""));
         registry.checkOracleSequence(oracleSequence);
     }
 
