@@ -7,9 +7,12 @@ jobs:
     name: Foundry project
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v3
-        with:
-          submodules: recursive
+      - uses: actions/checkout@v5
+
+      - name: Check out the submodules that are compiled
+        run: |
+          git submodule update --init
+          git submodule update --init --recursive lib/slipstream lib/v4-periphery
 
       - name: Install Foundry
         uses: foundry-rs/foundry-toolchain@v1
