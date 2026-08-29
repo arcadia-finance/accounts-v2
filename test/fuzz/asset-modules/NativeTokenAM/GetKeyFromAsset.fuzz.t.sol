@@ -22,6 +22,7 @@ contract GetKeyFromAsset_NativeTokenAM_Fuzz_Test is NativeTokenAM_Fuzz_Test {
                               TESTS
     //////////////////////////////////////////////////////////////*/
     function testFuzz_Success_getKeyFromAsset(address asset, uint96 assetId) public view {
+        // forge-lint: disable-next-item(unsafe-typecast)
         bytes32 expectedKey = bytes32(abi.encodePacked(uint96(0), asset));
         bytes32 actualKey = nativeTokenAM.getKeyFromAsset(asset, assetId);
 

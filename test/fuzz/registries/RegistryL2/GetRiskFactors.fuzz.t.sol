@@ -12,6 +12,7 @@ import { Utils } from "../../../utils/Utils.sol";
 /**
  * @notice Fuzz tests for the function "getRiskFactors" of contract "RegistryL2".
  */
+// forge-lint: disable-next-item(unsafe-typecast)
 contract GetRiskFactors_RegistryL2_Fuzz_Test is RegistryL2_Fuzz_Test {
     /* ///////////////////////////////////////////////////////////////
                               SETUP

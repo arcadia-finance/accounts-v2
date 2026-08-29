@@ -64,6 +64,7 @@ contract SetProtocol_UniswapV4HooksRegistry_Fuzz_Test is UniswapV4HooksRegistry_
             IPositionDescriptor(address(0)),
             IWETH9(address(weth9))
         );
+        // forge-lint: disable-next-item(encode-packed-collision)
         bytes memory bytecode = abi.encodePacked(vm.getCode("PositionManagerExtension.sol"), args);
         address positionManagerV4_ = Utils.deployBytecode(bytecode);
 

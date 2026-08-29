@@ -9,6 +9,7 @@ import { StandardERC4626AM_Fuzz_Test } from "./_StandardERC4626AM.fuzz.t.sol";
 /**
  * @notice Fuzz tests for the function "_getUnderlyingAssets" of contract "StandardERC4626AM".
  */
+// forge-lint: disable-next-item(unsafe-typecast)
 contract GetUnderlyingAssets_StandardERC4626AM_Fuzz_Test is StandardERC4626AM_Fuzz_Test {
     /* ///////////////////////////////////////////////////////////////
                               SETUP

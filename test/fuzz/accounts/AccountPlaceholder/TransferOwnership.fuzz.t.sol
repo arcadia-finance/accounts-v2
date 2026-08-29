@@ -11,6 +11,7 @@ import { AccountsGuard } from "../../../../src/accounts/helpers/AccountsGuard.so
 /**
  * @notice Fuzz tests for the function "transferOwnership" of contract "AccountPlaceholder".
  */
+// forge-lint: disable-next-item(unsafe-typecast)
 contract TransferOwnership_AccountPlaceholder_Fuzz_Test is AccountPlaceholder_Fuzz_Test {
     /* ///////////////////////////////////////////////////////////////
                               SETUP

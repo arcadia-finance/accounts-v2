@@ -19,7 +19,7 @@ import { TickMath } from "../../../../src/asset-modules/UniswapV3/libraries/Tick
 import { Utils } from "../../Utils.sol";
 import { WETH9Fixture } from "../weth9/WETH9Fixture.f.sol";
 
-// forge-lint: disable-next-item(divide-before-multiply,mixed-case-function)
+// forge-lint: disable-next-item(divide-before-multiply,encode-packed-collision,mixed-case-function)
 contract SlipstreamFixture is WETH9Fixture, AerodromeFixture {
     /*//////////////////////////////////////////////////////////////////////////
                                    CONTRACTS

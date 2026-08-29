@@ -20,6 +20,7 @@ import { FactoryExtension } from "../../extensions/FactoryExtension.sol";
 import { RegistryL2Extension } from "../../extensions/RegistryL2Extension.sol";
 import { SequencerUptimeOracle } from "../../mocks/oracles/SequencerUptimeOracle.sol";
 
+// forge-lint: disable-next-item(unsafe-typecast)
 contract ArcadiaAccountsFixture is Base_Test {
     function deployArcadiaAccounts(address merklDistributor) public {
         // Deploy the sequencer uptime oracle.

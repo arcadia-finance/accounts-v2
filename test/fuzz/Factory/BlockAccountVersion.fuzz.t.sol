@@ -7,10 +7,12 @@ pragma solidity ^0.8.0;
 import { Factory } from "../../../src/Factory.sol";
 import { Factory_Fuzz_Test } from "./_Factory.fuzz.t.sol";
 import { FactoryErrors } from "../../../src/libraries/Errors.sol";
+
 /**
  * @notice Fuzz tests for the function "blockAccountVersion" of contract "Factory".
  */
 
+// forge-lint: disable-next-item(unsafe-typecast)
 contract BlockAccountVersion_Factory_Fuzz_Test is Factory_Fuzz_Test {
     /* ///////////////////////////////////////////////////////////////
                               SETUP
@@ -58,7 +60,7 @@ contract BlockAccountVersion_Factory_Fuzz_Test is Factory_Fuzz_Test {
 
         vm.startPrank(users.owner);
         vm.expectEmit(true, true, true, true);
-        // forge-lint: disable-next-line(unsafe-typecast)
+        // forge-lint: disable-next-item(unsafe-typecast)
         emit Factory.AccountVersionBlocked(uint88(accountVersion));
         factory.blockAccountVersion(accountVersion);
         vm.stopPrank();

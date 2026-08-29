@@ -13,6 +13,7 @@ import { StdStorage, stdStorage } from "../../../../lib/forge-std/src/Test.sol";
 /**
  * @notice Fuzz tests for the function "batchProcessWithdrawal" of contract "RegistryL1".
  */
+// forge-lint: disable-next-item(unsafe-typecast)
 contract BatchProcessWithdrawal_RegistryL1_Fuzz_Test is RegistryL1_Fuzz_Test {
     using stdStorage for StdStorage;
     /* ///////////////////////////////////////////////////////////////

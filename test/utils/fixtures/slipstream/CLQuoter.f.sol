@@ -23,6 +23,7 @@ contract CLQuoterFixture is Test {
     function deployQuoter(address factory_, address weth9_) public {
         // Get the bytecode of the Quoter.
         bytes memory args = abi.encode(factory_, weth9_);
+        // forge-lint: disable-next-item(encode-packed-collision)
         bytes memory bytecode = abi.encodePacked(vm.getCode("CLQuoterV2Extension.sol"), args);
 
         address quoter_ = Utils.deployBytecode(bytecode);

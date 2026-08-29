@@ -20,6 +20,7 @@ import { UniswapV4HooksRegistryExtension } from "../../../../test/utils/extensio
 /**
  * @notice Common logic needed by all "DefaultUniswapV4AM" fuzz tests.
  */
+// forge-lint: disable-next-item(unsafe-typecast)
 abstract contract DefaultUniswapV4AM_Fuzz_Test is Fuzz_Test, UniswapV4Fixture {
     /* ///////////////////////////////////////////////////////////////
                               CONSTANTS

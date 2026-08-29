@@ -288,6 +288,7 @@ contract StakedSlipstreamAM is DerivedAM, ERC721, ReentrancyGuard {
 
         // Change sqrtPrice from a decimal fixed point number with 14 digits to a binary fixed point number with 96 digits.
         // Unsafe cast: Cast will only overflow when priceToken0/priceToken1 >= 2^128.
+        // forge-lint: disable-next-item(unsafe-typecast)
         sqrtPriceX96 = uint160((sqrtPriceXd14 << FixedPoint96.RESOLUTION) / 1e14);
     }
 
@@ -390,6 +391,7 @@ contract StakedSlipstreamAM is DerivedAM, ERC721, ReentrancyGuard {
      * @return positionId The id of the Minted Position.
      * @dev the Minted Position has the same id as the Liquidity Position.
      */
+    // forge-lint: disable-next-item(reentrancy-no-eth)
     function mint(uint256 assetId) external nonReentrant returns (uint256 positionId) {
         if (assetId > type(uint96).max) revert InvalidId();
         NON_FUNGIBLE_POSITION_MANAGER.safeTransferFrom(msg.sender, address(this), assetId);
@@ -429,7 +431,9 @@ contract StakedSlipstreamAM is DerivedAM, ERC721, ReentrancyGuard {
         // these were claimed during the deposit and send to this contract.
         uint256 balance0 = ERC20(token0).balanceOf(address(this));
         uint256 balance1 = ERC20(token1).balanceOf(address(this));
+        // forge-lint: disable-next-item(solmate-safe-transfer-lib)
         if (balance0 > 0) ERC20(token0).safeTransfer(msg.sender, balance0);
+        // forge-lint: disable-next-item(solmate-safe-transfer-lib)
         if (balance1 > 0) ERC20(token1).safeTransfer(msg.sender, balance1);
 
         // Mint the new position, with same id as the underlying position.
@@ -442,6 +446,7 @@ contract StakedSlipstreamAM is DerivedAM, ERC721, ReentrancyGuard {
      * @param positionId The id of the position.
      * @return rewards The amount of reward tokens claimed.
      */
+    // forge-lint: disable-next-item(reentrancy-no-eth)
     function burn(uint256 positionId) external nonReentrant returns (uint256 rewards) {
         if (_ownerOf[positionId] != msg.sender) revert NotOwner();
 
@@ -456,8 +461,9 @@ contract StakedSlipstreamAM is DerivedAM, ERC721, ReentrancyGuard {
         // Pay out the rewards to the position owner.
         if (rewards > 0) {
             // Transfer reward
+            // forge-lint: disable-next-item(solmate-safe-transfer-lib)
             REWARD_TOKEN.safeTransfer(msg.sender, rewards);
-            // forge-lint: disable-next-line(unsafe-typecast)
+            // forge-lint: disable-next-item(unsafe-typecast)
             emit RewardPaid(positionId, address(REWARD_TOKEN), uint128(rewards));
         }
 
@@ -470,6 +476,7 @@ contract StakedSlipstreamAM is DerivedAM, ERC721, ReentrancyGuard {
      * @param positionId The id of the position.
      * @return rewards The amount of reward tokens claimed.
      */
+    // forge-lint: disable-next-item(reentrancy-no-eth)
     function claimReward(uint256 positionId) external nonReentrant returns (uint256 rewards) {
         if (_ownerOf[positionId] != msg.sender) revert NotOwner();
 
@@ -480,8 +487,9 @@ contract StakedSlipstreamAM is DerivedAM, ERC721, ReentrancyGuard {
         // Pay out the rewards to the position owner.
         if (rewards > 0) {
             // Transfer reward
+            // forge-lint: disable-next-item(solmate-safe-transfer-lib)
             REWARD_TOKEN.safeTransfer(msg.sender, rewards);
-            // forge-lint: disable-next-line(unsafe-typecast)
+            // forge-lint: disable-next-item(unsafe-typecast)
             emit RewardPaid(positionId, address(REWARD_TOKEN), uint128(rewards));
         }
     }
@@ -515,6 +523,7 @@ contract StakedSlipstreamAM is DerivedAM, ERC721, ReentrancyGuard {
      */
     // forge-lint: disable-next-item(mixed-case-function,mixed-case-variable)
     function tokenURI(uint256 tokenId) public view override returns (string memory uri) {
+        // forge-lint: disable-next-item(encode-packed-collision)
         return bytes(baseURI).length > 0 ? string(abi.encodePacked(baseURI, tokenId.toString())) : "";
     }
 

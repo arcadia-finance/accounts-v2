@@ -294,6 +294,7 @@ contract WrappedAerodromeAM is DerivedAM, ERC721, ReentrancyGuard {
         if (token0[pool] == address(0)) revert PoolNotAllowed();
 
         // Need to transfer before minting or ERC777s could reenter.
+        // forge-lint: disable-next-item(solmate-safe-transfer-lib)
         ERC20(pool).safeTransferFrom(msg.sender, address(this), amount);
 
         // Cache the old poolState.
@@ -341,6 +342,7 @@ contract WrappedAerodromeAM is DerivedAM, ERC721, ReentrancyGuard {
         PoolState memory poolState_ = poolState[pool];
 
         // Need to transfer before increasing liquidity or ERC777s could reenter.
+        // forge-lint: disable-next-item(solmate-safe-transfer-lib)
         ERC20(pool).safeTransferFrom(msg.sender, address(this), amount);
 
         // Claim any pending fees from the Aerodrome Pool.
@@ -419,12 +421,15 @@ contract WrappedAerodromeAM is DerivedAM, ERC721, ReentrancyGuard {
         poolState[pool] = poolState_;
 
         // Pay out the fees to the position owner.
+        // forge-lint: disable-next-item(solmate-safe-transfer-lib)
         if (fee0Position > 0) ERC20(token0[pool]).safeTransfer(msg.sender, fee0Position);
+        // forge-lint: disable-next-item(solmate-safe-transfer-lib)
         if (fee1Position > 0) ERC20(token1[pool]).safeTransfer(msg.sender, fee1Position);
-        // forge-lint: disable-next-line(unsafe-typecast)
+        // forge-lint: disable-next-item(unsafe-typecast)
         emit FeesPaid(positionId, uint128(fee0Position), uint128(fee1Position));
 
         // Transfer the liquidity back to the position owner.
+        // forge-lint: disable-next-item(solmate-safe-transfer-lib)
         ERC20(pool).safeTransfer(msg.sender, amount);
         emit LiquidityDecreased(positionId, pool, amount);
     }
@@ -461,9 +466,11 @@ contract WrappedAerodromeAM is DerivedAM, ERC721, ReentrancyGuard {
         poolState[pool] = poolState_;
 
         // Pay out the fees to the position owner.
+        // forge-lint: disable-next-item(solmate-safe-transfer-lib)
         if (fee0Position > 0) ERC20(token0[pool]).safeTransfer(msg.sender, fee0Position);
+        // forge-lint: disable-next-item(solmate-safe-transfer-lib)
         if (fee1Position > 0) ERC20(token1[pool]).safeTransfer(msg.sender, fee1Position);
-        // forge-lint: disable-next-line(unsafe-typecast)
+        // forge-lint: disable-next-item(unsafe-typecast)
         emit FeesPaid(positionId, uint128(fee0Position), uint128(fee1Position));
     }
 
@@ -492,6 +499,7 @@ contract WrappedAerodromeAM is DerivedAM, ERC721, ReentrancyGuard {
 
         // Transfer excess funds to the owner.
         uint256 deltaWrapped = ERC20(pool).balanceOf(address(this)) - poolState_.totalWrapped;
+        // forge-lint: disable-next-item(solmate-safe-transfer-lib)
         ERC20(pool).safeTransfer(msg.sender, deltaWrapped);
     }
 
@@ -514,6 +522,8 @@ contract WrappedAerodromeAM is DerivedAM, ERC721, ReentrancyGuard {
      * @return fee0 The amount of fees of token0 claimed.
      * @return fee1 The amount of fees of token1 claimed.
      */
+    // Reentrancy is blocked by the nonReentrant guard on every caller.
+    // forge-lint: disable-next-item(reentrancy-no-eth)
     function _claimFees(address pool) internal returns (uint256 fee0, uint256 fee1) {
         (fee0, fee1) = IAeroPool(pool).claimFees();
     }
@@ -643,6 +653,7 @@ contract WrappedAerodromeAM is DerivedAM, ERC721, ReentrancyGuard {
      */
     // forge-lint: disable-next-item(mixed-case-function,mixed-case-variable)
     function tokenURI(uint256 tokenId) public view override returns (string memory uri) {
+        // forge-lint: disable-next-item(encode-packed-collision)
         return bytes(baseURI).length > 0 ? string(abi.encodePacked(baseURI, tokenId.toString())) : "";
     }
 }

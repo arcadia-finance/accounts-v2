@@ -12,6 +12,7 @@ import { PrimaryAM } from "../../../../src/asset-modules/abstracts/AbstractPrima
 /**
  * @notice Fuzz tests for the function "addAsset" of contract "FloorERC1155AM".
  */
+// forge-lint: disable-next-item(unsafe-typecast)
 contract AddAsset_FloorERC1155AM_Fuzz_Test is FloorERC1155AM_Fuzz_Test {
     /* ///////////////////////////////////////////////////////////////
                               SETUP

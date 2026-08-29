@@ -24,6 +24,7 @@ import { Utils } from "../../../utils/Utils.sol";
 /**
  * @notice Fuzz tests for the function "flashAction" of contract "AccountV3".
  */
+// forge-lint: disable-next-item(divide-before-multiply,incorrect-strict-equality,unsafe-typecast)
 contract FlashAction_AccountV3_Fuzz_Test is AccountV3_Fuzz_Test, Permit2Fixture {
     using stdStorage for StdStorage;
     /* ///////////////////////////////////////////////////////////////

@@ -11,5 +11,6 @@ contract AccountStorageV2 is AccountStorageV1 {
                                 STORAGE
     ////////////////////////////////////////////////////////////// */
 
+    // forge-lint: disable-next-item(uninitialized-state)
     uint256 public storageV2;
 }

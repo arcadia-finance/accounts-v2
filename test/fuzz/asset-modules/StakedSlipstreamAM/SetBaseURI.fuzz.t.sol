@@ -51,6 +51,7 @@ contract SetBaseURI_StakedSlipstreamAM_Fuzz_Test is StakedSlipstreamAM_Fuzz_Test
 
         string memory actualUri = stakedSlipstreamAM.tokenURI(id);
 
+        // forge-lint: disable-next-item(encode-packed-collision)
         assertEq(actualUri, string(abi.encodePacked(uri, id.toString())));
     }
 }

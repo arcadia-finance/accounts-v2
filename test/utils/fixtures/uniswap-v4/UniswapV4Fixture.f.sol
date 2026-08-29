@@ -281,6 +281,7 @@ contract UniswapV4Fixture is Test, Permit2Fixture, WETH9Fixture {
         approveV4PositionManagerFor(liquidityProvider, token1);
 
         vm.prank(liquidityProvider);
+        // forge-lint: disable-next-item(arbitrary-send-eth)
         positionManagerV4.modifyLiquidities{ value: token0 == address(0) ? amount0 + 1 : 0 }(mintData, block.timestamp);
     }
 

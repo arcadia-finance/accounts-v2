@@ -69,6 +69,7 @@ contract Proxy {
      * @return r The address stored in slot.
      */
     function _getAddressSlot(bytes32 slot) internal pure returns (AddressSlot storage r) {
+        // forge-lint: disable-next-item(unsafe-typecast)
         assembly {
             r.slot := slot
         }

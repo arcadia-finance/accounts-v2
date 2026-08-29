@@ -13,6 +13,7 @@ import { AssetValuationLib } from "../../../../src/libraries/AssetValuationLib.s
 /**
  * @notice Fuzz tests for the function "setRiskParameters" of contract "AbstractDerivedAM".
  */
+// forge-lint: disable-next-item(unsafe-typecast)
 contract SetRiskParameters_AbstractDerivedAM_Fuzz_Test is AbstractDerivedAM_Fuzz_Test {
     /* ///////////////////////////////////////////////////////////////
                               SETUP

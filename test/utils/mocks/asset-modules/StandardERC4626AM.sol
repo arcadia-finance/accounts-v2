@@ -14,6 +14,7 @@ import { AssetValuationLib, AssetValueAndRiskFactors } from "../../../../src/lib
  * @notice The StandardERC4626Registry stores pricing logic and basic information for ERC4626 tokens for which the underlying assets have direct price feed.
  * @dev No end-user should directly interact with the StandardERC4626Registry, only the Registry or the contract owner
  */
+// forge-lint: disable-next-item(unsafe-typecast)
 contract StandardERC4626AM is DerivedAM {
     using FixedPointMathLib for uint256;
     /* //////////////////////////////////////////////////////////////

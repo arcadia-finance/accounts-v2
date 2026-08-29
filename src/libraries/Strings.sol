@@ -1,7 +1,6 @@
 // SPDX-License-Identifier: AGPL-3.0-only
 pragma solidity ^0.8.34;
 
-// forge-lint: disable-next-item(unsafe-typecast)
 library Strings {
     /**
      * @dev Converts a `uint256` to its ASCII `string` decimal representation.
@@ -22,6 +21,7 @@ library Strings {
         bytes memory buffer = new bytes(digits);
         while (value != 0) {
             digits -= 1;
+            // forge-lint: disable-next-item(unsafe-typecast)
             buffer[digits] = bytes1(uint8(48 + uint256(value % 10)));
             value /= 10;
         }

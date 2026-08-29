@@ -12,6 +12,7 @@ import { Utils } from "../../../utils/Utils.sol";
 /**
  * @notice Fuzz tests for the function "_calculateValueAndRiskFactors" of contract "WrappedAerodromeAM".
  */
+// forge-lint: disable-next-item(divide-before-multiply,unsafe-typecast)
 contract CalculateValueAndRiskFactors_WrappedAerodromeAM_Fuzz_Test is WrappedAerodromeAM_Fuzz_Test {
     /* ///////////////////////////////////////////////////////////////
                               SETUP

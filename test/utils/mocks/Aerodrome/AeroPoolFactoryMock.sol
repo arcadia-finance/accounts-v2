@@ -152,6 +152,7 @@ contract PoolFactory {
         if (_getPool[token0][token1][stable] != address(0)) revert PoolAlreadyExists();
         bytes32 salt = keccak256(abi.encodePacked(token0, token1, stable)); // salt includes stable as well, 3 parameters
         pool = Clones.cloneDeterministic(implementation, salt);
+        // forge-lint: disable-next-item(reentrancy-no-eth)
         IPool(pool).initialize(token0, token1, stable);
         _getPool[token0][token1][stable] = pool;
         _getPool[token1][token0][stable] = pool; // populate mapping in the reverse direction

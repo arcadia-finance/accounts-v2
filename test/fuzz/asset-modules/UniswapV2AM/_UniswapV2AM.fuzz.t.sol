@@ -93,6 +93,7 @@ abstract contract UniswapV2AM_Fuzz_Test is Fuzz_Test {
         oracleTokenToUsd = initMockedOracle(oracleTokenToUsdDecimals, string(abi.encodePacked(label, " / USD")), rate);
 
         vm.startPrank(users.owner);
+        // forge-lint: disable-next-item(unsafe-typecast)
         uint80 oracleId = uint80(chainlinkOM.addOracle(address(oracleTokenToUsd), "Mock", "USD", 2 days));
         uint80[] memory oracleTokenToUsdArr = new uint80[](1);
         oracleTokenToUsdArr[0] = oracleId;

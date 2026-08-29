@@ -9,6 +9,7 @@ import { StargateAM_Fuzz_Test } from "./_StargateAM.fuzz.t.sol";
 /**
  * @notice Fuzz tests for the function "_getUnderlyingAssets" of contract "StargateAM".
  */
+// forge-lint: disable-next-item(unsafe-typecast)
 contract GetUnderlyingAssets_StargateAM_Fuzz_Test is StargateAM_Fuzz_Test {
     /* ///////////////////////////////////////////////////////////////
                               SETUP

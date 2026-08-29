@@ -6,6 +6,7 @@ import { AssetValuationLib, AssetValueAndRiskFactors } from "../../../../src/lib
 import { FixedPointMathLib } from "../../../../lib/solmate/src/utils/FixedPointMathLib.sol";
 import { IRegistry } from "../../../../src/asset-modules/interfaces/IRegistry.sol";
 
+// forge-lint: disable-next-item(unsafe-typecast)
 contract DerivedAMMock is DerivedAMExtension {
     using FixedPointMathLib for uint256;
 
@@ -19,6 +20,7 @@ contract DerivedAMMock is DerivedAMExtension {
         DerivedAMExtension(owner_, registry_, assetType_)
     { }
 
+    // forge-lint: disable-next-item(empty-block)
     function isAllowed(address asset, uint256) public view override returns (bool) { }
 
     function setUnderlyingAssetsAmount(uint256 underlyingAssetAmount_) public {

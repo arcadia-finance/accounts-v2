@@ -22,6 +22,7 @@ contract GetKeyFromAsset_FloorERC721AM_Fuzz_Test is FloorERC721AM_Fuzz_Test {
                               TESTS
     //////////////////////////////////////////////////////////////*/
     function testFuzz_Success_getKeyFromAsset(address asset, uint96 assetId) public view {
+        // forge-lint: disable-next-item(unsafe-typecast)
         bytes32 expectedKey = bytes32(abi.encodePacked(uint96(0), asset));
         bytes32 actualKey = floorERC721AM.getKeyFromAsset(asset, assetId);
 

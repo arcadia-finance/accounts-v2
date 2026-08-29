@@ -12,6 +12,7 @@ import { Utils } from "../../../utils/Utils.sol";
 /**
  * @notice Fuzz tests for the function "_calculateValueAndRiskFactors" of contract "SlipstreamAM".
  */
+// forge-lint: disable-next-item(unsafe-typecast)
 contract CalculateValueAndRiskFactors_SlipstreamAM_Fuzz_Test is SlipstreamAM_Fuzz_Test {
     /* ///////////////////////////////////////////////////////////////
                               SETUP

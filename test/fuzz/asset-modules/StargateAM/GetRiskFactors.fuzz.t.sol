@@ -10,6 +10,7 @@ import { AssetValuationLib } from "../../../../src/libraries/AssetValuationLib.s
 /**
  * @notice Fuzz tests for the function "getRiskFactors" of contract "StargateAM".
  */
+// forge-lint: disable-next-item(unsafe-typecast)
 contract GetRiskFactors_StargateAM_Fuzz_Test is StargateAM_Fuzz_Test {
     /* ///////////////////////////////////////////////////////////////
                               SETUP

@@ -46,6 +46,7 @@ contract GetPosition_UniswapV3AM_Fuzz_Test is UniswapV3AM_Fuzz_Test {
         position = givenValidPosition(position);
 
         // And: Liquidity is non-zero.
+        // forge-lint: disable-next-item(unsafe-typecast)
         position.liquidity = uint128(bound(position.liquidity, 1, type(uint128).max));
 
         // And: State is persisted.

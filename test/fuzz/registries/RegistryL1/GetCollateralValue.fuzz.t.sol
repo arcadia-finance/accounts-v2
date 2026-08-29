@@ -12,6 +12,7 @@ import { AssetValuationLib } from "../../../../src/libraries/AssetValuationLib.s
 /**
  * @notice Fuzz tests for the function "getCollateralValue" of contract "RegistryL1".
  */
+// forge-lint: disable-next-item(unsafe-typecast)
 contract GetCollateralValue_RegistryL1_Fuzz_Test is RegistryL1_Fuzz_Test {
     /* ///////////////////////////////////////////////////////////////
                               SETUP

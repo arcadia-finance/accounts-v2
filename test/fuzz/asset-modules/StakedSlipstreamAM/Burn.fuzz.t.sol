@@ -72,6 +72,7 @@ contract Burn_StakedSlipstreamAM_Fuzz_Test is StakedSlipstreamAM_Fuzz_Test {
         position = givenValidPosition(position, 1);
 
         // And : the current tick of the pool is in range (can't be equal to tickUpper, but can be equal to tickLower).
+        // forge-lint: disable-next-item(unsafe-typecast)
         tick = int24(bound(tick, position.tickLower, position.tickUpper - 1));
         deployAndAddGauge(tick);
 

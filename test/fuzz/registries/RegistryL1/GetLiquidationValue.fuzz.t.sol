@@ -51,6 +51,7 @@ contract GetLiquidationValue_RegistryL1_Fuzz_Test is RegistryL1_Fuzz_Test {
         uint32 currentTime
     ) public {
         // Given: oracle staleness-check does not underflow.
+        // forge-lint: disable-next-item(unsafe-typecast)
         currentTime = uint32(bound(currentTime, 2 days, type(uint32).max));
         vm.warp(currentTime);
 

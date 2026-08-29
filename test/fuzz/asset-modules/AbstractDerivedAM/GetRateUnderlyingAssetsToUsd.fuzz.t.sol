@@ -38,6 +38,7 @@ contract GetRateUnderlyingAssetsToUsd_AbstractDerivedAM_Fuzz_Test is AbstractDer
 
         // Prepare input.
         bytes32[] memory underlyingAssetKeys = new bytes32[](1);
+        // forge-lint: disable-next-item(unsafe-typecast)
         underlyingAssetKeys[0] =
             bytes32(abi.encodePacked(uint96(assetState.underlyingAssetId), assetState.underlyingAsset));
 

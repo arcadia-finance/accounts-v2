@@ -12,6 +12,7 @@ import { UniswapV2PairMock } from "../../../utils/mocks/UniswapV2/UniswapV2PairM
 /**
  * @notice Fuzz tests for the function "getValue" of contract "UniswapV2AM".
  */
+// forge-lint: disable-next-item(divide-before-multiply,unsafe-typecast)
 contract GetValue_UniswapV2AM_Fuzz_Test is UniswapV2AM_Fuzz_Test {
     /* ///////////////////////////////////////////////////////////////
                               SETUP

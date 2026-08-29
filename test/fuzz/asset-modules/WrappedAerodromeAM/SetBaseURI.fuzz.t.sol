@@ -49,6 +49,7 @@ contract SetBaseURI_WrappedAerodromeAM_Fuzz_Test is WrappedAerodromeAM_Fuzz_Test
 
         string memory actualUri = wrappedAerodromeAM.tokenURI(id);
 
+        // forge-lint: disable-next-item(encode-packed-collision)
         assertEq(actualUri, string(abi.encodePacked(uri, id.toString())));
     }
 }

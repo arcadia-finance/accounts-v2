@@ -248,6 +248,7 @@ contract SlipstreamAM is DerivedAM {
         // For deposited assets, the liquidity of the Liquidity Position is stored in the Asset Module,
         // not fetched from the NonfungiblePositionManager.
         // Since liquidity of a position can be increased by a non-owner, the max exposure checks could otherwise be circumvented.
+        // forge-lint: disable-next-item(unsafe-typecast)
         liquidity = uint128(assetToLiquidity[assetId]);
 
         if (liquidity > 0) {
@@ -309,6 +310,7 @@ contract SlipstreamAM is DerivedAM {
 
         // Change sqrtPrice from a decimal fixed point number with 14 digits to a binary fixed point number with 96 digits.
         // Unsafe cast: Cast will only overflow when priceToken0/priceToken1 >= 2^128.
+        // forge-lint: disable-next-item(unsafe-typecast)
         sqrtPriceX96 = uint160((sqrtPriceXd14 << FixedPoint96.RESOLUTION) / 1e14);
     }
 
@@ -426,11 +428,13 @@ contract SlipstreamAM is DerivedAM {
 
         // Keep the lowest risk factor of all underlying assets.
         // Unsafe cast: collateralFactor and liquidationFactor are smaller than or equal to 1e4.
+        // forge-lint: disable-next-item(unsafe-typecast)
         collateralFactor = uint16(
             collateralFactors[0] < collateralFactors[1]
                 ? riskFactor.mulDivDown(collateralFactors[0], AssetValuationLib.ONE_4)
                 : riskFactor.mulDivDown(collateralFactors[1], AssetValuationLib.ONE_4)
         );
+        // forge-lint: disable-next-item(unsafe-typecast)
         liquidationFactor = uint16(
             liquidationFactors[0] < liquidationFactors[1]
                 ? riskFactor.mulDivDown(liquidationFactors[0], AssetValuationLib.ONE_4)

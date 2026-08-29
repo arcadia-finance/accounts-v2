@@ -13,6 +13,7 @@ import { RegistryErrors } from "../../../../src/libraries/Errors.sol";
 /**
  * @notice Fuzz tests for the function "deposit" of contract "AccountV3".
  */
+// forge-lint: disable-next-item(unsafe-typecast)
 contract Deposit_AccountV3_Fuzz_Test is AccountV3_Fuzz_Test {
     /* ///////////////////////////////////////////////////////////////
                             TEST CONTRACTS

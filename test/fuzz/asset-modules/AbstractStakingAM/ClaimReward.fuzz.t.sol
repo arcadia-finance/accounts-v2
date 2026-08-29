@@ -10,6 +10,7 @@ import { FixedPointMathLib } from "../../../../lib/solmate/src/utils/FixedPointM
 /**
  * @notice Fuzz tests for the function "claimReward" of contract "StakingAM".
  */
+// forge-lint: disable-next-item(unsafe-typecast)
 contract ClaimReward_AbstractStakingAM_Fuzz_Test is AbstractStakingAM_Fuzz_Test {
     using FixedPointMathLib for uint256;
 
@@ -72,7 +73,7 @@ contract ClaimReward_AbstractStakingAM_Fuzz_Test is AbstractStakingAM_Fuzz_Test 
         // When : Account calls claimReward()
         vm.startPrank(account_);
         vm.expectEmit();
-        // forge-lint: disable-next-line(unsafe-typecast)
+        // forge-lint: disable-next-item(unsafe-typecast)
         emit StakingAM.RewardPaid(positionId, address(stakingAM.REWARD_TOKEN()), uint128(currentRewardPosition));
         uint256 rewards = stakingAM.claimReward(positionId);
         vm.stopPrank();
@@ -95,6 +96,7 @@ contract ClaimReward_AbstractStakingAM_Fuzz_Test is AbstractStakingAM_Fuzz_Test 
         assertEq(newPositionState.amountStaked, positionState.amountStaked);
         uint128 currentRewardPerToken;
         unchecked {
+            // forge-lint: disable-next-item(unsafe-typecast)
             currentRewardPerToken = assetState.lastRewardPerTokenGlobal
                 + uint128(assetState.currentRewardGlobal.mulDivDown(1e18, assetState.totalStaked));
         }

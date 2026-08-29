@@ -36,6 +36,7 @@ contract TransferFrom_Factory_Fuzz_Test is Factory_Fuzz_Test {
 
     function coolDownPeriodPassed(address account_, uint32 lastActionTimestamp, uint32 timePassed) public {
         AccountV3 _account_ = AccountV3(account_);
+        // forge-lint: disable-next-item(unsafe-typecast)
         timePassed = uint32(bound(timePassed, coolDownPeriod + 1, type(uint32).max));
 
         vm.warp(lastActionTimestamp);

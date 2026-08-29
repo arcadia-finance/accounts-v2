@@ -9,6 +9,7 @@ contract ERC1155Mock is ERC1155 {
 
     // forge-lint: disable-next-line(mixed-case-variable)
     string baseURI;
+    // forge-lint: disable-next-item(uninitialized-state)
     address owner;
     mapping(uint256 => string) _uri;
 
@@ -51,6 +52,7 @@ contract ERC1155Mock is ERC1155 {
      * @return uri of the token or an empty string if it does not exist
      */
     function uri(uint256 id) public view override returns (string memory) {
+        // forge-lint: disable-next-item(encode-packed-collision)
         return bytes(_uri[id]).length > 0 ? _uri[id] : string(abi.encodePacked(baseURI, id.toString()));
     }
 }

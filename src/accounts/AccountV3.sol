@@ -154,6 +154,7 @@ contract AccountV3 is AccountStorageV1, IAccount {
      * This prevents the old Owner from frontrunning a transferFrom().
      */
     modifier updateActionTimestamp() {
+        // forge-lint: disable-next-item(unsafe-typecast)
         lastActionTimestamp = uint32(block.timestamp);
         _;
     }
@@ -251,6 +252,7 @@ contract AccountV3 is AccountStorageV1, IAccount {
      * @return r The address stored in slot.
      */
     function _getAddressSlot(bytes32 slot) internal pure returns (AddressSlot storage r) {
+        // forge-lint: disable-next-item(unsafe-typecast)
         assembly {
             r.slot := slot
         }
@@ -264,6 +266,7 @@ contract AccountV3 is AccountStorageV1, IAccount {
      * @param data Arbitrary data, can contain instructions to execute in this function.
      * @dev If upgradeHook() is implemented, it MUST verify that msg.sender == address(this).
      */
+    // forge-lint: disable-next-item(empty-block)
     function upgradeHook(address oldImplementation, address oldRegistry, uint256 oldVersion, bytes calldata data)
         external { }
 
@@ -338,6 +341,7 @@ contract AccountV3 is AccountStorageV1, IAccount {
      * @dev Only open margin accounts for Creditors you trust!
      * The Creditor has significant authorization: use margin, trigger liquidation, and manage assets.
      */
+    // forge-lint: disable-next-item(reentrancy-no-eth)
     function openMarginAccount(address newCreditor)
         external
         onlyOwner
@@ -377,6 +381,8 @@ contract AccountV3 is AccountStorageV1, IAccount {
      * @notice Internal function: Opens a margin account for a new Creditor.
      * @param creditor_ The contract address of the Creditor.
      */
+    // Reentrancy is blocked by the nonReentrant guard on every caller.
+    // forge-lint: disable-next-item(reentrancy-no-eth)
     function _openMarginAccount(address creditor_) internal {
         (bool success, address numeraire_, address liquidator_, uint256 minimumMargin_) =
             ICreditor(creditor_).openMarginAccount(ACCOUNT_VERSION);
@@ -698,6 +704,7 @@ contract AccountV3 is AccountStorageV1, IAccount {
      * - The Account is in a healthy state (collateral value is greater than open liabilities).
      * If a check fails, the whole transaction reverts.
      */
+    // forge-lint: disable-next-item(reentrancy-no-eth)
     function flashAction(address actionTarget, bytes calldata actionData)
         external
         onlyAssetManager
@@ -847,6 +854,7 @@ contract AccountV3 is AccountStorageV1, IAccount {
      * @dev This function can be used to refinance liabilities between different Creditors,
      * without the need to first sell collateral to close the open position of the old Creditor.
      */
+    // forge-lint: disable-next-item(reentrancy-no-eth)
     function flashActionByCreditor(bytes calldata callbackData, address actionTarget, bytes calldata actionData)
         external
         nonReentrant(WITH_PAUSE_CHECK)
@@ -1039,6 +1047,8 @@ contract AccountV3 is AccountStorageV1, IAccount {
      * @param to The address to withdraw to.
      * @dev (batch)ProcessWithdrawal handles the accounting of assets in the Registry.
      */
+    // Reentrancy is blocked by the nonReentrant guard on every caller.
+    // forge-lint: disable-next-item(reentrancy-no-eth)
     function _withdraw(
         address[] memory assetAddresses,
         uint256[] memory assetIds,
@@ -1083,6 +1093,7 @@ contract AccountV3 is AccountStorageV1, IAccount {
      */
     // forge-lint: disable-next-item(mixed-case-function,mixed-case-variable)
     function _depositERC20(address from, address ERC20Address, uint256 amount) internal {
+        // forge-lint: disable-next-item(arbitrary-send-erc20,solmate-safe-transfer-lib)
         ERC20(ERC20Address).safeTransferFrom(from, address(this), amount);
 
         uint256 currentBalance = erc20Balances[ERC20Address];
@@ -1124,7 +1135,8 @@ contract AccountV3 is AccountStorageV1, IAccount {
      * If not, the function pushes the new address and ID to the stored arrays.
      * This may cause duplicates in the ERC1155 stored addresses array, this is intended.
      */
-    // forge-lint: disable-next-item(mixed-case-function,mixed-case-variable)
+    // Reentrancy is blocked by the nonReentrant guard on every caller.
+    // forge-lint: disable-next-item(mixed-case-function,mixed-case-variable,reentrancy-no-eth)
     function _depositERC1155(address from, address ERC1155Address, uint256 id, uint256 amount) internal {
         IERC1155(ERC1155Address).safeTransferFrom(from, address(this), id, amount, "");
 
@@ -1173,6 +1185,7 @@ contract AccountV3 is AccountStorageV1, IAccount {
             }
         }
 
+        // forge-lint: disable-next-item(solmate-safe-transfer-lib)
         ERC20(ERC20Address).safeTransfer(to, amount);
     }
 
@@ -1188,7 +1201,8 @@ contract AccountV3 is AccountStorageV1, IAccount {
      * then replaces it with the last index, followed by a pop().
      * @dev Sensitive to ReEntrance attacks! SafeTransferFrom therefore done at the end of the function.
      */
-    // forge-lint: disable-next-item(mixed-case-function,mixed-case-variable)
+    // Reentrancy is blocked by the nonReentrant guard on every caller.
+    // forge-lint: disable-next-item(mixed-case-function,mixed-case-variable,reentrancy-no-eth)
     function _withdrawERC721(address to, address ERC721Address, uint256 id) internal {
         uint256 tokenIdLength = erc721TokenIds.length;
 
@@ -1231,7 +1245,8 @@ contract AccountV3 is AccountStorageV1, IAccount {
      * and then replaces it with the last index, followed by a pop().
      * @dev Sensitive to ReEntrance attacks! SafeTransferFrom therefore done at the end of the function.
      */
-    // forge-lint: disable-next-item(mixed-case-function,mixed-case-variable)
+    // Reentrancy is blocked by the nonReentrant guard on every caller.
+    // forge-lint: disable-next-item(mixed-case-function,mixed-case-variable,reentrancy-no-eth)
     function _withdrawERC1155(address to, address ERC1155Address, uint256 id, uint256 amount) internal {
         uint256 tokenIdLength = erc1155TokenIds.length;
 
@@ -1264,6 +1279,8 @@ contract AccountV3 is AccountStorageV1, IAccount {
      * @param transferFromOwnerData A struct containing the info of all assets transferred from the owner that are not in this account.
      * @param to The address to withdraw to.
      */
+    // Reentrancy is blocked by the nonReentrant guard on every caller.
+    // forge-lint: disable-next-item(reentrancy-no-eth)
     function _transferFromOwner(ActionData memory transferFromOwnerData, address to) internal {
         uint256 assetAddressesLength = transferFromOwnerData.assets.length;
         // If no assets are being transferred, return early.
@@ -1277,6 +1294,7 @@ contract AccountV3 is AccountStorageV1, IAccount {
             }
 
             if (transferFromOwnerData.assetTypes[i] == 1) {
+                // forge-lint: disable-next-item(arbitrary-send-erc20,solmate-safe-transfer-lib)
                 ERC20(transferFromOwnerData.assets[i])
                     .safeTransferFrom(owner_, to, transferFromOwnerData.assetAmounts[i]);
             } else if (transferFromOwnerData.assetTypes[i] == 2) {
@@ -1307,6 +1325,8 @@ contract AccountV3 is AccountStorageV1, IAccount {
      * @param signature The signature to verify.
      * @param to The address to withdraw to.
      */
+    // Reentrancy is blocked by the nonReentrant guard on every caller.
+    // forge-lint: disable-next-item(reentrancy-no-eth)
     function _transferFromOwnerWithPermit(
         IPermit2.PermitBatchTransferFrom memory permit,
         bytes memory signature,
@@ -1364,6 +1384,7 @@ contract AccountV3 is AccountStorageV1, IAccount {
             uint256 balanceStored = erc20Balances[token];
             if (balance > balanceStored) {
                 amount = balance - balanceStored;
+                // forge-lint: disable-next-item(solmate-safe-transfer-lib)
                 ERC20(token).safeTransfer(msg.sender, amount);
             }
         } else if (type_ == 2) {

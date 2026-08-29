@@ -13,6 +13,7 @@ import { AssetValueAndRiskFactors } from "../../../../src/libraries/AssetValuati
 /**
  * @notice Fuzz tests for the function "getValuesInNumeraire" of contract "RegistryL1".
  */
+// forge-lint: disable-next-item(unsafe-typecast)
 contract GetValuesInNumeraire_RegistryL1_Fuzz_Test is RegistryL1_Fuzz_Test {
     /* ///////////////////////////////////////////////////////////////
                               SETUP

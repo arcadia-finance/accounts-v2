@@ -134,6 +134,7 @@ contract Deposit_AccountV4_Fuzz_Test is AccountV4_Fuzz_Test {
 
         // When: Native ETH is deposited into spot Account.
         vm.prank(users.accountOwner);
+        // forge-lint: disable-next-item(arbitrary-send-eth)
         accountSpot.deposit{ value: amount }(new address[](0), new uint256[](0), new uint256[](0), new uint256[](0));
 
         // Then : It should return the correct balance.

@@ -62,6 +62,7 @@ contract CreditorMock is Creditor {
         openPosition_ = openPosition[account];
     }
 
+    // forge-lint: disable-next-item(empty-block)
     function _flashActionCallback(address, bytes calldata) internal override { }
 
     function setOpenPosition(address account, uint256 openPosition_) external {

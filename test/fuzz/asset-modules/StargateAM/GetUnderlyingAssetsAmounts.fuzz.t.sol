@@ -10,6 +10,7 @@ import { AssetValueAndRiskFactors } from "../../../../src/libraries/AssetValuati
 /**
  * @notice Fuzz tests for the function "_getUnderlyingAssetsAmounts" of contract "StargateAM".
  */
+// forge-lint: disable-next-item(unsafe-typecast)
 contract GetUnderlyingAssetsAmounts_StargateAM_Fuzz_Test is StargateAM_Fuzz_Test {
     /* ///////////////////////////////////////////////////////////////
                               SETUP
@@ -58,6 +59,7 @@ contract GetUnderlyingAssetsAmounts_StargateAM_Fuzz_Test is StargateAM_Fuzz_Test
 
         // Then : Asset amounts returned should be correct.
         uint256 computedUnderlyingAssetAmount = uint256(assetAmount) * totalLiquidity / totalSupply;
+        // forge-lint: disable-next-item(divide-before-multiply)
         computedUnderlyingAssetAmount *= convertRate;
         assertEq(underlyingAssetsAmounts[0], computedUnderlyingAssetAmount);
 

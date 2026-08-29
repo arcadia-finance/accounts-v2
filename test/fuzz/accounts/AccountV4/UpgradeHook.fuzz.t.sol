@@ -14,6 +14,7 @@ import { StdStorage, stdStorage } from "../../../../lib/forge-std/src/Test.sol";
 /**
  * @notice Fuzz tests for the function "upgradeHook" of contract "AccountV4".
  */
+// forge-lint: disable-next-item(unsafe-typecast)
 contract UpgradeHook_AccountV4_Fuzz_Test is AccountV4_Fuzz_Test {
     using stdStorage for StdStorage;
     /* ///////////////////////////////////////////////////////////////

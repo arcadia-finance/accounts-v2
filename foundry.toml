@@ -5,7 +5,6 @@ libs = ['lib']
 optimizer = true
 optimizer_runs = 200
 auto_detect_solc = true
-dynamic_test_linking = false
 isolate = false
 fuzz = { runs = 50, max_test_rejects = 100_000_000}
 no_match_path = "**/{script/,test/fork/}*"
@@ -31,7 +30,6 @@ remappings = [
     "lib/v4-periphery/lib/v4-core:@openzeppelin/=lib/v4-periphery/lib/v4-core/lib/openzeppelin-contracts/",
 ]
 fs_permissions = [{ access = "read", path = "./out"}, { access = "write", path = "./script/out"}]
-unchecked_cheatcode_artifacts = true
 # Transient storage composability warning (known safe pattern in AccountsGuard):
 # - 2394: transient storage cleared at end of call
 # Solmate deprecation warnings (used in deployed contracts):
@@ -60,7 +58,15 @@ tab_width = 4
 [lint]
 exclude_lints = [
     "asm-keccak256",
+    "calls-loop",
+    "missing-events-access-control",
+    "missing-zero-check",
+    "non-reentrant-not-first",
+    "reentrancy-events",
+    "require-revert-in-loop",
+    "uninitialized-local",
     "unsafe-cheatcode",
+    "unused-return",
     "unwrapped-modifier-logic",
 ]
 ignore = [

@@ -13,6 +13,7 @@ import { RegistryL2_Fuzz_Test } from "./_RegistryL2.fuzz.t.sol";
 /**
  * @notice Fuzz tests for the function "getValuesInNumeraire" of contract "RegistryL2".
  */
+// forge-lint: disable-next-item(unsafe-typecast)
 contract GetValuesInNumeraire_RegistryL2_Fuzz_Test is RegistryL2_Fuzz_Test {
     /* ///////////////////////////////////////////////////////////////
                               SETUP

@@ -11,6 +11,7 @@ import { TickMath } from "../../../../lib/v4-periphery/lib/v4-core/src/libraries
 /**
  * @notice Fuzz tests for the function "addAsset" of contract "DefaultUniswapV4AM".
  */
+// forge-lint: disable-next-item(unsafe-typecast)
 contract AddAsset_DefaultUniswapV4AM_Fuzz_Test is DefaultUniswapV4AM_Fuzz_Test {
     /* ///////////////////////////////////////////////////////////////
                               SETUP

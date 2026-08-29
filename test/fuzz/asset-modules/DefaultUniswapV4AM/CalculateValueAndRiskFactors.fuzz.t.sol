@@ -11,6 +11,7 @@ import { Utils } from "../../../utils/Utils.sol";
 /**
  * @notice Fuzz tests for the function "_calculateValueAndRiskFactors" of contract "DefaultUniswapV4AM".
  */
+// forge-lint: disable-next-item(unsafe-typecast)
 contract CalculateValueAndRiskFactors_DefaultUniswapV4AM_Fuzz_Test is DefaultUniswapV4AM_Fuzz_Test {
     /* ///////////////////////////////////////////////////////////////
                               SETUP

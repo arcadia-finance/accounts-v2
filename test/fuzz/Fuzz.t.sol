@@ -27,6 +27,7 @@ import { NativeTokenAMExtension } from "../utils/extensions/NativeTokenAMExtensi
  * (eg. a uint256 from 0 to type(uint256).max), unless the parameter/variable is bound by an invariant.
  * If this case, said invariant must be explicitly tested in the invariant tests.
  */
+// forge-lint: disable-next-item(unsafe-typecast)
 abstract contract Fuzz_Test is Base_Test, ArcadiaAccountsFixture {
     /*//////////////////////////////////////////////////////////////////////////
                                      VARIABLES

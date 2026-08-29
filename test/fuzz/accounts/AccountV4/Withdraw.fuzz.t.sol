@@ -118,8 +118,10 @@ contract Withdraw_AccountV4_Fuzz_Test is AccountV4_Fuzz_Test {
 
     function testFuzz_Success_withdraw_ETH(uint112 ethAmount) public {
         // Given : Initial amount of ETH sent to the Spot Account
+        // forge-lint: disable-next-item(unsafe-typecast)
         ethAmount = uint112(bound(ethAmount, 1, 100 ether));
         vm.prank(users.accountOwner);
+        // forge-lint: disable-next-item(arbitrary-send-eth)
         (bool success,) = payable(address(accountSpot)).call{ value: ethAmount }("");
         assertEq(success, true);
         assertEq(address(accountSpot).balance, ethAmount);

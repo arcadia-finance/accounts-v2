@@ -13,6 +13,7 @@ import { PrimaryAM } from "../../../../src/asset-modules/abstracts/AbstractPrima
 /**
  * @notice Fuzz tests for the function "setRiskParametersOfPrimaryAsset" of contract "RegistryL2".
  */
+// forge-lint: disable-next-item(unsafe-typecast)
 contract SetRiskParametersOfPrimaryAsset_RegistryL2_Fuzz_Test is RegistryL2_Fuzz_Test {
     /* ///////////////////////////////////////////////////////////////
                               SETUP

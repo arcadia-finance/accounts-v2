@@ -20,28 +20,36 @@ abstract contract AccountStorageV1 {
     ////////////////////////////////////////////////////////////// */
 
     // Flag indicating if the Account is in an auction (in liquidation).
+    // forge-lint: disable-next-item(uninitialized-state)
     bool public inAuction;
     // Flag Indicating if a function is locked to protect against reentrancy.
     uint8 internal locked;
     // Used to prevent the old Owner from frontrunning a transferFrom().
     // The Timestamp of the last account action, that might be disadvantageous for a new Owner
     // (withdrawals, change of Creditor, increasing liabilities...).
+    // forge-lint: disable-next-item(uninitialized-state)
     uint32 public lastActionTimestamp;
     // The contract address of the liquidator, address 0 if no creditor is set.
+    // forge-lint: disable-next-item(uninitialized-state)
     address public liquidator;
 
     // The minimum amount of collateral that must be held in the Account before a position can be opened, denominated in the numeraire.
     // Will count as Used Margin after a position is opened.
+    // forge-lint: disable-next-item(uninitialized-state)
     uint96 public minimumMargin;
     // The contract address of the Registry.
+    // forge-lint: disable-next-item(uninitialized-state)
     address public registry;
 
     // The owner of the Account.
+    // forge-lint: disable-next-item(uninitialized-state)
     address public owner;
     // The contract address of the Creditor.
+    // forge-lint: disable-next-item(uninitialized-state)
     address public creditor;
     // The Numeraire (the unit in which prices are measured) of the Account,
     // in which all assets and liabilities are denominated.
+    // forge-lint: disable-next-item(uninitialized-state)
     address public numeraire;
 
     // Array with all the contract addresses of ERC20 tokens in the account.

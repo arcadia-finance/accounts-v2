@@ -16,6 +16,7 @@ contract AllAccountsLength_Factory_Fuzz_Test is Factory_Fuzz_Test {
                               SETUP
     /////////////////////////////////////////////////////////////// */
 
+    // forge-lint: disable-next-item(empty-block)
     function setUp() public override { }
 
     /*//////////////////////////////////////////////////////////////

@@ -15,6 +15,7 @@ import { Pool } from "../../../utils/mocks/Aerodrome/AeroPoolMock.sol";
 /**
  * @notice Common logic needed by "AerodromePoolAM" fuzz tests.
  */
+// forge-lint: disable-next-item(divide-before-multiply,unsafe-typecast)
 abstract contract AerodromePoolAM_Fuzz_Test is Fuzz_Test, AerodromeFixture {
     using FixedPointMathLib for uint256;
     /*////////////////////////////////////////////////////////////////

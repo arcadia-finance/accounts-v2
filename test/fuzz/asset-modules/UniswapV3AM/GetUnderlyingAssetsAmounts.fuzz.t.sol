@@ -18,6 +18,7 @@ import { TickMath } from "../../../../src/asset-modules/UniswapV3/libraries/Tick
 /**
  * @notice Fuzz tests for the function "_getUnderlyingAssetsAmounts" of contract "UniswapV3AM".
  */
+// forge-lint: disable-next-item(unsafe-typecast)
 contract GetUnderlyingAssetsAmounts_UniswapV3AM_Fuzz_Test is UniswapV3AM_Fuzz_Test {
     /* ///////////////////////////////////////////////////////////////
                               SETUP

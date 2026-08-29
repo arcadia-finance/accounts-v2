@@ -12,6 +12,7 @@ import { StdStorage, stdStorage } from "../../../../lib/forge-std/src/Test.sol";
 /**
  * @notice Fuzz tests for the function "getUnderlyingAssetsAmounts" of contract "AerodromePoolAM".
  */
+// forge-lint: disable-next-item(divide-before-multiply,unsafe-typecast)
 contract GetUnderlyingAssetsAmounts_AerodromePoolAM_Fuzz_Test is AerodromePoolAM_Fuzz_Test {
     using FixedPointMathLib for uint256;
     using stdStorage for StdStorage;

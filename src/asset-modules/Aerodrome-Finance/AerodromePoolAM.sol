@@ -290,10 +290,12 @@ contract AerodromePoolAM is DerivedAM {
             // Stable aerodrome pools use a correction for the underlying token amounts to bring them to 18 decimals:
             // x = r0 * 10^(18 - D0).
             // y = r1 * 10^(18 - D1).
+            // forge-lint: disable-next-item(divide-before-multiply)
             uint256 x = reserve0 * unitCorrection0; // 18 decimals.
             uint256 y = reserve1 * unitCorrection1; // 18 decimals.
             uint256 a = x.mulDivDown(y, 1e18); // 18 decimals.
             uint256 b = (x * x + y * y) / 1e18; // 18 decimals.
+            // forge-lint: disable-next-item(divide-before-multiply)
             k = a * b; // 36 decimals.
         }
 
@@ -303,11 +305,14 @@ contract AerodromePoolAM is DerivedAM {
         // => x = √{p1 * √[c / d]}
         {
             // USD rates also have to be corrected as shown in 3).
+            // forge-lint: disable-next-item(divide-before-multiply)
             uint256 p0 = rateUnderlyingAssetsToUsd[0].assetValue / unitCorrection0; // 18 decimals.
             uint256 p1 = rateUnderlyingAssetsToUsd[1].assetValue / unitCorrection1; // 18 decimals.
             uint256 c = FullMath.mulDiv(k, p1, p0); // 36 decimals.
+            // forge-lint: disable-next-item(divide-before-multiply)
             uint256 d = p0 * p0 + p1 * p1; // 36 decimals.
             // Sqrt halves the number of decimals.
+            // forge-lint: disable-next-item(divide-before-multiply)
             uint256 x = FixedPointMathLib.sqrt(p1 * FixedPointMathLib.sqrt(FullMath.mulDiv(1e36, c, d))); // 18 decimals.
 
             // Bring reserve0 from 18 decimals precision to the actual token decimals.
@@ -353,11 +358,13 @@ contract AerodromePoolAM is DerivedAM {
 
         // Keep the lowest risk factor of all underlying assets.
         // Unsafe cast: collateralFactor and liquidationFactor are smaller than or equal to 1e4.
+        // forge-lint: disable-next-item(unsafe-typecast)
         collateralFactor = uint16(
             collateralFactors[0] < collateralFactors[1]
                 ? riskFactor.mulDivDown(collateralFactors[0], AssetValuationLib.ONE_4)
                 : riskFactor.mulDivDown(collateralFactors[1], AssetValuationLib.ONE_4)
         );
+        // forge-lint: disable-next-item(unsafe-typecast)
         liquidationFactor = uint16(
             liquidationFactors[0] < liquidationFactors[1]
                 ? riskFactor.mulDivDown(liquidationFactors[0], AssetValuationLib.ONE_4)

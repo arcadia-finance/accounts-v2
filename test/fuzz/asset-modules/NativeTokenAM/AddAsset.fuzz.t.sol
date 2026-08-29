@@ -12,6 +12,7 @@ import { RegistryErrors } from "../../../../src/libraries/Errors.sol";
 /**
  * @notice Fuzz tests for the function "addAsset" of contract "NativeTokenAM".
  */
+// forge-lint: disable-next-item(unsafe-typecast)
 contract AddAsset_NativeTokenAM_Fuzz_Test is NativeTokenAM_Fuzz_Test {
     /* ///////////////////////////////////////////////////////////////
                               SETUP

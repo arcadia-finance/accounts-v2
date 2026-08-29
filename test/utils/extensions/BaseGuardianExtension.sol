@@ -6,6 +6,7 @@ pragma solidity ^0.8.0;
 
 import { BaseGuardian } from "../../../src/guardians/BaseGuardian.sol";
 
+// forge-lint: disable-next-item(empty-block)
 contract BaseGuardianExtension is BaseGuardian {
     constructor(address owner_) BaseGuardian(owner_) { }
 

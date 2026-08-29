@@ -15,6 +15,7 @@ import { FixedPointMathLib } from "../../../../lib/solmate/src/utils/FixedPointM
 /**
  * @notice Fuzz tests for the function "mint" of contract "StakedAerodromeAM".
  */
+// forge-lint: disable-next-item(unsafe-typecast)
 contract Mint_StakedAerodromeAM_Fuzz_Test is StakedAerodromeAM_Fuzz_Test {
     using FixedPointMathLib for uint256;
     /* ///////////////////////////////////////////////////////////////

@@ -15,6 +15,7 @@ import { stdError } from "../../../../lib/forge-std/src/StdError.sol";
 /**
  * @notice Fuzz tests for the "auctionBid" of contract "AccountV3".
  */
+// forge-lint: disable-next-item(unsafe-typecast)
 contract AuctionBid_AccountV3_Fuzz_Test is AccountV3_Fuzz_Test {
     /* ///////////////////////////////////////////////////////////////
                               SETUP

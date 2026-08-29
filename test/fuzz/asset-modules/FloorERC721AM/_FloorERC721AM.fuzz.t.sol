@@ -29,6 +29,7 @@ abstract contract FloorERC721AM_Fuzz_Test is Fuzz_Test {
         chainlinkOM.addOracle(address(mockOracles.nft2ToUsd), "NFT2", "USD", 2 days);
 
         uint80[] memory oracleNft2ToUsdArr = new uint80[](1);
+        // forge-lint: disable-next-item(unsafe-typecast)
         oracleNft2ToUsdArr[0] = uint80(chainlinkOM.oracleToOracleId(address(mockOracles.nft2ToUsd)));
         oraclesNft2ToUsd = BitPackingLib.pack(BA_TO_QA_SINGLE, oracleNft2ToUsdArr);
     }

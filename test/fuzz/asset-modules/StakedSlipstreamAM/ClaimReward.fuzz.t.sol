@@ -15,6 +15,7 @@ import { StdStorage, stdStorage } from "../../../../lib/forge-std/src/Test.sol";
 /**
  * @notice Fuzz tests for the function "claimReward" of contract "StakedSlipstreamAM".
  */
+// forge-lint: disable-next-item(unsafe-typecast)
 contract ClaimReward_StakedSlipstreamAM_Fuzz_Test is StakedSlipstreamAM_Fuzz_Test {
     using stdStorage for StdStorage;
     /* ///////////////////////////////////////////////////////////////
@@ -73,6 +74,7 @@ contract ClaimReward_StakedSlipstreamAM_Fuzz_Test is StakedSlipstreamAM_Fuzz_Tes
         position = givenValidPosition(position, 1);
 
         // And : the current tick of the pool is in range (can't be equal to tickUpper, but can be equal to tickLower).
+        // forge-lint: disable-next-item(unsafe-typecast)
         tick = int24(bound(tick, position.tickLower, position.tickUpper - 1));
         deployAndAddGauge(tick);
 
@@ -111,7 +113,7 @@ contract ClaimReward_StakedSlipstreamAM_Fuzz_Test is StakedSlipstreamAM_Fuzz_Tes
         // Then : correct event is emitted.
         vm.prank(users.liquidityProvider);
         vm.expectEmit();
-        // forge-lint: disable-next-line(unsafe-typecast)
+        // forge-lint: disable-next-item(unsafe-typecast)
         emit StakedSlipstreamAM.RewardPaid(assetId, AERO, uint128(rewardsExpected));
         uint256 rewards = stakedSlipstreamAM.claimReward(assetId);
 

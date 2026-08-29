@@ -48,6 +48,7 @@ abstract contract StakedStargateAM_Fuzz_Test is StargateAM_Fuzz_Test {
         vm.startPrank(users.owner);
         chainlinkOM.addOracle(address(stargateOracle), "STG", "USD", 2 days);
         uint80[] memory oracleStgToUsdArr = new uint80[](1);
+        // forge-lint: disable-next-item(unsafe-typecast)
         oracleStgToUsdArr[0] = uint80(chainlinkOM.oracleToOracleId(address(stargateOracle)));
         erc20AM.addAsset(address(lpStakingTimeMock.eToken()), BitPackingLib.pack(BA_TO_QA_SINGLE, oracleStgToUsdArr));
 

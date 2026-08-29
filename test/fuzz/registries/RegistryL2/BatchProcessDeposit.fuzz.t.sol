@@ -9,10 +9,12 @@ import { RegistryL2_Fuzz_Test } from "./_RegistryL2.fuzz.t.sol";
 import { AssetModule } from "../../../../src/asset-modules/abstracts/AbstractAM.sol";
 import { GuardianErrors } from "../../../../src/libraries/Errors.sol";
 import { RegistryErrors } from "../../../../src/libraries/Errors.sol";
+
 /**
  * @notice Fuzz tests for the function "batchProcessDeposit" of contract "RegistryL2".
  */
 
+// forge-lint: disable-next-item(unsafe-typecast)
 contract BatchProcessDeposit_RegistryL2_Fuzz_Test is RegistryL2_Fuzz_Test {
     /* ///////////////////////////////////////////////////////////////
                               SETUP

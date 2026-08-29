@@ -13,6 +13,7 @@ import { CreditorMock } from "../../../utils/mocks/creditors/CreditorMock.sol";
 /**
  * @notice Fuzz tests for the function "closeMarginAccount" of contract "AccountV3".
  */
+// forge-lint: disable-next-item(unsafe-typecast)
 contract CloseMarginAccount_AccountV3_Fuzz_Test is AccountV3_Fuzz_Test {
     /* ///////////////////////////////////////////////////////////////
                             TEST CONTRACTS

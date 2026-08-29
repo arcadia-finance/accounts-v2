@@ -27,6 +27,7 @@ contract GetAccountValue_AccountV3_Fuzz_Test is AccountV3_Fuzz_Test {
     //////////////////////////////////////////////////////////////*/
     function testFuzz_Success_getAccountValue(uint112 spotValue) public {
         // Given: "exposure" is strictly smaller than "maxExposure".
+        // forge-lint: disable-next-item(unsafe-typecast)
         spotValue = uint112(bound(spotValue, 0, type(uint112).max - 1));
 
         // Set Spot Value of assets (value of stable1 is 1:1 the amount of stable1 tokens).

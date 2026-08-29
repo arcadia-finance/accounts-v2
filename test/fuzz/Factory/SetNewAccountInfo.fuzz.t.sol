@@ -15,6 +15,7 @@ import { RegistryL2, RegistryL2Extension } from "../../utils/extensions/Registry
 /**
  * @notice Fuzz tests for the function "setNewAccountInfo" of contract "Factory".
  */
+// forge-lint: disable-next-item(unsafe-typecast)
 contract SetNewAccountInfo_Factory_Fuzz_Test is Factory_Fuzz_Test {
     /* ///////////////////////////////////////////////////////////////
                               VARIABLES
@@ -149,7 +150,7 @@ contract SetNewAccountInfo_Factory_Fuzz_Test is Factory_Fuzz_Test {
 
         vm.startPrank(users.owner);
         vm.expectEmit(true, true, true, true);
-        // forge-lint: disable-next-line(unsafe-typecast)
+        // forge-lint: disable-next-item(unsafe-typecast)
         emit Factory.AccountVersionAdded(uint16(latestAccountVersionPre + 1), address(registry2), logic);
         factory.setNewAccountInfo(address(registry2), logic, Constants.ROOT, data);
         vm.stopPrank();

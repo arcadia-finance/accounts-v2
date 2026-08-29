@@ -9,6 +9,7 @@ import { IQuoterV2 } from "./extensions/interfaces/IQuoterV2.sol";
 import { Test } from "../../../../lib/forge-std/src/Test.sol";
 import { Utils } from "../../../utils/Utils.sol";
 
+// forge-lint: disable-next-item(encode-packed-collision)
 contract QuoterV2Fixture is Test {
     /*//////////////////////////////////////////////////////////////////////////
                                    CONTRACTS

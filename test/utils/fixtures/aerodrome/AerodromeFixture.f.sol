@@ -53,6 +53,7 @@ contract AerodromeFixture is Test {
     //////////////////////////////////////////////////////////////////////////*/
 
     function createPoolAerodrome(address token0, address token1, bool stable) internal returns (Pool pool) {
+        // forge-lint: disable-next-item(reentrancy-no-eth)
         pool = Pool(aeroPoolFactory.createPool(token0, token1, stable));
     }
 

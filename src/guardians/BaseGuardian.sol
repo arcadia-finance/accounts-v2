@@ -22,6 +22,7 @@ abstract contract BaseGuardian is Owned {
     ////////////////////////////////////////////////////////////// */
 
     // Last timestamp an emergency stop was triggered.
+    // forge-lint: disable-next-item(uninitialized-state)
     uint96 public pauseTimestamp;
     // Address of the Guardian.
     address public guardian;

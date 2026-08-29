@@ -15,6 +15,7 @@ contract Constructor_AccountPlaceholder_Fuzz_Test is AccountPlaceholder_Fuzz_Tes
                               SETUP
     /////////////////////////////////////////////////////////////// */
 
+    // forge-lint: disable-next-item(empty-block)
     function setUp() public override { }
 
     /*//////////////////////////////////////////////////////////////

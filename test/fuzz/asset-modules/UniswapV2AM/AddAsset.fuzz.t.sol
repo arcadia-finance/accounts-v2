@@ -13,6 +13,7 @@ import { RegistryErrors } from "../../../../src/libraries/Errors.sol";
 /**
  * @notice Fuzz tests for the function "addAsset" of contract "UniswapV2AM".
  */
+// forge-lint: disable-next-item(unsafe-typecast)
 contract AddAsset_UniswapV2AM_Fuzz_Test is UniswapV2AM_Fuzz_Test {
     /* ///////////////////////////////////////////////////////////////
                               SETUP

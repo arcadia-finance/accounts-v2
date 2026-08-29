@@ -14,6 +14,7 @@ import { RegistryErrors } from "../../../../src/libraries/Errors.sol";
 /**
  * @notice Fuzz tests for the function "addAsset" of contract "FloorERC721AM".
  */
+// forge-lint: disable-next-item(unsafe-typecast)
 contract AddAsset_FloorERC721AM_Fuzz_Test is FloorERC721AM_Fuzz_Test {
     /* ///////////////////////////////////////////////////////////////
                               SETUP

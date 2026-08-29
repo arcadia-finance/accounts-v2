@@ -12,6 +12,7 @@ import { Utils } from "../../../utils/Utils.sol";
 /**
  * @notice Fuzz tests for the function "getRiskFactors" of contract "AbstractDerivedAM".
  */
+// forge-lint: disable-next-item(unsafe-typecast)
 contract GetRiskFactors_AbstractDerivedAM_Fuzz_Test is AbstractDerivedAM_Fuzz_Test {
     /* ///////////////////////////////////////////////////////////////
                               SETUP

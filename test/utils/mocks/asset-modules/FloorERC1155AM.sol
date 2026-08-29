@@ -14,6 +14,7 @@ import { PrimaryAM } from "../../../../src/asset-modules/abstracts/AbstractPrima
  *  for which a direct price feed exists per Id.
  * @dev No end-user should directly interact with the FloorERC1155AM, only the Registry or the contract owner
  */
+// forge-lint: disable-next-item(unsafe-typecast)
 contract FloorERC1155AM is PrimaryAM {
     /* //////////////////////////////////////////////////////////////
                                 ERRORS
@@ -51,7 +52,7 @@ contract FloorERC1155AM is PrimaryAM {
             if (assetToInformation[_getKeyFromAsset(asset, assetId)].assetUnit != 0) revert AssetAlreadyInAM();
         } else {
             // New contract address.
-            // forge-lint: disable-next-line(unsafe-typecast)
+            // forge-lint: disable-next-item(reentrancy-no-eth,unsafe-typecast)
             IRegistry(REGISTRY).addAsset(uint96(ASSET_TYPE), asset);
             inAssetModule[asset] = true;
         }

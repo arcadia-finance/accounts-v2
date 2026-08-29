@@ -50,6 +50,7 @@ contract RewardOf_AbstractStakingAM_Fuzz_Test is AbstractStakingAM_Fuzz_Test {
         uint256 deltaRewardGlobal = assetState.currentRewardGlobal;
         uint128 rewardPerToken;
         unchecked {
+            // forge-lint: disable-next-item(unsafe-typecast)
             rewardPerToken = assetState.lastRewardPerTokenGlobal
                 + uint128(deltaRewardGlobal.mulDivDown(1e18, assetState.totalStaked));
         }

@@ -10,6 +10,7 @@ import { AssetValuationLib } from "../../../../src/libraries/AssetValuationLib.s
 /**
  * @notice Fuzz tests for the function "getLiquidationValue" of contract "AccountV3".
  */
+// forge-lint: disable-next-item(unsafe-typecast)
 contract GetLiquidationValue_AccountV3_Fuzz_Test is AccountV3_Fuzz_Test {
     /* ///////////////////////////////////////////////////////////////
                             TEST CONTRACTS

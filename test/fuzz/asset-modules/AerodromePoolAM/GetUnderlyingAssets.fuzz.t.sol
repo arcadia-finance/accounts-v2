@@ -9,6 +9,7 @@ import { AerodromePoolAM_Fuzz_Test } from "./_AerodromePoolAM.fuzz.t.sol";
 /**
  * @notice Fuzz tests for the function "_getUnderlyingAssets" of contract "AerodromePoolAM".
  */
+// forge-lint: disable-next-item(unsafe-typecast)
 contract GetUnderlyingAssets_AerodromePoolAM_Fuzz_Test is AerodromePoolAM_Fuzz_Test {
     /* ///////////////////////////////////////////////////////////////
                               SETUP

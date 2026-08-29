@@ -11,6 +11,7 @@ import { AccountV3_Fuzz_Test } from "./_AccountV3.fuzz.t.sol";
 /**
  * @notice Fuzz tests for the function "transferOwnership" of contract "AccountV3".
  */
+// forge-lint: disable-next-item(unsafe-typecast)
 contract TransferOwnership_AccountV3_Fuzz_Test is AccountV3_Fuzz_Test {
     /* ///////////////////////////////////////////////////////////////
                               SETUP

@@ -11,6 +11,7 @@ import { SpotToMarginMigrator_Fuzz_Test } from "./_SpotToMarginMigrator.fuzz.t.s
 /**
  * @notice Fuzz tests for the function "endUpgrade" of contract "SpotToMarginMigrator".
  */
+// forge-lint: disable-next-item(unsafe-typecast)
 contract EndUpgrade_SpotToMarginMigrator_Fuzz_Test is SpotToMarginMigrator_Fuzz_Test {
     /* ///////////////////////////////////////////////////////////////
                               TEST CONTRACTS
