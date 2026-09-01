@@ -11,6 +11,7 @@ import { Utils } from "../../../utils/Utils.sol";
 /**
  * @notice Fuzz tests for the function "_calculateValueAndRiskFactors" of contract "AerodromePoolAM".
  */
+// forge-lint: disable-next-item(unsafe-typecast)
 contract CalculateValueAndRiskFactors_AerodromePoolAM_Fuzz_Test is AerodromePoolAM_Fuzz_Test {
     /* ///////////////////////////////////////////////////////////////
                               SETUP

@@ -40,6 +40,7 @@ contract UniswapV2FactoryMock {
         assembly {
             pair := create2(0, add(bytecode, 32), mload(bytecode), salt)
         }
+        // forge-lint: disable-next-item(reentrancy-no-eth)
         IUniswapV2PairExtension(pair).initialize(token0, token1);
         getPair[token0][token1] = pair;
         getPair[token1][token0] = pair; // populate mapping in the reverse direction

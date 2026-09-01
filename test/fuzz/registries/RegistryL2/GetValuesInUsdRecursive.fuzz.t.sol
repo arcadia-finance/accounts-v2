@@ -11,6 +11,7 @@ import { AssetValuationLib, AssetValueAndRiskFactors } from "../../../../src/lib
 /**
  * @notice Fuzz tests for the function "getValuesInUsdRecursive" of contract "RegistryL2".
  */
+// forge-lint: disable-next-item(unsafe-typecast)
 contract GetValuesInUsdRecursive_RegistryL2_Fuzz_Test is RegistryL2_Fuzz_Test {
     /* ///////////////////////////////////////////////////////////////
                               SETUP

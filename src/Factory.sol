@@ -102,6 +102,7 @@ contract Factory is IFactory, ERC721, FactoryGuardian {
         // Hash tx.origin with the user provided salt to avoid front-running Account deployment with an identical salt.
         // We use tx.origin instead of msg.sender so that deployments through third party contracts are not vulnerable to front-running.
         // 64 bit salt: 32 bits from tx.origin and 32 bits provided by the user.
+        // forge-lint: disable-next-item(unsafe-typecast)
         uint256 salt = uint256(keccak256(abi.encodePacked(userSalt, uint32(uint160(tx.origin)))));
         account = CreateProxyLib.createProxy(salt, versionInformation[accountVersion].implementation);
 
@@ -113,7 +114,7 @@ contract Factory is IFactory, ERC721, FactoryGuardian {
         IAccount(account).initialize(msg.sender, versionInformation[accountVersion].registry, creditor);
 
         // unsafe cast: accountVersion <= latestAccountVersion, which is a uint88.
-        // forge-lint: disable-next-line(unsafe-typecast)
+        // forge-lint: disable-next-item(unsafe-typecast)
         emit AccountUpgraded(account, uint88(accountVersion));
     }
 
@@ -164,7 +165,7 @@ contract Factory is IFactory, ERC721, FactoryGuardian {
             );
 
         // unsafe cast: accountVersion <= latestAccountVersion, which is a uint88.
-        // forge-lint: disable-next-line(unsafe-typecast)
+        // forge-lint: disable-next-item(unsafe-typecast)
         emit AccountUpgraded(account, uint88(version));
     }
 
@@ -384,6 +385,7 @@ contract Factory is IFactory, ERC721, FactoryGuardian {
      */
     // forge-lint: disable-next-item(mixed-case-function,mixed-case-variable)
     function tokenURI(uint256 tokenId) public view override returns (string memory uri) {
+        // forge-lint: disable-next-item(encode-packed-collision)
         return bytes(baseURI).length > 0 ? string(abi.encodePacked(baseURI, tokenId.toString())) : "";
     }
 }

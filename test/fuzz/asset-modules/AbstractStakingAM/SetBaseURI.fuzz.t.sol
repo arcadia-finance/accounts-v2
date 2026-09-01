@@ -49,6 +49,7 @@ contract SetBaseURI_AbstractStakingAM_Fuzz_Test is AbstractStakingAM_Fuzz_Test {
 
         string memory actualUri = stakingAM.tokenURI(id);
 
+        // forge-lint: disable-next-item(encode-packed-collision)
         assertEq(actualUri, string(abi.encodePacked(uri, id.toString())));
     }
 }

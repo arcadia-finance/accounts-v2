@@ -12,5 +12,6 @@ import { Test } from "../lib/forge-std/src/Test.sol";
 // forge-lint: disable-end(unused-import)
 
 contract CompilePragma8Dot26 is Test {
+    // forge-lint: disable-next-item(empty-block)
     function test() public { }
 }

@@ -16,6 +16,7 @@ import { RegistryL2Extension } from "../../../utils/extensions/RegistryL2Extensi
 /**
  * @notice Fuzz tests for the function "upgradeAccount" of contract "AccountV3".
  */
+// forge-lint: disable-next-item(unsafe-typecast)
 contract UpgradeAccount_AccountV3_Fuzz_Test is AccountV3_Fuzz_Test {
     /* ///////////////////////////////////////////////////////////////
                               VARIABLES

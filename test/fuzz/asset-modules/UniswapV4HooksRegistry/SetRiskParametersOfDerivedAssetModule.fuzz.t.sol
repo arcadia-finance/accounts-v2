@@ -52,6 +52,7 @@ contract SetRiskParametersOfDerivedAM_UniswapV4HooksRegistry_Fuzz_Test is Uniswa
     }
 
     function testFuzz_Success_setRiskParametersOfDerivedAM(uint112 maxUsdExposureProtocol, uint16 riskFactor) public {
+        // forge-lint: disable-next-item(unsafe-typecast)
         riskFactor = uint16(bound(riskFactor, 0, AssetValuationLib.ONE_4));
 
         vm.prank(users.riskManager);

@@ -48,6 +48,7 @@ contract GetUnderlyingAssetsAmounts_StandardERC4626AM_Fuzz_Test is StandardERC46
             .checked_write(totalAssets);
 
         // When: "_getUnderlyingAssetsAmounts" is called with 'shares'.
+        // forge-lint: disable-next-item(unsafe-typecast)
         bytes32 assetKey = bytes32(abi.encodePacked(uint96(0), address(ybToken1)));
         bytes32[] memory emptyArray = new bytes32[](1);
         (uint256[] memory underlyingAssetsAmounts, AssetValueAndRiskFactors[] memory rateUnderlyingAssetsToUsd) =

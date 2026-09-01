@@ -48,6 +48,7 @@ contract UniswapV3Fixture is WETH9Fixture {
 
         // Get the bytecode of the UniswapV3PoolExtension.
         args = abi.encode();
+        // forge-lint: disable-next-item(encode-packed-collision)
         bytes memory bytecode = abi.encodePacked(vm.getCode("UniswapV3PoolExtension.sol"), args);
         bytes32 poolExtensionInitCodeHash = keccak256(bytecode);
 

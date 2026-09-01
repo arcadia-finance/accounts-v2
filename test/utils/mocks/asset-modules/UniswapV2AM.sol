@@ -18,6 +18,7 @@ import { AssetValuationLib, AssetValueAndRiskFactors } from "../../../../src/lib
  * @dev Most logic in this contract is a modifications of
  *      https://github.com/Uniswap/v2-periphery/blob/master/contracts/libraries/UniswapV2LiquidityMathLibrary.sol#L23
  */
+// forge-lint: disable-next-item(unsafe-typecast)
 contract UniswapV2AM is DerivedAM {
     using FixedPointMathLib for uint256;
     /* //////////////////////////////////////////////////////////////
@@ -333,6 +334,7 @@ contract UniswapV2AM is DerivedAM {
         );
         uint256 rightSide = (token0ToToken1 ? reserve0 * 1000 : reserve1 * 1000) / 997;
 
+        // forge-lint: disable-next-item(boolean-cst)
         if (leftSide < rightSide) return (false, 0);
 
         // compute the amount that must be sent to move the price to the profit-maximizing price

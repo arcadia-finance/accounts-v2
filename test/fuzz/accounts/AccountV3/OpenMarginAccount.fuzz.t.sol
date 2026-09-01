@@ -14,6 +14,7 @@ import { Constants } from "../../../utils/Constants.sol";
 /**
  * @notice Fuzz tests for the function "openMarginAccount" of contract "AccountV3".
  */
+// forge-lint: disable-next-item(unsafe-typecast)
 contract OpenMarginAccount_AccountV3_Fuzz_Test is AccountV3_Fuzz_Test {
     /* ///////////////////////////////////////////////////////////////
                               SETUP

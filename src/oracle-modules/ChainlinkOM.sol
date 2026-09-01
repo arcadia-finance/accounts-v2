@@ -78,6 +78,7 @@ contract ChainlinkOM is OracleModule {
 
         oracleToOracleId[oracle] = oracleId;
         assetPair[oracleId] = AssetPair({ baseAsset: baseAsset, quoteAsset: quoteAsset });
+        // forge-lint: disable-next-item(unsafe-typecast)
         oracleInformation[oracleId] = OracleInformation({
             cutOffTime: cutOffTime, unitCorrection: uint64(10 ** (18 - decimals)), oracle: oracle
         });

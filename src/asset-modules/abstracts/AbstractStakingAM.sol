@@ -290,6 +290,7 @@ abstract contract StakingAM is DerivedAM, ERC721, ReentrancyGuard {
         if (amount == 0) revert ZeroAmount();
 
         // Need to transfer before minting or ERC777s could reenter.
+        // forge-lint: disable-next-item(solmate-safe-transfer-lib)
         ERC20(asset).safeTransferFrom(msg.sender, address(this), amount);
 
         // Cache the old assetState.
@@ -338,6 +339,7 @@ abstract contract StakingAM is DerivedAM, ERC721, ReentrancyGuard {
         AssetState memory assetState_ = assetState[asset];
 
         // Need to transfer before increasing liquidity or ERC777s could reenter.
+        // forge-lint: disable-next-item(solmate-safe-transfer-lib)
         ERC20(asset).safeTransferFrom(msg.sender, address(this), amount);
 
         // Calculate the new reward balances.
@@ -413,12 +415,14 @@ abstract contract StakingAM is DerivedAM, ERC721, ReentrancyGuard {
         // Pay out the rewards to the position owner.
         if (rewards > 0) {
             // Transfer reward
+            // forge-lint: disable-next-item(solmate-safe-transfer-lib)
             REWARD_TOKEN.safeTransfer(msg.sender, rewards);
             // forge-lint: disable-next-line(unsafe-typecast)
             emit RewardPaid(positionId, address(REWARD_TOKEN), uint128(rewards));
         }
 
         // Transfer the asset back to the position owner.
+        // forge-lint: disable-next-item(solmate-safe-transfer-lib)
         ERC20(asset).safeTransfer(msg.sender, amount);
         emit LiquidityDecreased(positionId, asset, amount);
     }
@@ -454,6 +458,7 @@ abstract contract StakingAM is DerivedAM, ERC721, ReentrancyGuard {
         // Pay out the share of the reward owed to the position owner.
         if (rewards > 0) {
             // Transfer reward
+            // forge-lint: disable-next-item(solmate-safe-transfer-lib)
             REWARD_TOKEN.safeTransfer(msg.sender, rewards);
             // forge-lint: disable-next-line(unsafe-typecast)
             emit RewardPaid(positionId, address(REWARD_TOKEN), uint128(rewards));
@@ -591,6 +596,7 @@ abstract contract StakingAM is DerivedAM, ERC721, ReentrancyGuard {
      */
     // forge-lint: disable-next-item(mixed-case-function,mixed-case-variable)
     function tokenURI(uint256 tokenId) public view virtual override returns (string memory uri) {
+        // forge-lint: disable-next-item(encode-packed-collision)
         return bytes(baseURI).length > 0 ? string(abi.encodePacked(baseURI, tokenId.toString())) : "";
     }
 }

@@ -43,6 +43,7 @@ abstract contract StakedAerodromeAM_Fuzz_Test is Fuzz_Test, AbstractStakingAM_Fu
         rewardToken = ERC20Mock(AERO);
 
         // Add the reward token to the Registry
+        // forge-lint: disable-next-item(unsafe-typecast)
         addAssetToArcadia(AERO, int256(rates.token1ToUsd));
 
         // Deploy Aerodrome AM.

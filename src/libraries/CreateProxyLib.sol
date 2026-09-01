@@ -35,6 +35,7 @@ library CreateProxyLib {
      */
     function createProxy(uint256 salt, address implementation) internal returns (address proxy) {
         bytes memory runtimeBytecode = abi.encodePacked(PROXY_BYTECODE, implementation);
+        // forge-lint: disable-next-item(unsafe-typecast)
         assembly {
             proxy := create2(0, add(runtimeBytecode, 0x20), mload(runtimeBytecode), salt)
         }

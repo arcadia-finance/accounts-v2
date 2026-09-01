@@ -111,6 +111,7 @@ abstract contract AssetModule is Owned, IAssetModule {
     function _getAssetFromKey(bytes32 key) internal view virtual returns (address asset, uint256 assetId) {
         assembly {
             // Shift to the right by 20 bytes (160 bits) to extract the uint96 assetId.
+            // forge-lint: disable-next-item(unsafe-typecast)
             assetId := shr(160, key)
 
             // Use bitmask to extract the address from the rightmost 160 bits.

@@ -10,6 +10,7 @@ import { AssetValuationLib } from "../../../../src/libraries/AssetValuationLib.s
 /**
  * @notice Fuzz tests for the function "getCollateralValue" of contract "AccountV3".
  */
+// forge-lint: disable-next-item(unsafe-typecast)
 contract GetCollateralValue_AccountV3_Fuzz_Test is AccountV3_Fuzz_Test {
     /* ///////////////////////////////////////////////////////////////
                             TEST CONTRACTS

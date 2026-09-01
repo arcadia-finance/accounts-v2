@@ -17,6 +17,7 @@ import { RegistryErrors } from "../../../../src/libraries/Errors.sol";
 /**
  * @notice Fuzz tests for the function "addAsset" of contract "ERC20PrimaryAM".
  */
+// forge-lint: disable-next-item(unsafe-typecast)
 contract AddAsset_ERC20PrimaryAM_Fuzz_Test is ERC20PrimaryAM_Fuzz_Test {
     /* ///////////////////////////////////////////////////////////////
                               SETUP

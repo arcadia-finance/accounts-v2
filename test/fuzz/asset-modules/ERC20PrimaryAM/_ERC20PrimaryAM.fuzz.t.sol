@@ -28,6 +28,7 @@ abstract contract ERC20PrimaryAM_Fuzz_Test is Fuzz_Test {
         chainlinkOM.addOracle(address(mockOracles.token4ToUsd), "TOKEN4", "USD", 2 days);
 
         uint80[] memory oracleToken4ToUsdArr = new uint80[](1);
+        // forge-lint: disable-next-item(unsafe-typecast)
         oracleToken4ToUsdArr[0] = uint80(chainlinkOM.oracleToOracleId(address(mockOracles.token4ToUsd)));
         oraclesToken4ToUsd = BitPackingLib.pack(BA_TO_QA_SINGLE, oracleToken4ToUsdArr);
     }

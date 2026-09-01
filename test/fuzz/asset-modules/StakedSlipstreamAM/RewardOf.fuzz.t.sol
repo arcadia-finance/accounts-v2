@@ -15,6 +15,7 @@ import { TickMath } from "../../../../src/asset-modules/UniswapV3/libraries/Tick
 /**
  * @notice Fuzz tests for the function "rewardOf" of contract "StakedSlipstreamAM".
  */
+// forge-lint: disable-next-item(unsafe-typecast)
 contract RewardOf_StakedSlipstreamAM_Fuzz_Test is StakedSlipstreamAM_Fuzz_Test {
     using stdStorage for StdStorage;
     /* ///////////////////////////////////////////////////////////////

@@ -9,6 +9,7 @@ import { ISwapRouter02 } from "./interfaces/ISwapRouter02.sol";
 import { Test } from "../../../../lib/forge-std/src/Test.sol";
 import { Utils } from "../../../utils/Utils.sol";
 
+// forge-lint: disable-next-item(encode-packed-collision)
 contract SwapRouter02Fixture is Test {
     /*//////////////////////////////////////////////////////////////////////////
                                    CONTRACTS

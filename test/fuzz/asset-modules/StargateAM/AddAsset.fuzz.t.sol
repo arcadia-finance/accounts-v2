@@ -10,6 +10,7 @@ import { StargateAM } from "../../../../src/asset-modules/Stargate-Finance/Starg
 /**
  * @notice Fuzz tests for the function "addAsset" of contract "StargateAM".
  */
+// forge-lint: disable-next-item(unsafe-typecast)
 contract AddAsset_StargateAM_Fuzz_Test is StargateAM_Fuzz_Test {
     /* ///////////////////////////////////////////////////////////////
                               SETUP

@@ -79,6 +79,7 @@ contract ArcadiaOracle is Owned {
         unchecked {
             latestRoundId++;
         }
+        // forge-lint: disable-next-item(unsafe-typecast)
         transmissions[latestRoundId] = Transmission({ answer: _answer, timestamp: uint64(block.timestamp) });
     }
 

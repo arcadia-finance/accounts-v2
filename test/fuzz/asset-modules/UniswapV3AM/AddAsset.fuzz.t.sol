@@ -11,6 +11,7 @@ import { UniswapV3AM } from "../../../../src/asset-modules/UniswapV3/UniswapV3AM
 /**
  * @notice Fuzz tests for the function "addAsset" of contract "UniswapV3AM".
  */
+// forge-lint: disable-next-item(unsafe-typecast)
 contract AddAsset_UniswapV3AM_Fuzz_Test is UniswapV3AM_Fuzz_Test {
     /* ///////////////////////////////////////////////////////////////
                               SETUP

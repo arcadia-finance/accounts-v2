@@ -9,6 +9,7 @@ import { Constants } from "../../../utils/Constants.sol";
 import { UniswapV3AMExtension } from "../../extensions/UniswapV3AMExtension.sol";
 import { Utils } from "../../Utils.sol";
 
+// forge-lint: disable-next-item(encode-packed-collision)
 contract UniswapV3AMFixture is Base_Test {
     /*//////////////////////////////////////////////////////////////////////////
                                      VARIABLES

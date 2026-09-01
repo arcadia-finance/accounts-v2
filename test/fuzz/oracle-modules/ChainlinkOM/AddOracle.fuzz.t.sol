@@ -13,6 +13,7 @@ import { OracleModule } from "../../../../src/oracle-modules/abstracts/AbstractO
 /**
  * @notice Fuzz tests for the function "addOracle" of contract "ChainlinkOM".
  */
+// forge-lint: disable-next-item(unsafe-typecast)
 contract AddOracle_ChainlinkOM_Fuzz_Test is ChainlinkOM_Fuzz_Test {
     /* ///////////////////////////////////////////////////////////////
                               SETUP

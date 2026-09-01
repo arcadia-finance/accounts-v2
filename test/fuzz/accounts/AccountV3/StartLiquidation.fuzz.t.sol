@@ -16,6 +16,7 @@ import { StdStorage, stdStorage } from "../../../../lib/forge-std/src/Test.sol";
 /**
  * @notice Fuzz tests for the "startLiquidation" of contract "AccountV3".
  */
+// forge-lint: disable-next-item(unsafe-typecast)
 contract startLiquidation_AccountV3_Fuzz_Test is AccountV3_Fuzz_Test {
     using stdStorage for StdStorage;
     /* ///////////////////////////////////////////////////////////////

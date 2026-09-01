@@ -25,6 +25,7 @@ import { Utils } from "../../../utils/Utils.sol";
 /**
  * @notice Fuzz tests for the function "flashActionByCreditor" of contract "AccountV3".
  */
+// forge-lint: disable-next-item(divide-before-multiply,unsafe-typecast)
 contract FlashActionByCreditor_AccountV3_Fuzz_Test is AccountV3_Fuzz_Test, Permit2Fixture {
     using stdStorage for StdStorage;
     /* ///////////////////////////////////////////////////////////////
@@ -776,6 +777,7 @@ contract FlashActionByCreditor_AccountV3_Fuzz_Test is AccountV3_Fuzz_Test, Permi
         }
 
         // Assert the accountExtension has no TOKEN2 balance initially
+        // forge-lint: disable-next-item(incorrect-strict-equality)
         assert(mockERC20.token2.balanceOf(address(accountExtension)) == 0);
 
         vm.warp(time);

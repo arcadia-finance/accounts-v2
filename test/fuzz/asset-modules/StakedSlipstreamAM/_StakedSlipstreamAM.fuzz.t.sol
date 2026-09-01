@@ -20,6 +20,7 @@ import { TickMath } from "../../../../src/asset-modules/UniswapV3/libraries/Tick
 /**
  * @notice Common logic needed by all "StakedSlipstreamAM" fuzz tests.
  */
+// forge-lint: disable-next-item(unsafe-typecast)
 abstract contract StakedSlipstreamAM_Fuzz_Test is Fuzz_Test, SlipstreamFixture {
     /* ///////////////////////////////////////////////////////////////
                               VARIABLES

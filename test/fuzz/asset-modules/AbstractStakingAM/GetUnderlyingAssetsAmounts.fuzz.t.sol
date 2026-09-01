@@ -30,6 +30,7 @@ contract GetUnderlyingAssetsAmounts_AbstractStakingAM_Fuzz_Test is AbstractStaki
         address underLyingAsset
     ) public {
         // And : pendingEmissions is smaller than type(uint128).max / 1e18
+        // forge-lint: disable-next-item(unsafe-typecast)
         pendingEmissions = uint128(bound(pendingEmissions, 0, type(uint128).max / 1e18));
 
         // And : Set valid state in AM

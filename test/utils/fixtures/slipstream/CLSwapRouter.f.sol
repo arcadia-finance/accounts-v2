@@ -23,6 +23,7 @@ contract CLSwapRouterFixture is Test {
     function deploySwapRouter(address factory_, address weth9_) public {
         // Get the bytecode of the SwapRouterExtension.
         bytes memory args = abi.encode(factory_, weth9_);
+        // forge-lint: disable-next-item(encode-packed-collision)
         bytes memory bytecode = abi.encodePacked(vm.getCode("SwapRouter.sol"), args);
 
         address swapRouter_ = Utils.deployBytecode(bytecode);

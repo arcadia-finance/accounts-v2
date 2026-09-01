@@ -5,6 +5,7 @@
 pragma solidity ^0.8.0;
 
 contract RevertingOracle {
+    // forge-lint: disable-next-item(uninitialized-state)
     uint8 public decimals;
 
     function latestRoundData() public pure returns (uint80, int256, uint256, uint256, uint80) {

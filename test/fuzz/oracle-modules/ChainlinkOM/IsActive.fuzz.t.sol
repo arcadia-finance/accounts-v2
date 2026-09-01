@@ -11,6 +11,7 @@ import { RevertingOracle } from "../../../utils/mocks/oracles/RevertingOracle.so
 /**
  * @notice Fuzz tests for the function "isActive" of contract "ChainlinkOM".
  */
+// forge-lint: disable-next-item(unsafe-typecast)
 contract IsActive_ChainlinkOM_Fuzz_Test is ChainlinkOM_Fuzz_Test {
     /* ///////////////////////////////////////////////////////////////
                               SETUP

@@ -19,6 +19,7 @@ import { Utils } from "../../utils/Utils.sol";
 /**
  * @notice Fuzz tests for the function "createAccount" of contract "Factory".
  */
+// forge-lint: disable-next-item(weak-prng)
 contract CreateAccount_Factory_Fuzz_Test is Factory_Fuzz_Test {
     /* ///////////////////////////////////////////////////////////////
                               SETUP

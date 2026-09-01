@@ -112,6 +112,7 @@ contract AccountV4 is AccountStorageV1, IAccount {
      * This prevents the old Owner from frontrunning a transferFrom().
      */
     modifier updateActionTimestamp() {
+        // forge-lint: disable-next-item(unsafe-typecast)
         lastActionTimestamp = uint32(block.timestamp);
         _;
     }
@@ -464,6 +465,7 @@ contract AccountV4 is AccountStorageV1, IAccount {
             if (assetAmounts[i] == 0) continue;
 
             if (assetTypes[i] == 1) {
+                // forge-lint: disable-next-item(arbitrary-send-erc20,solmate-safe-transfer-lib)
                 ERC20(assetAddresses[i]).safeTransferFrom(from, address(this), assetAmounts[i]);
             } else if (assetTypes[i] == 2) {
                 IERC721(assetAddresses[i]).safeTransferFrom(from, address(this), assetIds[i]);
@@ -516,9 +518,11 @@ contract AccountV4 is AccountStorageV1, IAccount {
             if (assetAmounts[i] == 0) continue;
 
             if (assetAddresses[i] == address(0)) {
+                // forge-lint: disable-next-item(arbitrary-send-eth)
                 (bool success, bytes memory result) = payable(to).call{ value: assetAmounts[i] }("");
                 require(success, string(result));
             } else if (assetTypes[i] == 1) {
+                // forge-lint: disable-next-item(solmate-safe-transfer-lib)
                 ERC20(assetAddresses[i]).safeTransfer(to, assetAmounts[i]);
             } else if (assetTypes[i] == 2) {
                 IERC721(assetAddresses[i]).safeTransferFrom(address(this), to, assetIds[i]);
@@ -548,6 +552,7 @@ contract AccountV4 is AccountStorageV1, IAccount {
             if (transferFromOwnerData.assetAmounts[i] == 0) continue;
 
             if (transferFromOwnerData.assetTypes[i] == 1) {
+                // forge-lint: disable-next-item(arbitrary-send-erc20,solmate-safe-transfer-lib)
                 ERC20(transferFromOwnerData.assets[i])
                     .safeTransferFrom(owner_, to, transferFromOwnerData.assetAmounts[i]);
             } else if (transferFromOwnerData.assetTypes[i] == 2) {

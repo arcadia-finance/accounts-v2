@@ -77,6 +77,7 @@ contract AccountPlaceholder is AccountStorageV1, IAccount {
      * This prevents the old Owner from frontrunning a transferFrom().
      */
     modifier updateActionTimestamp() {
+        // forge-lint: disable-next-item(unsafe-typecast)
         lastActionTimestamp = uint32(block.timestamp);
         _;
     }

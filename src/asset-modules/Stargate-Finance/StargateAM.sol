@@ -189,7 +189,9 @@ contract StargateAM is DerivedAM {
         uint256 riskFactor = riskParams[creditor].riskFactor;
 
         // Lower risk factors with the protocol wide risk factor.
+        // forge-lint: disable-next-item(unsafe-typecast)
         collateralFactor = uint16(riskFactor.mulDivDown(collateralFactors[0], AssetValuationLib.ONE_4));
+        // forge-lint: disable-next-item(unsafe-typecast)
         liquidationFactor = uint16(riskFactor.mulDivDown(liquidationFactors[0], AssetValuationLib.ONE_4));
     }
 

@@ -7,6 +7,7 @@ pragma solidity ^0.8.30;
  * @dev Implementation based on ERC1967: Proxy Storage Slots.
  * See https://eips.ethereum.org/EIPS/eip-1967.
  */
+// forge-lint: disable-next-item(locked-ether)
 contract RevertingProxy {
     /* //////////////////////////////////////////////////////////////
                                 CONSTANTS

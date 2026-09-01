@@ -16,6 +16,7 @@ contract Constructor_AbstractOM_Fuzz_Test is AbstractOM_Fuzz_Test {
                               SETUP
     /////////////////////////////////////////////////////////////// */
 
+    // forge-lint: disable-next-item(empty-block)
     function setUp() public override { }
 
     /*//////////////////////////////////////////////////////////////

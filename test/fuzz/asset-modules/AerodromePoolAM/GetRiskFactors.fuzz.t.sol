@@ -11,6 +11,7 @@ import { FixedPointMathLib } from "../../../../src/asset-modules/abstracts/Abstr
 /**
  * @notice Fuzz tests for the function "getRiskFactors" of contract "AerodromePoolAM".
  */
+// forge-lint: disable-next-item(unsafe-typecast)
 contract GetRiskFactors_AerodromePoolAM_Fuzz_Test is AerodromePoolAM_Fuzz_Test {
     using FixedPointMathLib for uint256;
     /* ///////////////////////////////////////////////////////////////

@@ -22,6 +22,7 @@ import { Utils } from "../../../utils/Utils.sol";
 /**
  * @notice Fuzz tests for the function "flashAction" of contract "AccountV4".
  */
+// forge-lint: disable-next-item(divide-before-multiply)
 contract FlashAction_AccountV4_Fuzz_Test is AccountV4_Fuzz_Test, Permit2Fixture {
     /* ///////////////////////////////////////////////////////////////
                               SETUP
@@ -683,6 +684,7 @@ contract FlashAction_AccountV4_Fuzz_Test is AccountV4_Fuzz_Test, Permit2Fixture 
 
         // When: Native ETH is deposited into spot Account.
         vm.prank(users.accountOwner);
+        // forge-lint: disable-next-item(arbitrary-send-eth)
         accountSpot.flashAction{ value: amount }(address(actionTarget), callData);
 
         // Then : It should return the correct balance.

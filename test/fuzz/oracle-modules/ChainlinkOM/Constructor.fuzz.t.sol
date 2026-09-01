@@ -16,6 +16,7 @@ contract Constructor_ChainlinkOM_Fuzz_Test is ChainlinkOM_Fuzz_Test {
                               SETUP
     /////////////////////////////////////////////////////////////// */
 
+    // forge-lint: disable-next-item(empty-block)
     function setUp() public override { }
 
     /*//////////////////////////////////////////////////////////////

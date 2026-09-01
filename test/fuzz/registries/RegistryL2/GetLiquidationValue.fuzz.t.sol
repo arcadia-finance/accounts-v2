@@ -13,6 +13,7 @@ import { AssetValuationLib } from "../../../../src/libraries/AssetValuationLib.s
 /**
  * @notice Fuzz tests for the function "getLiquidationValue" of contract "RegistryL2".
  */
+// forge-lint: disable-next-item(unsafe-typecast)
 contract GetLiquidationValue_RegistryL2_Fuzz_Test is RegistryL2_Fuzz_Test {
     /* ///////////////////////////////////////////////////////////////
                               SETUP

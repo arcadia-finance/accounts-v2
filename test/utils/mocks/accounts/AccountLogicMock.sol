@@ -29,6 +29,7 @@ import { IPermit2 } from "../../../../src/interfaces/IPermit2.sol";
  * Arcadia's Account functions will guarantee you a certain value of the Account.
  * For whitelists or liquidation strategies specific to your protocol, contact: dev at arcadia.finance
  */
+// forge-lint: disable-next-item(arbitrary-send-erc20,reentrancy-no-eth,solmate-safe-transfer-lib)
 contract AccountLogicMock is AccountStorageV2 {
     using SafeTransferLib for ERC20;
 

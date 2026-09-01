@@ -359,6 +359,8 @@ abstract contract DerivedAM is AssetModule {
      * @dev The checks on exposures are only done to block deposits that would over-expose a Creditor to a certain asset or protocol.
      * Underflows will not revert, but the exposure is instead set to 0.
      */
+    // Reentrancy is blocked by the Registry, the only caller of the entry points.
+    // forge-lint: disable-next-item(reentrancy-no-eth)
     function _processDeposit(uint256 exposureAsset, address creditor, bytes32 assetKey)
         internal
         virtual
@@ -381,7 +383,9 @@ abstract contract DerivedAM is AssetModule {
 
             for (uint256 i; i < underlyingAssetKeys.length; ++i) {
                 // Calculate the change in exposure to the underlying assets since last interaction.
+                // forge-lint: disable-next-item(unsafe-typecast)
                 deltaExposureAssetToUnderlyingAsset = int256(exposureAssetToUnderlyingAssets[i])
+                    // forge-lint: disable-next-item(unsafe-typecast)
                     - int256(lastExposureAssetToUnderlyingAsset[creditor][assetKey][i]);
 
                 // Update "lastExposureAssetToUnderlyingAsset".
@@ -450,6 +454,8 @@ abstract contract DerivedAM is AssetModule {
      * As such the actual exposure on a withdrawal of a derived asset can exceed the maxExposure, but this should never be blocked,
      * (the withdrawal actually improves the situation by making the asset less over-exposed).
      */
+    // Reentrancy is blocked by the Registry, the only caller of the entry points.
+    // forge-lint: disable-next-item(reentrancy-no-eth)
     function _processWithdrawal(address creditor, bytes32 assetKey, uint256 exposureAsset)
         internal
         virtual
@@ -468,7 +474,9 @@ abstract contract DerivedAM is AssetModule {
 
         for (uint256 i; i < underlyingAssetKeys.length; ++i) {
             // Calculate the change in exposure to the underlying assets since last interaction.
+            // forge-lint: disable-next-item(unsafe-typecast)
             deltaExposureAssetToUnderlyingAsset = int256(exposureAssetToUnderlyingAssets[i])
+                // forge-lint: disable-next-item(unsafe-typecast)
                 - int256(lastExposureAssetToUnderlyingAsset[creditor][assetKey][i]);
 
             // Update "lastExposureAssetToUnderlyingAsset".

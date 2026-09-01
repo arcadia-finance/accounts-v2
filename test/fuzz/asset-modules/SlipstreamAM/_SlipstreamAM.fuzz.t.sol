@@ -125,6 +125,7 @@ abstract contract SlipstreamAM_Fuzz_Test is Fuzz_Test, SlipstreamFixture {
         returns (NonfungiblePositionManagerMock.Position memory)
     {
         // Given: poolId is non zero (=position is initialised).
+        // forge-lint: disable-next-item(unsafe-typecast)
         position.poolId = uint80(bound(position.poolId, 1, type(uint80).max));
 
         // And: Ticks are within allowed ranges.

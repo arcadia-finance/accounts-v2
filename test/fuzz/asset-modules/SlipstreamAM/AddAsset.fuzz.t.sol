@@ -12,6 +12,7 @@ import { SlipstreamAM } from "../../../../src/asset-modules/Slipstream/Slipstrea
 /**
  * @notice Fuzz tests for the function "addAsset" of contract "SlipstreamAM".
  */
+// forge-lint: disable-next-item(unsafe-typecast)
 contract AddAsset_SlipstreamAM_Fuzz_Test is SlipstreamAM_Fuzz_Test {
     /* ///////////////////////////////////////////////////////////////
                               SETUP
