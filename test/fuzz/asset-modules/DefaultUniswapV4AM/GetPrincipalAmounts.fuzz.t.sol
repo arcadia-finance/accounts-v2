@@ -34,15 +34,10 @@ contract GetPrincipalAmounts_DefaultUniswapV4AM_Fuzz_Test is DefaultUniswapV4AM_
         uint256 priceToken1
     ) public view {
         // Given : Ticks are within allowed ranges.
-        tickLower = int24(bound(tickLower, MIN_TICK, MAX_TICK - 2));
-        tickUpper = int24(bound(tickUpper, tickLower + 1, MAX_TICK));
+        tickLower = int24(bound(tickLower, TickMath.MIN_TICK, TickMath.MAX_TICK - 2));
+        tickUpper = int24(bound(tickUpper, tickLower + 1, TickMath.MAX_TICK));
 
-        // And : Avoid divide by 0, which is already checked in earlier in function.
-        vm.assume(priceToken1 > 0);
-        // Function will overFlow, not realistic.
-        priceToken0 = bound(priceToken0, 0, type(uint256).max / 1e28);
-        // Cast to uint160 will overflow, not realistic.
-        vm.assume(priceToken0 / priceToken1 < 2 ** 128);
+        (priceToken0, priceToken1) = givenValidPrices(priceToken0, priceToken1);
 
         // Generate PositionInfo packed struct
         PoolKey memory poolKey;

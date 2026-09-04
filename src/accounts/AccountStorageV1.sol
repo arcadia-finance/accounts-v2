@@ -23,6 +23,7 @@ abstract contract AccountStorageV1 {
     // forge-lint: disable-next-item(uninitialized-state)
     bool public inAuction;
     // Flag Indicating if a function is locked to protect against reentrancy.
+    // forge-lint: disable-next-item(unused-state-variables)
     uint8 internal locked;
     // Used to prevent the old Owner from frontrunning a transferFrom().
     // The Timestamp of the last account action, that might be disadvantageous for a new Owner
@@ -53,14 +54,19 @@ abstract contract AccountStorageV1 {
     address public numeraire;
 
     // Array with all the contract addresses of ERC20 tokens in the account.
+    // forge-lint: disable-next-item(unused-state-variables)
     address[] internal erc20Stored;
     // Array with all the contract addresses of ERC721 tokens in the account.
+    // forge-lint: disable-next-item(unused-state-variables)
     address[] internal erc721Stored;
     // Array with all the contract addresses of ERC1155 tokens in the account.
+    // forge-lint: disable-next-item(unused-state-variables)
     address[] internal erc1155Stored;
     // Array with all the corresponding ids for each ERC721 token in the account.
+    // forge-lint: disable-next-item(unused-state-variables)
     uint256[] internal erc721TokenIds;
     // Array with all the corresponding ids for each ERC1155 token in the account.
+    // forge-lint: disable-next-item(unused-state-variables)
     uint256[] internal erc1155TokenIds;
 
     // Map asset => balance.

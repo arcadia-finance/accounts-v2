@@ -35,14 +35,12 @@ contract GetValue_UniswapV2AM_Fuzz_Test is UniswapV2AM_Fuzz_Test {
         uint144 _rateToken1ToUsd,
         uint144 _rateToken2ToUsd
     ) public {
-        vm.assume(_token1Decimals <= 18);
-        vm.assume(_token2Decimals <= 18);
-        vm.assume(_oracleToken1ToUsdDecimals <= 18);
-        vm.assume(_oracleToken2ToUsdDecimals <= 18);
-        vm.assume(_rateToken1ToUsd > 0);
-        vm.assume(_rateToken2ToUsd > 0);
-        vm.assume(_rateToken1ToUsd <= uint256(type(int256).max));
-        vm.assume(_rateToken2ToUsd <= uint256(type(int256).max));
+        _token1Decimals = uint8(bound(_token1Decimals, 0, 18));
+        _token2Decimals = uint8(bound(_token2Decimals, 0, 18));
+        _oracleToken1ToUsdDecimals = uint8(bound(_oracleToken1ToUsdDecimals, 0, 18));
+        _oracleToken2ToUsdDecimals = uint8(bound(_oracleToken2ToUsdDecimals, 0, 18));
+        _rateToken1ToUsd = uint144(bound(_rateToken1ToUsd, 1, type(uint144).max));
+        _rateToken2ToUsd = uint144(bound(_rateToken2ToUsd, 1, type(uint144).max));
 
         // Redeploy tokens with variable amount of decimals
         mockERC20.token1 = deployToken(
@@ -54,8 +52,10 @@ contract GetValue_UniswapV2AM_Fuzz_Test is UniswapV2AM_Fuzz_Test {
             UniswapV2PairMock(uniswapV2Factory.createPair(address(mockERC20.token2), address(mockERC20.token1)));
         uniswapV2AM.addAsset(address(pairToken1Token2));
 
-        // Mint LP
-        vm.assume(uint256(amountToken2) * amountToken1 > pairToken1Token2.MINIMUM_LIQUIDITY()); //min liquidity in uniswap pool
+        // Mint LP, above the min liquidity in the uniswap pool.
+        amountToken2 = uint112(bound(amountToken2, 1, type(uint112).max));
+        amountToken1 =
+            uint112(bound(amountToken1, pairToken1Token2.MINIMUM_LIQUIDITY() / amountToken2 + 1, type(uint112).max));
         pairToken1Token2.mint(users.tokenCreator, amountToken2, amountToken1);
 
         bool cond0 = uint256(_rateToken2ToUsd)
@@ -79,12 +79,12 @@ contract GetValue_UniswapV2AM_Fuzz_Test is UniswapV2AM_Fuzz_Test {
         uint144 _rateToken1ToUsd,
         uint144 _rateToken2ToUsd
     ) public {
-        vm.assume(_token1Decimals <= 18);
-        vm.assume(_token2Decimals <= 18);
-        vm.assume(_oracleToken1ToUsdDecimals <= 18);
-        vm.assume(_oracleToken2ToUsdDecimals <= 18);
-        vm.assume(_rateToken1ToUsd > 0);
-        vm.assume(_rateToken2ToUsd > 0);
+        _token1Decimals = uint8(bound(_token1Decimals, 0, 18));
+        _token2Decimals = uint8(bound(_token2Decimals, 0, 18));
+        _oracleToken1ToUsdDecimals = uint8(bound(_oracleToken1ToUsdDecimals, 0, 18));
+        _oracleToken2ToUsdDecimals = uint8(bound(_oracleToken2ToUsdDecimals, 0, 18));
+        _rateToken1ToUsd = uint144(bound(_rateToken1ToUsd, 1, type(uint144).max));
+        _rateToken2ToUsd = uint144(bound(_rateToken2ToUsd, 1, type(uint144).max));
 
         // Redeploy tokens with variable amount of decimals
         mockERC20.token1 = deployToken(
@@ -96,16 +96,19 @@ contract GetValue_UniswapV2AM_Fuzz_Test is UniswapV2AM_Fuzz_Test {
             UniswapV2PairMock(uniswapV2Factory.createPair(address(mockERC20.token2), address(mockERC20.token1)));
         uniswapV2AM.addAsset(address(pairToken1Token2));
 
-        // Mint a variable amount of balanced LP, for a given amountToken2
-        vm.assume(
-            uint256(amountToken2) * uint256(_rateToken2ToUsd)
-                < type(uint256).max / 10 ** (_token1Decimals + _oracleToken1ToUsdDecimals)
-        ); //Avoid overflow of amountToken1 in next line
+        // Mint a variable amount of balanced LP, for a given amountToken2.
+        // Avoid overflow of amountToken1 in the next line, and stay above the minimum liquidity.
+        uint256 maxAmountToken2 =
+            type(uint256).max / 10 ** (_token1Decimals + _oracleToken1ToUsdDecimals) / _rateToken2ToUsd;
+        if (maxAmountToken2 > type(uint112).max) maxAmountToken2 = type(uint112).max;
+        vm.assume(maxAmountToken2 > pairToken1Token2.MINIMUM_LIQUIDITY());
+        amountToken2 = uint112(bound(amountToken2, pairToken1Token2.MINIMUM_LIQUIDITY() + 1, maxAmountToken2));
+
         uint256 amountToken1 = uint256(amountToken2) * uint256(_rateToken2ToUsd) * 10
             ** (_token1Decimals + _oracleToken1ToUsdDecimals) / _rateToken1ToUsd / 10
             ** (_token2Decimals + _oracleToken2ToUsdDecimals);
+        vm.assume(amountToken1 > 0);
         vm.assume(amountToken1 < type(uint112).max); //max reserve in Uniswap pool
-        vm.assume(amountToken2 * amountToken1 > pairToken1Token2.MINIMUM_LIQUIDITY()); //min liquidity in uniswap pool
         pairToken1Token2.mint(users.tokenCreator, amountToken2, amountToken1);
 
         //No overflows

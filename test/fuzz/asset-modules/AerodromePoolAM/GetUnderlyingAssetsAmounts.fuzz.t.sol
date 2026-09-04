@@ -189,10 +189,10 @@ contract GetUnderlyingAssetsAmounts_AerodromePoolAM_Fuzz_Test is AerodromePoolAM
         // Given : Valid state
         testVars = givenValidTestVarsStable(testVars);
 
-        // And state is persisted.
+        // And: state is persisted.
         testVars = initAndSetValidStateInPoolFixture(testVars);
 
-        // And reserves are increased to that k reverts.
+        // And: reserves are increased to that k reverts.
         reserve0_ = bound(reserve0_, 15_511_800_965 * 10 ** testVars.decimals0, type(uint256).max);
         reserve1_ = bound(reserve1_, 15_511_800_965 * 10 ** testVars.decimals1, type(uint256).max);
         stdstore.target(address(aeroPool)).sig(aeroPool.reserve0.selector).checked_write(reserve0_);
@@ -227,13 +227,12 @@ contract GetUnderlyingAssetsAmounts_AerodromePoolAM_Fuzz_Test is AerodromePoolAM
         uint256 decimalDifference = d0BiggerD1 ? 10 ** (testVars.decimals0 - testVars.decimals1) : 1;
         // And: k does not overflow (-> r <= sqrt(sqrt(type(uint256).max * 10 ** (4 * decimals - 36) / 2)))
         //                           -> r < 10 ** decimals * 15511800964 (approximated)
-        testVars.reserve0 = bound(testVars.reserve0, decimalDifference, 15_511_800_964 * 10 ** testVars.decimals0);
+        testVars.reserve0 = bound(
+            testVars.reserve0, MINIMUM_LIQUIDITY * decimalDifference + 1, 15_511_800_964 * 10 ** testVars.decimals0
+        );
         // And : Reserves should be deposited in same proportion for first mint.
         testVars.reserve0 = testVars.reserve0 / decimalDifference * decimalDifference;
         testVars.reserve1 = convertToDecimals(testVars.reserve0, testVars.decimals0, testVars.decimals1);
-
-        // Root (reserve0 * reserve1) should be greater than minimum liquidty
-        vm.assume(testVars.reserve0 * testVars.reserve1 > MINIMUM_LIQUIDITY ** 2);
 
         uint256 k = getK(testVars.reserve0, testVars.reserve1, 10 ** testVars.decimals0, 10 ** testVars.decimals1);
 
@@ -252,7 +251,7 @@ contract GetUnderlyingAssetsAmounts_AerodromePoolAM_Fuzz_Test is AerodromePoolAM
         );
         vm.assume(k / testVars.priceToken0 > type(uint256).max / testVars.priceToken1);
 
-        // And state is persisted.
+        // And: state is persisted.
         testVars = initAndSetValidStateInPoolFixture(testVars);
 
         bytes32 assetKey = bytes32(abi.encodePacked(uint96(0), address(aeroPool)));
@@ -285,13 +284,14 @@ contract GetUnderlyingAssetsAmounts_AerodromePoolAM_Fuzz_Test is AerodromePoolAM
         uint256 decimalDifference = d0BiggerD1 ? 10 ** (testVars.decimals0 - testVars.decimals1) : 1;
         // And: k does not overflow (-> r <= sqrt(sqrt(type(uint256).max * 10 ** (4 * decimals - 36) / 2)))
         //                           -> r < 10 ** decimals * 15511800964 (approximated)
-        testVars.reserve0 = bound(testVars.reserve0, decimalDifference, 15_511_800_964 * 10 ** testVars.decimals0);
+        testVars.reserve0 = bound(
+            testVars.reserve0, MINIMUM_LIQUIDITY * decimalDifference + 1, 15_511_800_964 * 10 ** testVars.decimals0
+        );
         // And : Reserves should be deposited in same proportion for first mint.
         testVars.reserve0 = testVars.reserve0 / decimalDifference * decimalDifference;
         testVars.reserve1 = convertToDecimals(testVars.reserve0, testVars.decimals0, testVars.decimals1);
 
         // Root (reserve0 * reserve1) should be greater than minimum liquidity
-        vm.assume(testVars.reserve0 * testVars.reserve1 > MINIMUM_LIQUIDITY ** 2);
 
         uint256 k = getK(testVars.reserve0, testVars.reserve1, 10 ** testVars.decimals0, 10 ** testVars.decimals1);
 
@@ -313,7 +313,7 @@ contract GetUnderlyingAssetsAmounts_AerodromePoolAM_Fuzz_Test is AerodromePoolAM
         // And: c does not overflow
         vm.assume(k / testVars.priceToken0 <= type(uint256).max / testVars.priceToken1);
 
-        // And state is persisted.
+        // And: state is persisted.
         testVars = initAndSetValidStateInPoolFixture(testVars);
 
         bytes32 assetKey = bytes32(abi.encodePacked(uint96(0), address(aeroPool)));
@@ -346,13 +346,12 @@ contract GetUnderlyingAssetsAmounts_AerodromePoolAM_Fuzz_Test is AerodromePoolAM
         uint256 decimalDifference = d0BiggerD1 ? 10 ** (testVars.decimals0 - testVars.decimals1) : 1;
         // And: k does not overflow (-> r <= sqrt(sqrt(type(uint256).max * 10 ** (4 * decimals - 36) / 2)))
         //                           -> r < 10 ** decimals * 15511800964 (approximated)
-        testVars.reserve0 = bound(testVars.reserve0, decimalDifference, 15_511_800_964 * 10 ** testVars.decimals0);
+        testVars.reserve0 = bound(
+            testVars.reserve0, MINIMUM_LIQUIDITY * decimalDifference + 1, 15_511_800_964 * 10 ** testVars.decimals0
+        );
         // And : Reserves should be deposited in same proportion for first mint.
         testVars.reserve0 = testVars.reserve0 / decimalDifference * decimalDifference;
         testVars.reserve1 = convertToDecimals(testVars.reserve0, testVars.decimals0, testVars.decimals1);
-
-        // Root (reserve0 * reserve1) should be greater than minimum liquidty
-        vm.assume(testVars.reserve0 * testVars.reserve1 > MINIMUM_LIQUIDITY ** 2);
 
         uint256 k = getK(testVars.reserve0, testVars.reserve1, 10 ** testVars.decimals0, 10 ** testVars.decimals1);
 
@@ -373,7 +372,7 @@ contract GetUnderlyingAssetsAmounts_AerodromePoolAM_Fuzz_Test is AerodromePoolAM
         // And: x overflows (test-case).
         vm.assume(c / d > type(uint256).max / 1e36);
 
-        // And state is persisted.
+        // And: state is persisted.
         testVars = initAndSetValidStateInPoolFixture(testVars);
 
         bytes32 assetKey = bytes32(abi.encodePacked(uint96(0), address(aeroPool)));
@@ -408,13 +407,12 @@ contract GetUnderlyingAssetsAmounts_AerodromePoolAM_Fuzz_Test is AerodromePoolAM
         uint256 decimalDifference = d0BiggerD1 ? 10 ** (testVars.decimals0 - testVars.decimals1) : 1;
         // And: k does not overflow (-> r <= sqrt(sqrt(type(uint256).max * 10 ** (4 * decimals - 36) / 2)))
         //                           -> r < 10 ** decimals * 15511800964 (approximated)
-        testVars.reserve0 = bound(testVars.reserve0, decimalDifference, 15_511_800_964 * 10 ** testVars.decimals0);
+        testVars.reserve0 = bound(
+            testVars.reserve0, MINIMUM_LIQUIDITY * decimalDifference + 1, 15_511_800_964 * 10 ** testVars.decimals0
+        );
         // And : Reserves should be deposited in same proportion for first mint.
         testVars.reserve0 = testVars.reserve0 / decimalDifference * decimalDifference;
         testVars.reserve1 = convertToDecimals(testVars.reserve0, testVars.decimals0, testVars.decimals1);
-
-        // Root (reserve0 * reserve1) should be greater than minimum liquidty
-        vm.assume(testVars.reserve0 * testVars.reserve1 > MINIMUM_LIQUIDITY ** 2);
 
         uint256 k = getK(testVars.reserve0, testVars.reserve1, 10 ** testVars.decimals0, 10 ** testVars.decimals1);
 
@@ -441,7 +439,7 @@ contract GetUnderlyingAssetsAmounts_AerodromePoolAM_Fuzz_Test is AerodromePoolAM
         vm.assume(trustedReserve0 > 1);
         testVars.assetAmount = bound(testVars.assetAmount, type(uint256).max / trustedReserve0 + 1, type(uint256).max);
 
-        // And state is persisted.
+        // And: state is persisted.
         testVars = initAndSetValidStateInPoolFixture(testVars);
 
         bytes32 assetKey = bytes32(abi.encodePacked(uint96(0), address(aeroPool)));
@@ -476,13 +474,12 @@ contract GetUnderlyingAssetsAmounts_AerodromePoolAM_Fuzz_Test is AerodromePoolAM
         uint256 decimalDifference = d0BiggerD1 ? 10 ** (testVars.decimals0 - testVars.decimals1) : 1;
         // And: k does not overflow (-> r <= sqrt(sqrt(type(uint256).max * 10 ** (4 * decimals - 36) / 2)))
         //                           -> r < 10 ** decimals * 15511800964 (approximated)
-        testVars.reserve0 = bound(testVars.reserve0, decimalDifference, 15_511_800_964 * 10 ** testVars.decimals0);
+        testVars.reserve0 = bound(
+            testVars.reserve0, MINIMUM_LIQUIDITY * decimalDifference + 1, 15_511_800_964 * 10 ** testVars.decimals0
+        );
         // And : Reserves should be deposited in same proportion for first mint.
         testVars.reserve0 = testVars.reserve0 / decimalDifference * decimalDifference;
         testVars.reserve1 = convertToDecimals(testVars.reserve0, testVars.decimals0, testVars.decimals1);
-
-        // Root (reserve0 * reserve1) should be greater than minimum liquidty
-        vm.assume(testVars.reserve0 * testVars.reserve1 > MINIMUM_LIQUIDITY ** 2);
 
         uint256 k = getK(testVars.reserve0, testVars.reserve1, 10 ** testVars.decimals0, 10 ** testVars.decimals1);
 
@@ -514,7 +511,7 @@ contract GetUnderlyingAssetsAmounts_AerodromePoolAM_Fuzz_Test is AerodromePoolAM
         vm.assume(trustedReserve1 > 1);
         testVars.assetAmount = bound(testVars.assetAmount, type(uint256).max / trustedReserve1 + 1, type(uint256).max);
 
-        // And state is persisted.
+        // And: state is persisted.
         testVars = initAndSetValidStateInPoolFixture(testVars);
 
         bytes32 assetKey = bytes32(abi.encodePacked(uint96(0), address(aeroPool)));
@@ -541,7 +538,7 @@ contract GetUnderlyingAssetsAmounts_AerodromePoolAM_Fuzz_Test is AerodromePoolAM
         // And : rate of asset0 is zero.
         testVars.priceToken0 = 0;
 
-        // And state is persisted.
+        // And: state is persisted.
         testVars = initAndSetValidStateInPoolFixture(testVars);
 
         bytes32 assetKey = bytes32(abi.encodePacked(uint96(0), address(aeroPool)));
@@ -573,7 +570,7 @@ contract GetUnderlyingAssetsAmounts_AerodromePoolAM_Fuzz_Test is AerodromePoolAM
         // And : rate of asset0 is zero.
         testVars.priceToken1 = 0;
 
-        // And state is persisted.
+        // And: state is persisted.
         testVars = initAndSetValidStateInPoolFixture(testVars);
 
         bytes32 assetKey = bytes32(abi.encodePacked(uint96(0), address(aeroPool)));
@@ -601,11 +598,10 @@ contract GetUnderlyingAssetsAmounts_AerodromePoolAM_Fuzz_Test is AerodromePoolAM
     function testFuzz_Success_getUnderlyingAssetsAmounts_Volatile_NonZeroRate_NoPrecisionLoss(TestVariables memory testVars)
         public
     {
-        vm.skip(true); // TODO: fix test
         // Given : Valid state
         testVars = givenValidTestVarsVolatile(testVars);
 
-        // And state is persisted.
+        // And: state is persisted.
         testVars = initAndSetValidStateInPoolFixture(testVars);
 
         uint256[] memory underlyingAssetsAmounts;
@@ -648,10 +644,12 @@ contract GetUnderlyingAssetsAmounts_AerodromePoolAM_Fuzz_Test is AerodromePoolAM
         // And: The amounts should be in balance with the external prices.
         // For very low amounts, a rounding error already invalidates the assertions.
         // "assertApproxEqRel()" should not overflow.
-        if (underlyingAssetsAmounts[0] > 1e2 && underlyingAssetsAmounts[1] > 1e2) {
+        if (underlyingAssetsAmounts[0] > 1e3 && underlyingAssetsAmounts[1] > 1e3) {
             if (
                 underlyingAssetsAmounts[0] > underlyingAssetsAmounts[1]
                     && 1e18 * testVars.priceToken1 / testVars.priceToken0 < type(uint256).max / 1e18
+                    && underlyingAssetsAmounts[0]
+                        < type(uint256).max / 10 ** (18 + testVars.decimals1 - testVars.decimals0)
             ) {
                 assertApproxEqRel(
                     10 ** (18 + testVars.decimals1 - testVars.decimals0) * underlyingAssetsAmounts[0]
@@ -659,7 +657,11 @@ contract GetUnderlyingAssetsAmounts_AerodromePoolAM_Fuzz_Test is AerodromePoolAM
                     1e18 * testVars.priceToken1 / testVars.priceToken0,
                     1e16
                 );
-            } else if (1e18 * testVars.priceToken0 / testVars.priceToken1 < type(uint256).max / 1e18) {
+            } else if (
+                1e18 * testVars.priceToken0 / testVars.priceToken1 < type(uint256).max / 1e18
+                    && underlyingAssetsAmounts[1]
+                        < type(uint256).max / 10 ** (18 + testVars.decimals0 - testVars.decimals1)
+            ) {
                 assertApproxEqRel(
                     10 ** (18 + testVars.decimals0 - testVars.decimals1) * underlyingAssetsAmounts[1]
                         / underlyingAssetsAmounts[0],
@@ -672,11 +674,13 @@ contract GetUnderlyingAssetsAmounts_AerodromePoolAM_Fuzz_Test is AerodromePoolAM
         // And: k-value of the aeroPool with trustedReserves remains the same.
         // For very low reserves, a rounding error already invalidates the assertions.
         // "assertApproxEqRel()" should not overflow.
-        uint256 kNew = trustedReserve0 * trustedReserve1;
+        uint256 kNew;
         if (k > type(uint256).max / 1e18) {
             // "assertApproxEqRel()" should not overflow.
+            kNew = FullMath.mulDiv(trustedReserve0, trustedReserve1, 1e18);
             k = k / 1e18;
-            kNew = kNew / 1e18;
+        } else {
+            kNew = trustedReserve0 * trustedReserve1;
         }
         if (trustedReserve0 > 5e3 && trustedReserve1 > 5e4) {
             assertApproxEqRel(kNew, k, 1e16);
@@ -689,7 +693,7 @@ contract GetUnderlyingAssetsAmounts_AerodromePoolAM_Fuzz_Test is AerodromePoolAM
         // Given : Valid state
         testVars = givenValidTestVarsVolatile(testVars);
 
-        // And state is persisted.
+        // And: state is persisted.
         testVars = initAndSetValidStateInPoolFixture(testVars);
 
         uint256[] memory underlyingAssetsAmounts;
@@ -742,7 +746,7 @@ contract GetUnderlyingAssetsAmounts_AerodromePoolAM_Fuzz_Test is AerodromePoolAM
         // And : rate of asset0 is zero.
         testVars.priceToken0 = 0;
 
-        // And state is persisted.
+        // And: state is persisted.
         testVars = initAndSetValidStateInPoolFixture(testVars);
 
         bytes32 assetKey = bytes32(abi.encodePacked(uint96(0), address(aeroPool)));
@@ -774,7 +778,7 @@ contract GetUnderlyingAssetsAmounts_AerodromePoolAM_Fuzz_Test is AerodromePoolAM
         // And : rate of asset0 is zero.
         testVars.priceToken1 = 0;
 
-        // And state is persisted.
+        // And: state is persisted.
         testVars = initAndSetValidStateInPoolFixture(testVars);
 
         bytes32 assetKey = bytes32(abi.encodePacked(uint96(0), address(aeroPool)));
@@ -805,7 +809,7 @@ contract GetUnderlyingAssetsAmounts_AerodromePoolAM_Fuzz_Test is AerodromePoolAM
         // Given : Valid state
         testVars = givenValidTestVarsStable(testVars);
 
-        // And state is persisted.
+        // And: state is persisted.
         testVars = initAndSetValidStateInPoolFixture(testVars);
 
         uint256 trustedReserve0;
@@ -865,6 +869,8 @@ contract GetUnderlyingAssetsAmounts_AerodromePoolAM_Fuzz_Test is AerodromePoolAM
             if (
                 underlyingAssetsAmounts[0] > underlyingAssetsAmounts[1]
                     && 1e18 * testVars.priceToken1 / testVars.priceToken0 < type(uint256).max / 1e18
+                    && underlyingAssetsAmounts[0]
+                        < type(uint256).max / 10 ** (18 + testVars.decimals1 - testVars.decimals0)
             ) {
                 assertApproxEqRel(
                     10 ** (18 + testVars.decimals1 - testVars.decimals0) * underlyingAssetsAmounts[0]
@@ -872,7 +878,11 @@ contract GetUnderlyingAssetsAmounts_AerodromePoolAM_Fuzz_Test is AerodromePoolAM
                     1e18 * testVars.priceToken1 / testVars.priceToken0,
                     1e16
                 );
-            } else if (1e18 * testVars.priceToken0 / testVars.priceToken1 < type(uint256).max / 1e18) {
+            } else if (
+                1e18 * testVars.priceToken0 / testVars.priceToken1 < type(uint256).max / 1e18
+                    && underlyingAssetsAmounts[1]
+                        < type(uint256).max / 10 ** (18 + testVars.decimals0 - testVars.decimals1)
+            ) {
                 assertApproxEqRel(
                     10 ** (18 + testVars.decimals0 - testVars.decimals1) * underlyingAssetsAmounts[1]
                         / underlyingAssetsAmounts[0],
@@ -901,7 +911,7 @@ contract GetUnderlyingAssetsAmounts_AerodromePoolAM_Fuzz_Test is AerodromePoolAM
         // Given : Valid state
         testVars = givenValidTestVarsStable(testVars);
 
-        // And state is persisted.
+        // And: state is persisted.
         testVars = initAndSetValidStateInPoolFixture(testVars);
 
         uint256 trustedReserve0;

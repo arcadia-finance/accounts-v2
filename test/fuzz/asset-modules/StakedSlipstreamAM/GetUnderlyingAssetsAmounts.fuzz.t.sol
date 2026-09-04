@@ -42,6 +42,7 @@ contract GetUnderlyingAssetsAmounts_StakedSlipstreamAM_Fuzz_Test is StakedSlipst
         uint256 rewardGrowthGlobalX128Last,
         uint256 rewardGrowthGlobalX128Current
     ) public {
+        (priceToken0, priceToken1) = givenValidPrices(priceToken0, priceToken1);
         // Given: Ticks are within allowed ranges.
         position = givenValidPosition(position, 1);
 
@@ -127,6 +128,7 @@ contract GetUnderlyingAssetsAmounts_StakedSlipstreamAM_Fuzz_Test is StakedSlipst
         uint256 rewardGrowthGlobalX128Last,
         uint256 rewardGrowthGlobalX128Current
     ) public {
+        (priceToken0, priceToken1) = givenValidPrices(priceToken0, priceToken1);
         // Given: Ticks are within allowed ranges.
         position = givenValidPosition(position, 1);
 

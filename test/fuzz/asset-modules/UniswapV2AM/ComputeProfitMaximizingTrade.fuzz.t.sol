@@ -9,6 +9,7 @@ import { UniswapV2AM_Fuzz_Test } from "./_UniswapV2AM.fuzz.t.sol";
 /**
  * @notice Fuzz tests for the function "computeProfitMaximizingTrade" of contract "UniswapV2AM".
  */
+// forge-lint: disable-next-item(unsafe-typecast)
 contract ComputeProfitMaximizingTrade_UniswapV2AM_Fuzz_Test is UniswapV2AM_Fuzz_Test {
     /* ///////////////////////////////////////////////////////////////
                               SETUP
@@ -27,12 +28,13 @@ contract ComputeProfitMaximizingTrade_UniswapV2AM_Fuzz_Test is UniswapV2AM_Fuzz_
         uint112 reserve0,
         uint112 reserve1
     ) public {
-        vm.assume(reserve0 > 10e6); //Minimum liquidity
-        vm.assume(reserve1 > 10e6); //Minimum liquidity
-        vm.assume(priceToken0 > 10e6); //Realistic prices
-        vm.assume(priceToken1 > 10e6); //Realistic prices
-
-        vm.assume(priceToken0 > type(uint256).max / reserve0);
+        //Minimum liquidity
+        reserve0 = uint112(bound(reserve0, 10e6 + 1, type(uint112).max));
+        reserve1 = uint112(bound(reserve1, 10e6 + 1, type(uint112).max));
+        //Realistic prices
+        priceToken1 = bound(priceToken1, 10e6 + 1, type(uint256).max);
+        //Arithmetic overflow (test-case).
+        priceToken0 = bound(priceToken0, type(uint256).max / reserve0 + 1, type(uint256).max);
 
         //Arithmetic overflow.
         vm.expectRevert(bytes(""));
@@ -45,12 +47,12 @@ contract ComputeProfitMaximizingTrade_UniswapV2AM_Fuzz_Test is UniswapV2AM_Fuzz_
         uint112 reserve0,
         uint112 reserve1
     ) public {
-        vm.assume(reserve0 > 10e6); //Minimum liquidity
-        vm.assume(reserve1 > 10e6); //Minimum liquidity
-        vm.assume(priceToken0 > 10e6); //Realistic prices
-        vm.assume(priceToken1 > 10e6); //Realistic prices
-        vm.assume(priceToken0 <= type(uint256).max / reserve0); //Overflow, only with unrealistic big numbers
-        vm.assume(priceToken1 <= type(uint256).max / 997); //Overflow, only with unrealistic big priceToken1
+        //Minimum liquidity
+        reserve0 = uint112(bound(reserve0, 10e6 + 1, type(uint112).max));
+        reserve1 = uint112(bound(reserve1, 10e6 + 1, type(uint112).max));
+        //Realistic prices, overflow only with unrealistic big numbers
+        priceToken0 = bound(priceToken0, 10e6 + 1, type(uint256).max / reserve0);
+        priceToken1 = bound(priceToken1, 10e6 + 1, type(uint256).max / 997);
 
         bool token0ToToken1 = reserve0 * priceToken0 / reserve1 < priceToken1;
         uint256 invariant = uint256(reserve0) * reserve1 * 1000;
@@ -82,12 +84,12 @@ contract ComputeProfitMaximizingTrade_UniswapV2AM_Fuzz_Test is UniswapV2AM_Fuzz_
         uint112 reserve0,
         uint112 reserve1
     ) public view {
-        vm.assume(reserve0 > 10e6); //Minimum liquidity
-        vm.assume(reserve1 > 10e6); //Minimum liquidity
-        vm.assume(priceToken0 > 10e6); //Realistic prices
-        vm.assume(priceToken1 > 10e6); //Realistic prices
-        vm.assume(priceToken0 <= type(uint256).max / reserve0); //Overflow, only with unrealistic big numbers
-        vm.assume(priceToken1 <= type(uint256).max / 997); //Overflow, only with unrealistic big priceToken1
+        //Minimum liquidity
+        reserve0 = uint112(bound(reserve0, 10e6 + 1, type(uint112).max));
+        reserve1 = uint112(bound(reserve1, 10e6 + 1, type(uint112).max));
+        //Realistic prices, overflow only with unrealistic big numbers
+        priceToken0 = bound(priceToken0, 10e6 + 1, type(uint256).max / reserve0);
+        priceToken1 = bound(priceToken1, 10e6 + 1, type(uint256).max / 997);
 
         uint256 invariant = uint256(reserve0) * reserve1 * 1000;
         vm.assume(invariant / priceToken1 / 997 <= type(uint256).max / priceToken0); //leftSide overflows when arb is from token 1 to 0, only with unrealistic numbers

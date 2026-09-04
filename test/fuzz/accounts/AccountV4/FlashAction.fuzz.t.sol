@@ -22,7 +22,7 @@ import { Utils } from "../../../utils/Utils.sol";
 /**
  * @notice Fuzz tests for the function "flashAction" of contract "AccountV4".
  */
-// forge-lint: disable-next-item(divide-before-multiply)
+// forge-lint: disable-next-item(divide-before-multiply,unsafe-typecast)
 contract FlashAction_AccountV4_Fuzz_Test is AccountV4_Fuzz_Test, Permit2Fixture {
     /* ///////////////////////////////////////////////////////////////
                               SETUP
@@ -336,8 +336,7 @@ contract FlashAction_AccountV4_Fuzz_Test is AccountV4_Fuzz_Test, Permit2Fixture 
     }
 
     function testFuzz_Success_flashAction_Owner(uint32 time, bytes calldata signature) public {
-        vm.assume(time > 2 days);
-        vm.assume(time > 2 days);
+        time = uint32(bound(time, 2 days + 1, type(uint32).max));
 
         uint256 token1AmountForAction = 1000 * 10 ** Constants.TOKEN_DECIMALS;
         uint256 token2AmountForAction = 1000 * 10 ** Constants.TOKEN_DECIMALS;
@@ -495,7 +494,7 @@ contract FlashAction_AccountV4_Fuzz_Test is AccountV4_Fuzz_Test, Permit2Fixture 
         uint32 time,
         bytes calldata signature
     ) public {
-        vm.assume(time > 2 days);
+        time = uint32(bound(time, 2 days + 1, type(uint32).max));
         vm.assume(users.accountOwner != assetManager);
         vm.startPrank(users.accountOwner);
         accountSpot.setAssetManager(assetManager, true);

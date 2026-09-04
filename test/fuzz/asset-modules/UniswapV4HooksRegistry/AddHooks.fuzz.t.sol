@@ -11,6 +11,7 @@ import { UniswapV4HooksRegistry } from "../../../../src/asset-modules/UniswapV4/
 /**
  * @notice Fuzz tests for the function "AddHooks" of contract "UniswapV4HooksRegistry".
  */
+// forge-lint: disable-next-item(unsafe-typecast)
 contract AddHooks_UniswapV4HooksRegistry_Fuzz_Test is UniswapV4HooksRegistry_Fuzz_Test {
     /* ///////////////////////////////////////////////////////////////
                               SETUP

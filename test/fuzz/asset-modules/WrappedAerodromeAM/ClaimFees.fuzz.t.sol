@@ -82,10 +82,9 @@ contract ClaimFees_WrappedAerodromeAM_Fuzz_Test is WrappedAerodromeAM_Fuzz_Test 
         vm.assume(owner != aeroPool.poolFees());
 
         // And: Valid state.
+        poolState.totalWrapped = uint128(bound(poolState.totalWrapped, 2, type(uint128).max));
+        positionState.amountWrapped = uint128(bound(positionState.amountWrapped, 2, poolState.totalWrapped));
         (poolState, positionState, fee0, fee1) = givenValidAMState(poolState, positionState, fee0, fee1);
-
-        // And : Owner has a balance bigger as 1.
-        vm.assume(positionState.amountWrapped > 1);
 
         // And: State is persisted.
         setAMState(aeroPool, positionId, poolState, positionState);

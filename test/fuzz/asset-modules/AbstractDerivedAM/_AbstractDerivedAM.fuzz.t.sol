@@ -4,7 +4,9 @@
  */
 pragma solidity ^0.8.0;
 
+import { BitPackingLib } from "../../../../src/libraries/BitPackingLib.sol";
 import { DerivedAMMock } from "../../../utils/mocks/asset-modules/DerivedAMMock.sol";
+import { OracleModuleMock } from "../../../utils/mocks/oracle-modules/OracleModuleMock.sol";
 import { Fuzz_Test } from "../../Fuzz.t.sol";
 import { PrimaryAMMock } from "../../../utils/mocks/asset-modules/PrimaryAMMock.sol";
 
@@ -38,7 +40,8 @@ abstract contract AbstractDerivedAM_Fuzz_Test is Fuzz_Test {
 
     struct UnderlyingAssetModuleState {
         uint112 exposureAssetLast;
-        uint256 usdValue;
+        uint64 assetUnit;
+        uint256 rateInUsd;
     }
 
     /*////////////////////////////////////////////////////////////////
@@ -47,7 +50,10 @@ abstract contract AbstractDerivedAM_Fuzz_Test is Fuzz_Test {
 
     // forge-lint: disable-start(mixed-case-variable)
     DerivedAMMock internal derivedAM;
+    OracleModuleMock internal oracleModule;
     PrimaryAMMock internal primaryAM;
+
+    uint256 internal constant PRIMARY_AM_ORACLE_ID = 999;
     // forge-lint: disable-end(mixed-case-variable)
 
     /* ///////////////////////////////////////////////////////////////
@@ -62,6 +68,7 @@ abstract contract AbstractDerivedAM_Fuzz_Test is Fuzz_Test {
         derivedAM = new DerivedAMMock(users.owner, address(registry), 0);
 
         primaryAM = new PrimaryAMMock(users.owner, address(registry), 0);
+        oracleModule = new OracleModuleMock(users.owner, address(registry));
 
         registry.addAssetModule(address(derivedAM));
         registry.addAssetModule(address(primaryAM));
@@ -106,6 +113,24 @@ abstract contract AbstractDerivedAM_Fuzz_Test is Fuzz_Test {
         );
     }
 
+    function addMockedOracle(uint256 oracleId, uint256 rate, bytes16 baseAsset, bytes16 quoteAsset, bool active)
+        public
+    {
+        oracleModule.setOracle(oracleId, baseAsset, quoteAsset, active);
+        registry.setOracleToOracleModule(oracleId, address(oracleModule));
+        oracleModule.setRate(oracleId, rate);
+    }
+
+    // forge-lint: disable-next-item(mixed-case-function,unsafe-typecast)
+    function setPrimaryAMOracle(address asset, uint256 assetId, uint64 assetUnit, uint256 usdValue) public {
+        addMockedOracle(PRIMARY_AM_ORACLE_ID, usdValue, bytes16("A"), bytes16("USD"), true);
+        uint80[] memory oracleIds = new uint80[](1);
+        oracleIds[0] = uint80(PRIMARY_AM_ORACLE_ID);
+        bool[] memory baseToQuoteAsset = new bool[](1);
+        baseToQuoteAsset[0] = true;
+        primaryAM.setAssetInformation(asset, assetId, assetUnit, BitPackingLib.pack(baseToQuoteAsset, oracleIds));
+    }
+
     // forge-lint: disable-next-item(mixed-case-variable)
     function setUnderlyingAssetModuleState(
         DerivedAMAssetState memory assetState,
@@ -119,8 +144,20 @@ abstract contract AbstractDerivedAM_Fuzz_Test is Fuzz_Test {
             assetState.creditor, assetState.underlyingAsset, assetState.underlyingAssetId, 0, type(uint112).max
         );
 
-        // Mock the "usdValue".
-        primaryAM.setUsdValue(underlyingPMState.usdValue);
+        setPrimaryAMOracle(
+            assetState.underlyingAsset,
+            assetState.underlyingAssetId,
+            underlyingPMState.assetUnit,
+            underlyingPMState.rateInUsd
+        );
+    }
+
+    // forge-lint: disable-next-item(mixed-case-variable)
+    function usdExposureToUnderlyingAsset(
+        DerivedAMAssetState memory assetState,
+        UnderlyingAssetModuleState memory underlyingPMState
+    ) internal pure returns (uint256) {
+        return assetState.exposureAssetToUnderlyingAsset * underlyingPMState.rateInUsd / underlyingPMState.assetUnit;
     }
 
     // forge-lint: disable-next-item(mixed-case-variable)
@@ -136,6 +173,18 @@ abstract contract AbstractDerivedAM_Fuzz_Test is Fuzz_Test {
         // Given: id's are smaller or equal to type(uint96).max.
         assetState.assetId = bound(assetState.assetId, 0, type(uint96).max);
         assetState.underlyingAssetId = bound(assetState.underlyingAssetId, 0, type(uint96).max);
+
+        // And: "exposure" of underlyingAsset is strictly smaller than its "maxExposure".
+        assetState.exposureAssetToUnderlyingAsset =
+            bound(assetState.exposureAssetToUnderlyingAsset, 1, type(uint64).max);
+
+        // And: "usdExposureToUnderlyingAsset" does not overflow.
+        underlyingPMState.assetUnit = uint64(bound(underlyingPMState.assetUnit, 1, type(uint64).max));
+        underlyingPMState.rateInUsd = bound(
+            underlyingPMState.rateInUsd,
+            0,
+            uint256(type(uint112).max - 1) * underlyingPMState.assetUnit / assetState.exposureAssetToUnderlyingAsset
+        );
 
         // And: usd Value of protocol is bigger or equal to each individual usd value of an asset (Invariant).
         assetState.lastUsdExposureAsset =
@@ -162,18 +211,14 @@ abstract contract AbstractDerivedAM_Fuzz_Test is Fuzz_Test {
             int256
         )
     {
-        // Given: "usdExposureToUnderlyingAsset" does not overflow.
-        underlyingPMState.usdValue = bound(underlyingPMState.usdValue, 0, type(uint112).max);
+        // Given: valid initial state.
+        (protocolState, assetState, underlyingPMState) = givenValidState(protocolState, assetState, underlyingPMState);
+        uint256 usdValue = usdExposureToUnderlyingAsset(assetState, underlyingPMState);
 
         // And: "usdExposureUpperAssetToAsset" does not overflow (unrealistic big values).
-        if (underlyingPMState.usdValue != 0) {
-            exposureUpperAssetToAsset =
-                bound(exposureUpperAssetToAsset, 0, type(uint256).max / underlyingPMState.usdValue);
+        if (usdValue != 0) {
+            exposureUpperAssetToAsset = bound(exposureUpperAssetToAsset, 0, type(uint256).max / usdValue);
         }
-
-        // And: id's are smaller or equal to type(uint96).max.
-        assetState.assetId = bound(assetState.assetId, 0, type(uint96).max);
-        assetState.underlyingAssetId = bound(assetState.underlyingAssetId, 0, type(uint96).max);
 
         // Calculate exposureAsset.
         uint256 exposureAsset;
@@ -186,24 +231,21 @@ abstract contract AbstractDerivedAM_Fuzz_Test is Fuzz_Test {
             exposureAsset = assetState.exposureAssetLast + uint256(deltaExposureUpperAssetToAsset);
         } else {
             // And: No overflow on negation most negative int256 (this overflows).
-            vm.assume(deltaExposureUpperAssetToAsset > type(int256).min);
+            deltaExposureUpperAssetToAsset =
+                bound(deltaExposureUpperAssetToAsset, type(int256).min + 1, type(int256).max);
 
             if (uint256(-deltaExposureUpperAssetToAsset) < assetState.exposureAssetLast) {
                 exposureAsset = uint256(assetState.exposureAssetLast) - uint256(-deltaExposureUpperAssetToAsset);
             }
         }
 
-        // And: "exposure" of underlyingAsset is strictly smaller than its "maxExposure".
-        assetState.exposureAssetToUnderlyingAsset =
-            bound(assetState.exposureAssetToUnderlyingAsset, 0, type(uint112).max - 1);
-
-        if (underlyingPMState.usdValue >= assetState.lastUsdExposureAsset) {
+        if (usdValue >= assetState.lastUsdExposureAsset) {
             // And: "usdExposureProtocol" does not overflow (unrealistically big).
             protocolState.lastUsdExposureProtocol = uint112(
                 bound(
                     protocolState.lastUsdExposureProtocol,
                     assetState.lastUsdExposureAsset,
-                    type(uint112).max - (underlyingPMState.usdValue - assetState.lastUsdExposureAsset)
+                    type(uint112).max - (usdValue - assetState.lastUsdExposureAsset)
                 )
             );
         }
@@ -236,17 +278,25 @@ abstract contract AbstractDerivedAM_Fuzz_Test is Fuzz_Test {
             );
 
         // And: "exposure" is strictly smaller than "maxExposure".
+        uint256 usdValue = usdExposureToUnderlyingAsset(assetState, underlyingPMState);
         uint256 usdExposureProtocolExpected;
-        if (underlyingPMState.usdValue >= assetState.lastUsdExposureAsset) {
+        if (usdValue >= assetState.lastUsdExposureAsset) {
+            // Leave room for the added exposure, the invariant on lastUsdExposureAsset still holds.
+            protocolState.lastUsdExposureProtocol = uint112(
+                bound(
+                    protocolState.lastUsdExposureProtocol,
+                    assetState.lastUsdExposureAsset,
+                    type(uint112).max - (usdValue - assetState.lastUsdExposureAsset) - 1
+                )
+            );
             usdExposureProtocolExpected =
-                protocolState.lastUsdExposureProtocol + (underlyingPMState.usdValue - assetState.lastUsdExposureAsset);
+                protocolState.lastUsdExposureProtocol + (usdValue - assetState.lastUsdExposureAsset);
         } else {
             usdExposureProtocolExpected = protocolState.lastUsdExposureProtocol
-                > assetState.lastUsdExposureAsset - underlyingPMState.usdValue
-                ? protocolState.lastUsdExposureProtocol - (assetState.lastUsdExposureAsset - underlyingPMState.usdValue)
+                > assetState.lastUsdExposureAsset - usdValue
+                ? protocolState.lastUsdExposureProtocol - (assetState.lastUsdExposureAsset - usdValue)
                 : 0;
         }
-        vm.assume(usdExposureProtocolExpected < type(uint112).max);
         protocolState.maxUsdExposureProtocol =
             uint112(bound(protocolState.maxUsdExposureProtocol, usdExposureProtocolExpected + 1, type(uint112).max));
 

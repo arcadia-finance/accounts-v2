@@ -39,7 +39,7 @@ contract DecreaseLiquidity_StakedAerodromeAM_Fuzz_Test is StakedAerodromeAM_Fuzz
 
     function testFuzz_Revert_decreaseLiquidity_NotOwner(uint256 id, uint128 amount, address owner) public {
         // Given : Amount is greater than 0.
-        vm.assume(amount > 0);
+        amount = uint128(bound(amount, 1, type(uint128).max));
 
         // Given : Owner is not the caller.
         vm.assume(owner != users.accountOwner);
@@ -80,12 +80,7 @@ contract DecreaseLiquidity_StakedAerodromeAM_Fuzz_Test is StakedAerodromeAM_Fuzz
         stakedAerodromeAM.addAsset(address(aeroGauge));
 
         // Given : Valid state
-        (assetState, positionState) = givenValidStakingAMState(assetState, positionState);
-
-        // And : Account has a non-zero balance.
-        vm.assume(positionState.amountStaked > 0);
-        // And : Account has a balance smaller as type(uint128).max.
-        vm.assume(positionState.amountStaked < type(uint128).max);
+        (assetState, positionState) = givenValidStakingAMState(assetState, positionState, 1, type(uint128).max);
 
         // And: State is persisted.
         setStakedAerodromeAMState(assetState, positionState, address(aeroPool), positionId);
@@ -128,10 +123,7 @@ contract DecreaseLiquidity_StakedAerodromeAM_Fuzz_Test is StakedAerodromeAM_Fuzz
         stakedAerodromeAM.addAsset(address(aeroGauge));
 
         // Given : Valid state
-        (assetState, positionState) = givenValidStakingAMState(assetState, positionState);
-
-        // And : Account has a non-zero balance
-        vm.assume(positionState.amountStaked > 0);
+        (assetState, positionState) = givenValidStakingAMState(assetState, positionState, 1, type(uint128).max);
 
         // And: State is persisted.
         setStakedAerodromeAMState(assetState, positionState, address(aeroPool), positionId);
@@ -151,7 +143,7 @@ contract DecreaseLiquidity_StakedAerodromeAM_Fuzz_Test is StakedAerodromeAM_Fuzz
         // And : Enough AERO is claimable in stakedAerodromeAM
         deal(AERO, address(stakedAerodromeAM), currentRewardAccount);
 
-        // And reward is non-zero.
+        // And: reward is non-zero.
         vm.assume(currentRewardAccount > 0);
 
         // When : Account withdraws full position from stakingAM
@@ -230,10 +222,7 @@ contract DecreaseLiquidity_StakedAerodromeAM_Fuzz_Test is StakedAerodromeAM_Fuzz
         uint256 currentRewardAccount;
         {
             // Given : Valid state
-            (assetState, positionState) = givenValidStakingAMState(assetState, positionState);
-
-            // And : Account has a balance bigger as 1.
-            vm.assume(positionState.amountStaked > 1);
+            (assetState, positionState) = givenValidStakingAMState(assetState, positionState, 2, type(uint128).max);
 
             // And: State is persisted.
             setStakedAerodromeAMState(assetState, positionState, address(aeroPool), positionId);
@@ -248,7 +237,7 @@ contract DecreaseLiquidity_StakedAerodromeAM_Fuzz_Test is StakedAerodromeAM_Fuzz
             aeroGauge.deposit(positionState.amountStaked);
             vm.stopPrank();
 
-            // And reward is non-zero.
+            // And: reward is non-zero.
             currentRewardAccount = stakedAerodromeAM.rewardOf(positionId);
             vm.assume(currentRewardAccount > 0);
 
@@ -331,12 +320,9 @@ contract DecreaseLiquidity_StakedAerodromeAM_Fuzz_Test is StakedAerodromeAM_Fuzz
         stakedAerodromeAM.addAsset(address(aeroGauge));
 
         // Given : Valid state
-        (assetState, positionState) = givenValidStakingAMState(assetState, positionState);
+        (assetState, positionState) = givenValidStakingAMState(assetState, positionState, 1, type(uint128).max);
 
-        // And : Account has a non-zero balance
-        vm.assume(positionState.amountStaked > 0);
-
-        // And reward is zero.
+        // And: reward is zero.
         positionState.lastRewardPosition = 0;
         positionState.lastRewardPerTokenPosition = assetState.lastRewardPerTokenGlobal;
         assetState.currentRewardGlobal = 0;
@@ -418,12 +404,9 @@ contract DecreaseLiquidity_StakedAerodromeAM_Fuzz_Test is StakedAerodromeAM_Fuzz
 
         {
             // Given : Valid state
-            (assetState, positionState) = givenValidStakingAMState(assetState, positionState);
+            (assetState, positionState) = givenValidStakingAMState(assetState, positionState, 2, type(uint128).max);
 
-            // And : Account has a balance bigger as 1.
-            vm.assume(positionState.amountStaked > 1);
-
-            // And reward is zero.
+            // And: reward is zero.
             positionState.lastRewardPosition = 0;
             positionState.lastRewardPerTokenPosition = assetState.lastRewardPerTokenGlobal;
             assetState.currentRewardGlobal = 0;
@@ -534,7 +517,7 @@ contract DecreaseLiquidity_StakedAerodromeAM_Fuzz_Test is StakedAerodromeAM_Fuzz
         // And : Assume previously earned rewards were previously claimed by the stakedAerodromeAM
         deal(AERO, address(stakedAerodromeAM), positionState.lastRewardPosition);
 
-        // And reward is non-zero.
+        // And: reward is non-zero.
         vm.assume(currentRewardAccount > 0);
 
         // When : Account withdraws full position from stakingAM

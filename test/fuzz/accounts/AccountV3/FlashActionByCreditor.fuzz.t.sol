@@ -682,7 +682,7 @@ contract FlashActionByCreditor_AccountV3_Fuzz_Test is AccountV3_Fuzz_Test, Permi
         bytes calldata signature,
         uint32 time
     ) public {
-        vm.assume(time > 2 days);
+        time = uint32(bound(time, 2 days + 1, type(uint32).max));
         vm.prank(users.accountOwner);
         accountExtension.openMarginAccount(address(creditorToken1));
 
@@ -695,11 +695,6 @@ contract FlashActionByCreditor_AccountV3_Fuzz_Test is AccountV3_Fuzz_Test, Permi
             uint256 token1AmountForAction = 1000 * 10 ** Constants.TOKEN_DECIMALS;
             uint256 token2AmountForAction = 1000 * 10 ** Constants.TOKEN_DECIMALS;
             uint256 token1ToToken2Ratio = rates.token1ToUsd / rates.token2ToUsd;
-
-            vm.assume(
-                token1AmountForAction + ((uint256(debtAmount) + minimumMargin) * token1ToToken2Ratio)
-                    < type(uint256).max
-            );
 
             // We increase the price of token 2 in order to avoid to end up with unhealthy state of accountExtension
             vm.startPrank(users.transmitter);

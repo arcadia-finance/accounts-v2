@@ -36,7 +36,7 @@ contract Mint_WrappedAerodromeAM_Fuzz_Test is WrappedAerodromeAM_Fuzz_Test {
 
     function testFuzz_Revert_mint_PoolNotAllowed(uint128 amount, bool stable, address account_) public {
         // Given : Amount is greater than zero
-        vm.assume(amount > 0);
+        amount = uint128(bound(amount, 1, type(uint128).max));
 
         // Given : Valid aeroPool
         aeroPool = createPoolAerodrome(address(asset0), address(asset1), stable);
@@ -65,10 +65,10 @@ contract Mint_WrappedAerodromeAM_Fuzz_Test is WrappedAerodromeAM_Fuzz_Test {
 
         // And: Valid state.
         WrappedAerodromeAM.PositionState memory positionState;
+        poolState.totalWrapped = uint128(bound(poolState.totalWrapped, 1, type(uint128).max - 1));
         (poolState, positionState, fee0, fee1) = givenValidAMState(poolState, positionState, fee0, fee1);
 
         // And: Amount staked is greater than zero.
-        vm.assume(poolState.totalWrapped < type(uint128).max);
         amount = uint128(bound(amount, 1, type(uint128).max - poolState.totalWrapped));
 
         // And: State is persisted.

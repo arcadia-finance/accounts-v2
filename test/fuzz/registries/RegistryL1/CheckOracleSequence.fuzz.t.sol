@@ -54,7 +54,7 @@ contract CheckOracleSequence_RegistryL1_Fuzz_Test is RegistryL1_Fuzz_Test {
     //////////////////////////////////////////////////////////////*/
 
     function testFuzz_Revert_checkOracleSequence_ZeroOracles(bytes32 oracleSequence) public {
-        // Given length of oracles is zero (two rightmost bits are zero)
+        // Given: length of oracles is zero (two rightmost bits are zero)
         oracleSequence = oracleSequence << 2;
 
         vm.expectRevert(RegistryErrors.Min1Oracle.selector);

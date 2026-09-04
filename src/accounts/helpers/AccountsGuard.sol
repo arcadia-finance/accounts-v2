@@ -60,6 +60,7 @@ contract AccountsGuard is Owned {
     /**
      * @dev Throws when caller is not the guardian.
      */
+    // forge-lint: disable-next-item(modifier-used-only-once)
     modifier onlyGuardian() {
         if (msg.sender != guardian) revert OnlyGuardian();
         _;
@@ -68,6 +69,7 @@ contract AccountsGuard is Owned {
     /**
      * @dev Throws if the functionalities are paused.
      */
+    // forge-lint: disable-next-item(modifier-used-only-once)
     modifier whenNotPaused() {
         if (paused) revert Paused();
         _;

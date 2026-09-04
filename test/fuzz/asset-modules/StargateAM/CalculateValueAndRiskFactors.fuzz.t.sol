@@ -32,7 +32,7 @@ contract CalculateValueAndRiskFactors_StargateAM_Fuzz_Test is StargateAM_Fuzz_Te
         address creditor,
         uint256 underlyingAssetsAmount
     ) public {
-        // Given value do not overflow.
+        // Given: value do not overflow.
         if (underlyingAssetsAmount > 0) {
             assetRate = bound(assetRate, 0, type(uint256).max / underlyingAssetsAmount);
         }
@@ -46,7 +46,7 @@ contract CalculateValueAndRiskFactors_StargateAM_Fuzz_Test is StargateAM_Fuzz_Te
         uint256 expectedCollateralFactor = uint256(collateralFactor) * riskFactor / AssetValuationLib.ONE_4;
         uint256 expectedLiquidationFactor = uint256(liquidationFactor) * riskFactor / AssetValuationLib.ONE_4;
 
-        // And riskFactor is set.
+        // And: riskFactor is set.
         vm.prank(address(registry));
         stargateAssetModule.setRiskParameters(creditor, 0, riskFactor);
 

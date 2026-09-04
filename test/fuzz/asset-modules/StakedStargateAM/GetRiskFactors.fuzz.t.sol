@@ -7,6 +7,7 @@ pragma solidity ^0.8.0;
 import { StakedStargateAM_Fuzz_Test } from "./_StakedStargateAM.fuzz.t.sol";
 
 import { AssetValuationLib } from "../../../../src/libraries/AssetValuationLib.sol";
+import { Constants } from "../../../utils/Constants.sol";
 
 /**
  * @notice Fuzz tests for the function "getRiskFactors" of contract "StakedStargateAM".
@@ -26,7 +27,6 @@ contract GetRiskFactors_StakedStargateAM_Fuzz_Test is StakedStargateAM_Fuzz_Test
     /////////////////////////////////////////////////////////////// */
 
     function testFuzz_Success_getRiskFactors_NonZeroValueInUsd(
-        uint256[2] memory assetRates,
         uint16[2] memory collateralFactors,
         uint16[2] memory liquidationFactors,
         uint16 riskFactor,
@@ -35,18 +35,9 @@ contract GetRiskFactors_StakedStargateAM_Fuzz_Test is StakedStargateAM_Fuzz_Test
         uint256 poolId,
         uint256 pid
     ) public {
-        // ToDo assetRates are hard coded for now.
-        assetRates[0] = 3_000_000_000_000_000_000_000;
-        assetRates[1] = 6_000_000_000_000_000_000_000;
-
-        // Given amounts do not overflow.
+        // Given: amounts do not overflow.
         underlyingAssetsAmounts[0] = bound(underlyingAssetsAmounts[0], 10_000, type(uint64).max);
         underlyingAssetsAmounts[1] = bound(underlyingAssetsAmounts[1], 10_000, type(uint64).max);
-
-        uint256 value0 = underlyingAssetsAmounts[0] * assetRates[0] / 1e18;
-        uint256 value1 = underlyingAssetsAmounts[1] * assetRates[1] / 1e18;
-        uint256 expectedValueInUsd = value0 + value1;
-        vm.assume(expectedValueInUsd > 0);
 
         // And: Risk factors are below max risk factor.
         riskFactor = uint16(bound(riskFactor, 0, AssetValuationLib.ONE_4));
@@ -55,11 +46,11 @@ contract GetRiskFactors_StakedStargateAM_Fuzz_Test is StakedStargateAM_Fuzz_Test
         liquidationFactors[0] = uint16(bound(liquidationFactors[0], collateralFactors[0], AssetValuationLib.ONE_4));
         liquidationFactors[1] = uint16(bound(liquidationFactors[1], collateralFactors[1], AssetValuationLib.ONE_4));
 
-        // And riskFactor is set.
+        // And: riskFactor is set.
         vm.prank(address(registry));
         stakedStargateAM.setRiskParameters(creditor, 0, riskFactor);
 
-        // And state stargateAssetModule is set.
+        // And: state stargateAssetModule is set.
         sgFactoryMock.setPool(poolId, address(poolMock));
         poolMock.setToken(address(mockERC20.token1));
         stargateAssetModule.addAsset(poolId);
@@ -70,7 +61,7 @@ contract GetRiskFactors_StakedStargateAM_Fuzz_Test is StakedStargateAM_Fuzz_Test
         );
         vm.stopPrank();
 
-        // And staked pool is set.
+        // And: staked pool is set.
         lpStakingTimeMock.setInfoForPoolId(pid, 0, address(poolMock));
         stakedStargateAM.addAsset(pid);
         vm.startPrank(address(registry));
@@ -79,7 +70,7 @@ contract GetRiskFactors_StakedStargateAM_Fuzz_Test is StakedStargateAM_Fuzz_Test
         );
         vm.stopPrank();
 
-        // And position is minted.
+        // And: position is minted.
         poolMock.setState(address(mockERC20.token1), underlyingAssetsAmounts[0], underlyingAssetsAmounts[0], 1);
         deal(address(poolMock), users.liquidityProvider, underlyingAssetsAmounts[0], true);
         vm.startPrank(users.liquidityProvider);
@@ -87,8 +78,20 @@ contract GetRiskFactors_StakedStargateAM_Fuzz_Test is StakedStargateAM_Fuzz_Test
         uint256 positionId = stakedStargateAM.mint(address(poolMock), uint128(underlyingAssetsAmounts[0]));
         vm.stopPrank();
 
-        // And reward is available.
+        // And: reward is available.
         lpStakingTimeMock.setInfoForPoolId(pid, underlyingAssetsAmounts[1], address(poolMock));
+
+        // And: The expected value uses the pool its liquidity to supply ratio.
+        uint256 value0;
+        uint256 value1;
+        {
+            uint256 rateToken1 = rates.token1ToUsd * 10 ** (18 - Constants.TOKEN_ORACLE_DECIMALS);
+            uint256 ratePool = rateToken1 * poolMock.totalLiquidity() / poolMock.totalSupply();
+            value0 = underlyingAssetsAmounts[0] * ratePool / 1e18;
+            value1 = underlyingAssetsAmounts[1] * rateToken1 / 1e18;
+        }
+        uint256 expectedValueInUsd = value0 + value1;
+        vm.assume(expectedValueInUsd > 0);
 
         uint256 expectedCollateralFactor = riskFactor
             * ((value0 * collateralFactors[0] + value1 * collateralFactors[1]) / expectedValueInUsd)
@@ -118,7 +121,7 @@ contract GetRiskFactors_StakedStargateAM_Fuzz_Test is StakedStargateAM_Fuzz_Test
         stargateOracle.transmit(int256(0));
         vm.stopPrank();
 
-        // Given amounts do not overflow.
+        // Given: amounts do not overflow.
         underlyingAssetsAmounts[0] = bound(underlyingAssetsAmounts[0], 1, type(uint64).max);
         underlyingAssetsAmounts[1] = bound(underlyingAssetsAmounts[1], 0, type(uint64).max);
 
@@ -129,11 +132,11 @@ contract GetRiskFactors_StakedStargateAM_Fuzz_Test is StakedStargateAM_Fuzz_Test
         liquidationFactors[0] = uint16(bound(liquidationFactors[0], collateralFactors[0], AssetValuationLib.ONE_4));
         liquidationFactors[1] = uint16(bound(liquidationFactors[1], collateralFactors[1], AssetValuationLib.ONE_4));
 
-        // And riskFactor is set.
+        // And: riskFactor is set.
         vm.prank(address(registry));
         stakedStargateAM.setRiskParameters(creditor, 0, riskFactor);
 
-        // And state stargateAssetModule is set.
+        // And: state stargateAssetModule is set.
         sgFactoryMock.setPool(poolId, address(poolMock));
         poolMock.setToken(address(mockERC20.token1));
         stargateAssetModule.addAsset(poolId);
@@ -144,7 +147,7 @@ contract GetRiskFactors_StakedStargateAM_Fuzz_Test is StakedStargateAM_Fuzz_Test
         );
         vm.stopPrank();
 
-        // And staked pool is set.
+        // And: staked pool is set.
         lpStakingTimeMock.setInfoForPoolId(pid, 0, address(poolMock));
         stakedStargateAM.addAsset(pid);
         vm.startPrank(address(registry));
@@ -153,7 +156,7 @@ contract GetRiskFactors_StakedStargateAM_Fuzz_Test is StakedStargateAM_Fuzz_Test
         );
         vm.stopPrank();
 
-        // And position is minted.
+        // And: position is minted.
         poolMock.setState(address(mockERC20.token1), underlyingAssetsAmounts[0], underlyingAssetsAmounts[0], 1);
         deal(address(poolMock), users.liquidityProvider, underlyingAssetsAmounts[0], true);
         vm.startPrank(users.liquidityProvider);
@@ -161,7 +164,7 @@ contract GetRiskFactors_StakedStargateAM_Fuzz_Test is StakedStargateAM_Fuzz_Test
         uint256 positionId = stakedStargateAM.mint(address(poolMock), uint128(underlyingAssetsAmounts[0]));
         vm.stopPrank();
 
-        // And reward is available.
+        // And: reward is available.
         lpStakingTimeMock.setInfoForPoolId(pid, underlyingAssetsAmounts[1], address(poolMock));
 
         (uint256 collateralFactor, uint256 liquidationFactor) =

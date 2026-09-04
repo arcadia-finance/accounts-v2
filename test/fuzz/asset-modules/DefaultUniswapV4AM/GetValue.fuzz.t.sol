@@ -47,16 +47,14 @@ contract GetValue_DefaultUniswapV4AM_Fuzz_Test is DefaultUniswapV4AM_Fuzz_Test {
         vm.stopPrank();
 
         // And : Avoid divide by 0 in next line.
-        vm.assume(vars.priceToken1 > 0);
-        // And : Cast to uint160 will overflow, not realistic.
-        vm.assume(vars.priceToken0 / vars.priceToken1 < 2 ** 128);
-        // Check that sqrtPriceX96 is within allowed Uniswap V4 ranges.
+        vars.priceToken1 = uint64(bound(vars.priceToken1, 1, type(uint64).max));
+        // And : sqrtPriceX96 is within the allowed Uniswap V4 range.
+        uint256 minPriceToken0 = (vars.priceToken1 * 10 ** (18 - vars.decimals1) - 1) / 10 ** 28 + 1;
+        vars.priceToken0 =
+            uint64(bound(vars.priceToken0, (minPriceToken0 - 1) / 10 ** (18 - vars.decimals0) + 1, type(uint64).max));
         uint160 sqrtPriceX96 = uniswapV4AM.getSqrtPriceX96(
             vars.priceToken0 * 10 ** (18 - vars.decimals0), vars.priceToken1 * 10 ** (18 - vars.decimals1)
         );
-
-        vm.assume(sqrtPriceX96 >= MIN_SQRT_PRICE);
-        vm.assume(sqrtPriceX96 <= MAX_SQRT_PRICE);
 
         // And : Initialize Uniswap V4 pool initiated at tickCurrent with tickSpacing = 1.
         int24 tickSpacing = 1;
@@ -124,16 +122,14 @@ contract GetValue_DefaultUniswapV4AM_Fuzz_Test is DefaultUniswapV4AM_Fuzz_Test {
         ERC20 token1_ = new ERC20Mock("TOKEN1", "TOK1", uint8(vars.decimals1));
 
         // And : Avoid divide by 0 in next line.
-        vm.assume(vars.priceToken1 > 0);
-        // And : Cast to uint160 will overflow, not realistic.
-        vm.assume(vars.priceToken0 / vars.priceToken1 < 2 ** 128);
-        // Check that sqrtPriceX96 is within allowed Uniswap V4 ranges.
+        vars.priceToken1 = uint64(bound(vars.priceToken1, 1, type(uint64).max));
+        // And : sqrtPriceX96 is within the allowed Uniswap V4 range.
+        uint256 minPriceToken0 = (vars.priceToken1 * 10 ** (18 - vars.decimals1) - 1) / 10 ** 28 + 1;
+        vars.priceToken0 =
+            uint64(bound(vars.priceToken0, (minPriceToken0 - 1) / 10 ** (18 - vars.decimals0) + 1, type(uint64).max));
         uint160 sqrtPriceX96 = uniswapV4AM.getSqrtPriceX96(
             vars.priceToken0 * 10 ** (18 - vars.decimals0), vars.priceToken1 * 10 ** (18 - vars.decimals1)
         );
-
-        vm.assume(sqrtPriceX96 >= MIN_SQRT_PRICE);
-        vm.assume(sqrtPriceX96 <= MAX_SQRT_PRICE);
 
         // And : Initialize Uniswap V4 pool initiated at tickCurrent with tickSpacing = 1.
         int24 tickSpacing = 1;

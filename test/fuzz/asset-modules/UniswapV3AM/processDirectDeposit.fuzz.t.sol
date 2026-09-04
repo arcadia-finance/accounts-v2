@@ -61,21 +61,17 @@ contract ProcessDirectDeposit_UniswapV3AM_Fuzz_Test is UniswapV3AM_Fuzz_Test {
         vm.assume(unprivilegedAddress != address(registry));
 
         // Check that ticks are within allowed ranges.
-        vm.assume(tickLower < tickUpper);
-        vm.assume(isWithinAllowedRange(tickLower));
-        vm.assume(isWithinAllowedRange(tickUpper));
-
-        vm.assume(liquidity > 0);
+        (tickLower, tickUpper) = givenValidTicks(tickLower, tickUpper);
 
         // Calculate and check that tick current is within allowed ranges.
+        (priceToken0, priceToken1) = givenValidPrices(priceToken0, priceToken1);
         uint160 sqrtPriceX96 = uint160(calculateAndValidateRangeTickCurrent(priceToken0, priceToken1));
-        vm.assume(isWithinAllowedRange(TickMath.getTickAtSqrtRatio(sqrtPriceX96)));
 
         // Create Uniswap V3 pool initiated at tickCurrent with cardinality 300.
         pool = createPoolUniV3(address(token0), address(token1), 100, sqrtPriceX96, 300);
 
         // Check that Liquidity is within allowed ranges.
-        vm.assume(liquidity <= pool.maxLiquidityPerTick());
+        liquidity = uint128(bound(liquidity, 1, pool.maxLiquidityPerTick()));
 
         // Mint liquidity position.
         (uint256 tokenId,,) = addLiquidityUniV3(pool, liquidity, users.liquidityProvider, tickLower, tickUpper, false);
@@ -120,21 +116,17 @@ contract ProcessDirectDeposit_UniswapV3AM_Fuzz_Test is UniswapV3AM_Fuzz_Test {
         uint112 maxExposure0
     ) public {
         // Check that ticks are within allowed ranges.
-        vm.assume(tickLower < tickUpper);
-        vm.assume(isWithinAllowedRange(tickLower));
-        vm.assume(isWithinAllowedRange(tickUpper));
-
-        vm.assume(liquidity > 0);
+        (tickLower, tickUpper) = givenValidTicks(tickLower, tickUpper);
 
         // Calculate and check that tick current is within allowed ranges.
+        (priceToken0, priceToken1) = givenValidPrices(priceToken0, priceToken1);
         uint160 sqrtPriceX96 = uint160(calculateAndValidateRangeTickCurrent(priceToken0, priceToken1));
-        vm.assume(isWithinAllowedRange(TickMath.getTickAtSqrtRatio(sqrtPriceX96)));
 
         // Create Uniswap V3 pool initiated at tickCurrent with cardinality 300.
         pool = createPoolUniV3(address(token0), address(token1), 100, sqrtPriceX96, 300);
 
         // Check that Liquidity is within allowed ranges.
-        vm.assume(liquidity <= pool.maxLiquidityPerTick());
+        liquidity = uint128(bound(liquidity, 1, pool.maxLiquidityPerTick()));
 
         // Mint liquidity position.
         (uint256 tokenId,,) = addLiquidityUniV3(pool, liquidity, users.liquidityProvider, tickLower, tickUpper, false);
@@ -149,7 +141,8 @@ contract ProcessDirectDeposit_UniswapV3AM_Fuzz_Test is UniswapV3AM_Fuzz_Test {
 
         // Condition on which the call should revert: exposure to token0 becomes bigger than maxExposure0.
         vm.assume(amount0 > 0);
-        vm.assume(amount0 + initialExposure0 >= maxExposure0);
+        initialExposure0 =
+            uint112(bound(initialExposure0, maxExposure0 > amount0 ? maxExposure0 - amount0 : 0, type(uint112).max));
 
         // Add underlying tokens and its oracles to Arcadia.
         addAssetToArcadia(address(token0), int256(priceToken0), initialExposure0, maxExposure0);
@@ -171,21 +164,17 @@ contract ProcessDirectDeposit_UniswapV3AM_Fuzz_Test is UniswapV3AM_Fuzz_Test {
         uint112 maxExposure1
     ) public {
         // Check that ticks are within allowed ranges.
-        vm.assume(tickLower < tickUpper);
-        vm.assume(isWithinAllowedRange(tickLower));
-        vm.assume(isWithinAllowedRange(tickUpper));
-
-        vm.assume(liquidity > 0);
+        (tickLower, tickUpper) = givenValidTicks(tickLower, tickUpper);
 
         // Calculate and check that tick current is within allowed ranges.
+        (priceToken0, priceToken1) = givenValidPrices(priceToken0, priceToken1);
         uint160 sqrtPriceX96 = uint160(calculateAndValidateRangeTickCurrent(priceToken0, priceToken1));
-        vm.assume(isWithinAllowedRange(TickMath.getTickAtSqrtRatio(sqrtPriceX96)));
 
         // Create Uniswap V3 pool initiated at tickCurrent with cardinality 300.
         pool = createPoolUniV3(address(token0), address(token1), 100, sqrtPriceX96, 300);
 
         // Check that Liquidity is within allowed ranges.
-        vm.assume(liquidity <= pool.maxLiquidityPerTick());
+        liquidity = uint128(bound(liquidity, 1, pool.maxLiquidityPerTick()));
 
         // Mint liquidity position.
         (uint256 tokenId,,) = addLiquidityUniV3(pool, liquidity, users.liquidityProvider, tickLower, tickUpper, false);
@@ -203,7 +192,8 @@ contract ProcessDirectDeposit_UniswapV3AM_Fuzz_Test is UniswapV3AM_Fuzz_Test {
 
         // Condition on which the call should revert: exposure to token1 becomes bigger than maxExposure1.
         vm.assume(amount1 > 0);
-        vm.assume(amount1 + initialExposure1 >= maxExposure1);
+        initialExposure1 =
+            uint112(bound(initialExposure1, maxExposure1 > amount1 ? maxExposure1 - amount1 : 0, type(uint112).max));
 
         // And: Usd value of underlying asset does not overflow.
         vm.assume(amount0 <= type(uint256).max / priceToken0 / 10 ** (18 - 0)); // divided by 10 ** (18 - DecimalsOracle).
@@ -231,20 +221,18 @@ contract ProcessDirectDeposit_UniswapV3AM_Fuzz_Test is UniswapV3AM_Fuzz_Test {
         uint112 maxExposure1
     ) public {
         // Check that ticks are within allowed ranges.
-        vm.assume(tickLower < tickUpper);
-        vm.assume(isWithinAllowedRange(tickLower));
-        vm.assume(isWithinAllowedRange(tickUpper));
+        (tickLower, tickUpper) = givenValidTicks(tickLower, tickUpper);
         liquidity = uint128(bound(liquidity, 1, type(uint128).max));
 
         // Calculate and check that tick current is within allowed ranges.
+        (priceToken0, priceToken1) = givenValidPrices(priceToken0, priceToken1);
         uint160 sqrtPriceX96 = uint160(calculateAndValidateRangeTickCurrent(priceToken0, priceToken1));
-        vm.assume(isWithinAllowedRange(TickMath.getTickAtSqrtRatio(sqrtPriceX96)));
 
         // Create Uniswap V3 pool initiated at tickCurrent with cardinality 300.
         pool = createPoolUniV3(address(token0), address(token1), 100, sqrtPriceX96, 300);
 
         // Check that Liquidity is within allowed ranges.
-        vm.assume(liquidity <= pool.maxLiquidityPerTick());
+        liquidity = uint128(bound(liquidity, 1, pool.maxLiquidityPerTick()));
 
         // Mint liquidity position.
         (uint256 tokenId,,) = addLiquidityUniV3(pool, liquidity, users.liquidityProvider, tickLower, tickUpper, false);
@@ -265,14 +253,10 @@ contract ProcessDirectDeposit_UniswapV3AM_Fuzz_Test is UniswapV3AM_Fuzz_Test {
             );
 
             // Check that exposure to underlying tokens stays below maxExposures.
-            // vm.assume(amount0 + initialExposure0 < maxExposure0);
-            // vm.assume(amount1 + initialExposure1 < maxExposure1);
-            initialExposure0 = uint112(bound(initialExposure0, 0, maxExposure0 + amount0));
-            initialExposure1 = uint112(bound(initialExposure1, 0, maxExposure1 + amount1));
-
-            // And: Usd value of underlying assets does not overflow.
-            vm.assume(amount0 + initialExposure0 < type(uint112).max / priceToken0 / 10 ** (18 - 0)); // divided by 10 ** (18 - DecimalsOracle).
-            vm.assume(amount1 + initialExposure1 < type(uint112).max / priceToken1 / 10 ** (18 - 0)); // divided by 10 ** (18 - DecimalsOracle).
+            (initialExposure0, maxExposure0) =
+                givenValidExposures(amount0, initialExposure0, maxExposure0, priceToken0, type(uint112).max);
+            (initialExposure1, maxExposure1) =
+                givenValidExposures(amount1, initialExposure1, maxExposure1, priceToken1, type(uint112).max);
         }
 
         // Add underlying tokens and its oracles to Arcadia.
@@ -283,8 +267,13 @@ contract ProcessDirectDeposit_UniswapV3AM_Fuzz_Test is UniswapV3AM_Fuzz_Test {
             // And: usd exposure to protocol below max usd exposure.
             (uint256 usdExposureProtocol,,) =
                 uniV3AM.getValue(address(creditorUsd), address(nonfungiblePositionManager), tokenId, 1);
-            vm.assume(usdExposureProtocol < type(uint112).max);
-            maxUsdExposureProtocol = uint112(bound(maxUsdExposureProtocol, 0, usdExposureProtocol));
+            maxUsdExposureProtocol = uint112(
+                bound(
+                    maxUsdExposureProtocol,
+                    0,
+                    usdExposureProtocol < type(uint112).max ? usdExposureProtocol : type(uint112).max
+                )
+            );
         }
 
         vm.prank(users.riskManager);
@@ -308,21 +297,17 @@ contract ProcessDirectDeposit_UniswapV3AM_Fuzz_Test is UniswapV3AM_Fuzz_Test {
         uint112 maxExposure0,
         uint112 maxExposure1
     ) public {
-        vm.assume(tickLower < tickUpper);
-        vm.assume(isWithinAllowedRange(tickLower));
-        vm.assume(isWithinAllowedRange(tickUpper));
-
-        vm.assume(liquidity > 0);
+        (tickLower, tickUpper) = givenValidTicks(tickLower, tickUpper);
 
         // Calculate and check that tick current is within allowed ranges.
+        (priceToken0, priceToken1) = givenValidPrices(priceToken0, priceToken1);
         uint160 sqrtPriceX96 = uint160(calculateAndValidateRangeTickCurrent(priceToken0, priceToken1));
-        vm.assume(isWithinAllowedRange(TickMath.getTickAtSqrtRatio(sqrtPriceX96)));
 
         // Create Uniswap V3 pool initiated at tickCurrent with cardinality 300.
         pool = createPoolUniV3(address(token0), address(token1), 100, sqrtPriceX96, 300);
 
         // Check that Liquidity is within allowed ranges.
-        vm.assume(liquidity <= pool.maxLiquidityPerTick());
+        liquidity = uint128(bound(liquidity, 1, pool.maxLiquidityPerTick()));
 
         // Mint liquidity position.
         (uint256 tokenId,,) = addLiquidityUniV3(pool, liquidity, users.liquidityProvider, tickLower, tickUpper, false);
@@ -343,12 +328,10 @@ contract ProcessDirectDeposit_UniswapV3AM_Fuzz_Test is UniswapV3AM_Fuzz_Test {
             );
 
             // Check that exposure to underlying tokens stays below maxExposures.
-            vm.assume(amount0 + initialExposure0 < maxExposure0);
-            vm.assume(amount1 + initialExposure1 < maxExposure1);
-
-            // And: Usd value of underlying assets does not overflow.
-            vm.assume(amount0 + initialExposure0 <= type(uint256).max / priceToken0 / 10 ** (18 - 0)); // divided by 10 ** (18 - DecimalsOracle).
-            vm.assume(amount1 + initialExposure1 <= type(uint256).max / priceToken1 / 10 ** (18 - 0)); // divided by 10 ** (18 - DecimalsOracle).
+            (initialExposure0, maxExposure0) =
+                givenValidExposures(amount0, initialExposure0, maxExposure0, priceToken0, type(uint256).max);
+            (initialExposure1, maxExposure1) =
+                givenValidExposures(amount1, initialExposure1, maxExposure1, priceToken1, type(uint256).max);
         }
 
         // Add underlying tokens and its oracles to Arcadia.
@@ -412,21 +395,17 @@ contract ProcessDirectDeposit_UniswapV3AM_Fuzz_Test is UniswapV3AM_Fuzz_Test {
         uint112 maxExposure0,
         uint112 maxExposure1
     ) public {
-        vm.assume(tickLower < tickUpper);
-        vm.assume(isWithinAllowedRange(tickLower));
-        vm.assume(isWithinAllowedRange(tickUpper));
-
-        vm.assume(liquidity > 0);
+        (tickLower, tickUpper) = givenValidTicks(tickLower, tickUpper);
 
         // Calculate and check that tick current is within allowed ranges.
+        (priceToken0, priceToken1) = givenValidPrices(priceToken0, priceToken1);
         uint160 sqrtPriceX96 = uint160(calculateAndValidateRangeTickCurrent(priceToken0, priceToken1));
-        vm.assume(isWithinAllowedRange(TickMath.getTickAtSqrtRatio(sqrtPriceX96)));
 
         // Create Uniswap V3 pool initiated at tickCurrent with cardinality 300.
         pool = createPoolUniV3(address(token0), address(token1), 100, sqrtPriceX96, 300);
 
         // Check that Liquidity is within allowed ranges.
-        vm.assume(liquidity <= pool.maxLiquidityPerTick());
+        liquidity = uint128(bound(liquidity, 1, pool.maxLiquidityPerTick()));
 
         // Mint liquidity position.
         (uint256 tokenId,,) = addLiquidityUniV3(pool, liquidity, users.liquidityProvider, tickLower, tickUpper, false);
@@ -447,12 +426,10 @@ contract ProcessDirectDeposit_UniswapV3AM_Fuzz_Test is UniswapV3AM_Fuzz_Test {
             );
 
             // Check that exposure to underlying tokens stays below maxExposures.
-            vm.assume(amount0 + initialExposure0 < maxExposure0);
-            vm.assume(amount1 + initialExposure1 < maxExposure1);
-
-            // And: Usd value of underlying assets does not overflow.
-            vm.assume(amount0 + initialExposure0 <= type(uint256).max / priceToken0 / 10 ** (18 - 0)); // divided by 10 ** (18 - DecimalsOracle).
-            vm.assume(amount1 + initialExposure1 <= type(uint256).max / priceToken1 / 10 ** (18 - 0)); // divided by 10 ** (18 - DecimalsOracle).
+            (initialExposure0, maxExposure0) =
+                givenValidExposures(amount0, initialExposure0, maxExposure0, priceToken0, type(uint256).max);
+            (initialExposure1, maxExposure1) =
+                givenValidExposures(amount1, initialExposure1, maxExposure1, priceToken1, type(uint256).max);
         }
 
         // Add underlying tokens and its oracles to Arcadia.
@@ -512,13 +489,11 @@ contract ProcessDirectDeposit_UniswapV3AM_Fuzz_Test is UniswapV3AM_Fuzz_Test {
         uint112 maxExposure0,
         uint112 maxExposure1
     ) public {
-        vm.assume(tickLower < tickUpper);
-        vm.assume(isWithinAllowedRange(tickLower));
-        vm.assume(isWithinAllowedRange(tickUpper));
+        (tickLower, tickUpper) = givenValidTicks(tickLower, tickUpper);
 
         // Calculate and check that tick current is within allowed ranges.
+        (priceToken0, priceToken1) = givenValidPrices(priceToken0, priceToken1);
         uint160 sqrtPriceX96 = uint160(calculateAndValidateRangeTickCurrent(priceToken0, priceToken1));
-        vm.assume(isWithinAllowedRange(TickMath.getTickAtSqrtRatio(sqrtPriceX96)));
 
         // Create Uniswap V3 pool initiated at tickCurrent with cardinality 300.
         pool = createPoolUniV3(address(token0), address(token1), 100, sqrtPriceX96, 300);
@@ -551,12 +526,10 @@ contract ProcessDirectDeposit_UniswapV3AM_Fuzz_Test is UniswapV3AM_Fuzz_Test {
                 );
 
                 // Check that exposure to underlying tokens stays below maxExposures.
-                vm.assume(amount0 + initialExposure0 < maxExposure0);
-                vm.assume(amount1 + initialExposure1 < maxExposure1);
-
-                // And: Usd value of underlying assets does not overflow.
-                vm.assume(amount0 + initialExposure0 <= type(uint256).max / priceToken0 / 10 ** (18 - 0)); // divided by 10 ** (18 - DecimalsOracle).
-                vm.assume(amount1 + initialExposure1 <= type(uint256).max / priceToken1 / 10 ** (18 - 0)); // divided by 10 ** (18 - DecimalsOracle).
+                (initialExposure0, maxExposure0) =
+                    givenValidExposures(amount0, initialExposure0, maxExposure0, priceToken0, type(uint256).max);
+                (initialExposure1, maxExposure1) =
+                    givenValidExposures(amount1, initialExposure1, maxExposure1, priceToken1, type(uint256).max);
             }
 
             // Add underlying tokens and its oracles to Arcadia.

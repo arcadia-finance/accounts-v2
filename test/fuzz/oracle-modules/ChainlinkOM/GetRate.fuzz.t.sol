@@ -45,8 +45,7 @@ contract GetRate_ChainlinkOM_Fuzz_Test is ChainlinkOM_Fuzz_Test {
 
     function testFuzz_Success_getRate_Overflow(uint8 decimals, uint256 rate) public {
         decimals = uint8(bound(decimals, 0, 17));
-        rate = bound(rate, type(uint256).max / 10 ** (18 - decimals) + 1, type(uint256).max);
-        vm.assume(rate <= uint256(type(int256).max));
+        rate = bound(rate, type(uint256).max / 10 ** (18 - decimals) + 1, uint256(type(int256).max));
 
         ArcadiaOracle oracle = new ArcadiaOracle(decimals, "STABLE1 / USD");
         oracle.setOffchainTransmitter(users.transmitter);
@@ -63,8 +62,9 @@ contract GetRate_ChainlinkOM_Fuzz_Test is ChainlinkOM_Fuzz_Test {
 
     function testFuzz_Success_getRate_NoOverflow(uint8 decimals, uint256 rate) public {
         decimals = uint8(bound(decimals, 0, 18));
-        rate = bound(rate, 0, type(uint256).max / 10 ** (18 - decimals));
-        vm.assume(rate <= uint256(type(int256).max));
+        uint256 maxRate = type(uint256).max / 10 ** (18 - decimals);
+        if (maxRate > uint256(type(int256).max)) maxRate = uint256(type(int256).max);
+        rate = bound(rate, 0, maxRate);
 
         ArcadiaOracle oracle = new ArcadiaOracle(decimals, "STABLE1 / USD");
         oracle.setOffchainTransmitter(users.transmitter);

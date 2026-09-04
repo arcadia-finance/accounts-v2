@@ -7,7 +7,6 @@ pragma solidity ^0.8.0;
 import { AbstractPrimaryAM_Fuzz_Test } from "./_AbstractPrimaryAM.fuzz.t.sol";
 
 import { BitPackingLib } from "../../../../src/libraries/BitPackingLib.sol";
-import { OracleModuleMock } from "../../../utils/mocks/oracle-modules/OracleModuleMock.sol";
 
 /**
  * @notice Fuzz tests for the function "getValue" of contract "AbstractPrimaryAM".
@@ -20,8 +19,6 @@ contract GetValue_AbstractPrimaryAM_Fuzz_Test is AbstractPrimaryAM_Fuzz_Test {
 
     function setUp() public override {
         AbstractPrimaryAM_Fuzz_Test.setUp();
-
-        oracleModule = new OracleModuleMock(users.owner, address(registry));
     }
 
     /*//////////////////////////////////////////////////////////////
@@ -54,9 +51,6 @@ contract GetValue_AbstractPrimaryAM_Fuzz_Test is AbstractPrimaryAM_Fuzz_Test {
         decimals = bound(decimals, 0, 18);
         assetModule.setAssetInformation(asset, assetId, uint64(10 ** decimals), oracleSequence);
 
-        // Use actual getValue() and not the hard-coded value ToDo: refactor
-        assetModule.setUseRealUsdValue(true);
-
         vm.expectRevert(bytes(""));
         assetModule.getValue(creditor, asset, assetId, amount);
     }
@@ -87,9 +81,6 @@ contract GetValue_AbstractPrimaryAM_Fuzz_Test is AbstractPrimaryAM_Fuzz_Test {
         bytes32 oracleSequence = BitPackingLib.pack(baseToQuoteAsset, oraclesIds);
         decimals = bound(decimals, 0, 18);
         assetModule.setAssetInformation(asset, assetId, uint64(10 ** decimals), oracleSequence);
-
-        // Use actual getValue() and not the hard-coded value ToDo: refactor
-        assetModule.setUseRealUsdValue(true);
 
         uint256 expectedValueInUsd = rate * amount / 10 ** decimals;
 

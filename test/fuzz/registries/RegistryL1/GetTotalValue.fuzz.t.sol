@@ -53,14 +53,13 @@ contract GetTotalValue_RegistryL1_Fuzz_Test is RegistryL1_Fuzz_Test {
         uint256 amountToken2,
         uint8 token2Decimals
     ) public {
-        vm.assume(token2Decimals < Constants.TOKEN_ORACLE_DECIMALS);
-        vm.assume(rateToken1ToUsd <= uint256(type(int256).max));
-        vm.assume(rateToken1ToUsd > 0);
-        vm.assume(
-            amountToken2
-                > ((type(uint256).max / uint256(rates.token2ToUsd) / Constants.WAD)
-                        * 10
-                        ** Constants.TOKEN_ORACLE_DECIMALS) / 10 ** (Constants.TOKEN_ORACLE_DECIMALS - token2Decimals)
+        token2Decimals = uint8(bound(token2Decimals, 0, Constants.TOKEN_ORACLE_DECIMALS - 1));
+        rateToken1ToUsd = bound(rateToken1ToUsd, 1, uint256(type(int256).max));
+        amountToken2 = bound(
+            amountToken2,
+            ((type(uint256).max / uint256(rates.token2ToUsd) / Constants.WAD) * 10 ** Constants.TOKEN_ORACLE_DECIMALS)
+                / 10 ** (Constants.TOKEN_ORACLE_DECIMALS - token2Decimals) + 1,
+            type(uint256).max
         );
 
         ArcadiaOracle oracle = initMockedOracle(uint8(0), "LINK / USD", int256(0));
@@ -102,7 +101,7 @@ contract GetTotalValue_RegistryL1_Fuzz_Test is RegistryL1_Fuzz_Test {
     function testFuzz_Revert_getTotalValue_CalculateValueInNumeraireFromValueInUsdWithRateZero(uint256 amountToken2)
         public
     {
-        vm.assume(amountToken2 > 0);
+        amountToken2 = bound(amountToken2, 1, type(uint256).max);
 
         vm.startPrank(users.transmitter);
         mockOracles.token1ToUsd.transmit(int256(0));
@@ -186,19 +185,7 @@ contract GetTotalValue_RegistryL1_Fuzz_Test is RegistryL1_Fuzz_Test {
     ) public {
         rateToken1ToUsd = bound(rateToken1ToUsd, 1, type(uint256).max / 10 ** (36 - Constants.TOKEN_ORACLE_DECIMALS));
 
-        vm.assume(
-            amountToken2
-                <= type(uint256).max / uint256(rates.token2ToUsd) / Constants.WAD / 10
-                    ** (Constants.TOKEN_ORACLE_DECIMALS - Constants.TOKEN_ORACLE_DECIMALS)
-        );
-        vm.assume(
-            amountToken2
-                <= (((type(uint256).max / uint256(rates.token2ToUsd) / Constants.WAD)
-                            * 10
-                            ** Constants.TOKEN_ORACLE_DECIMALS)
-                        / 10
-                        ** Constants.TOKEN_ORACLE_DECIMALS) * 10 ** Constants.TOKEN_DECIMALS
-        );
+        amountToken2 = bound(amountToken2, 0, type(uint256).max / uint256(rates.token2ToUsd) / Constants.WAD);
 
         vm.startPrank(users.transmitter);
         mockOracles.token1ToUsd.transmit(int256(rateToken1ToUsd));

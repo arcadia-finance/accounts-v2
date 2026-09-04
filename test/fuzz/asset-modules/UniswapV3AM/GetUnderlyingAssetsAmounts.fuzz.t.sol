@@ -18,7 +18,7 @@ import { TickMath } from "../../../../src/asset-modules/UniswapV3/libraries/Tick
 /**
  * @notice Fuzz tests for the function "_getUnderlyingAssetsAmounts" of contract "UniswapV3AM".
  */
-// forge-lint: disable-next-item(unsafe-typecast)
+// forge-lint: disable-next-item(unsafe-typecast,divide-before-multiply)
 contract GetUnderlyingAssetsAmounts_UniswapV3AM_Fuzz_Test is UniswapV3AM_Fuzz_Test {
     /* ///////////////////////////////////////////////////////////////
                               SETUP
@@ -145,18 +145,20 @@ contract GetUnderlyingAssetsAmounts_UniswapV3AM_Fuzz_Test is UniswapV3AM_Fuzz_Te
 
         // And: Cast to uint160 in _getSqrtPriceX96 does not overflow.
         if (asset1.usdValue > 0) {
-            vm.assume(asset0.usdValue / asset1.usdValue / 10 ** asset0.decimals < 2 ** 128 / 10 ** asset1.decimals);
+            uint256 maxUsdValue0 = type(uint256).max / 10 ** (46 - asset0.decimals);
+            uint256 maxRatio = 2 ** 128 / 10 ** asset1.decimals;
+            if (maxRatio < maxUsdValue0 / asset1.usdValue / 10 ** asset0.decimals) {
+                maxUsdValue0 = asset1.usdValue * maxRatio * 10 ** asset0.decimals - 1;
+            }
+            asset0.usdValue = bound(asset0.usdValue, 0, maxUsdValue0);
         }
 
         // And: position is valid.
         position = givenValidPosition(position);
 
-        // And: there is no fee.
-        // ToDo: include fees.
+        // And: fees are the already realised fees (tokensOwed), the pool has no fee growth.
         position.feeGrowthInside0LastX128 = 0;
         position.feeGrowthInside1LastX128 = 0;
-        position.tokensOwed0 = 0;
-        position.tokensOwed1 = 0;
 
         // And: State is persisted.
         addAssetToArcadia(address(token0), int256(asset0.usdValue));
@@ -188,8 +190,16 @@ contract GetUnderlyingAssetsAmounts_UniswapV3AM_Fuzz_Test is UniswapV3AM_Fuzz_Te
             TickMath.getSqrtRatioAtTick(position.tickUpper),
             position.liquidity
         );
-        assertEq(underlyingAssetsAmounts[0], expectedUnderlyingAssetsAmount0);
-        assertEq(underlyingAssetsAmounts[1], expectedUnderlyingAssetsAmount1);
+
+        // And: fees are added to the principal, capped at the principal.
+        uint256 expectedFee0 = position.tokensOwed0 > expectedUnderlyingAssetsAmount0
+            ? expectedUnderlyingAssetsAmount0
+            : position.tokensOwed0;
+        uint256 expectedFee1 = position.tokensOwed1 > expectedUnderlyingAssetsAmount1
+            ? expectedUnderlyingAssetsAmount1
+            : position.tokensOwed1;
+        assertEq(underlyingAssetsAmounts[0], expectedUnderlyingAssetsAmount0 + expectedFee0);
+        assertEq(underlyingAssetsAmounts[1], expectedUnderlyingAssetsAmount1 + expectedFee1);
     }
 
     function testFuzz_Success_GetUnderlyingAssetsAmounts_AmountIsZero(uint96 tokenId) public view {

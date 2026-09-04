@@ -139,7 +139,7 @@ contract Withdraw_AccountV3_Fuzz_Test is AccountV3_Fuzz_Test {
     }
 
     function testFuzz_Revert_withdraw_UnknownAssetType(uint96 assetType) public {
-        vm.assume(assetType > 3);
+        assetType = uint96(bound(assetType, 4, type(uint96).max));
 
         vm.startPrank(users.owner);
         AssetModuleMock assetModule = new AssetModuleMock(users.owner, address(registry), assetType);
@@ -163,7 +163,7 @@ contract Withdraw_AccountV3_Fuzz_Test is AccountV3_Fuzz_Test {
     }
 
     function testFuzz_Revert_withdraw_MoreThanMaxExposure(uint256 amountWithdraw, uint112 maxExposure) public {
-        vm.assume(amountWithdraw > maxExposure);
+        amountWithdraw = bound(amountWithdraw, uint256(maxExposure) + 1, type(uint256).max);
 
         vm.startPrank(users.riskManager);
         registry.setRiskParametersOfPrimaryAsset(address(creditorUsd), address(mockERC20.token1), 0, maxExposure, 0, 0);
@@ -285,7 +285,7 @@ contract Withdraw_AccountV3_Fuzz_Test is AccountV3_Fuzz_Test {
         vm.stopPrank();
 
         // Given: "accountOwner" deposits a number of nfts different from 1 in first account.
-        vm.assume(arrLength < accountExtension.ASSET_LIMIT());
+        arrLength = uint8(bound(arrLength, 0, accountExtension.ASSET_LIMIT() - 1));
         vm.assume(arrLength != 1);
 
         assetAddresses = new address[](arrLength);
@@ -325,18 +325,20 @@ contract Withdraw_AccountV3_Fuzz_Test is AccountV3_Fuzz_Test {
         debt = bound(debt, 1, type(uint256).max);
 
         // No overflow of Used Margin.
-        minimumMargin = bound(minimumMargin, 0, type(uint256).max - debt);
-        minimumMargin = bound(minimumMargin, 0, type(uint96).max);
+        minimumMargin = bound(
+            minimumMargin, 0, type(uint256).max - debt < type(uint96).max ? type(uint256).max - debt : type(uint96).max
+        );
         uint256 usedMargin = debt + minimumMargin;
 
         // "exposure" is strictly smaller than "maxExposure".
         collateralValueInitial = uint112(bound(collateralValueInitial, 0, type(uint112).max - 1));
 
-        // No underflow Withdrawal.
-        collateralValueDecrease = bound(collateralValueDecrease, 0, collateralValueInitial);
-
-        // test-case: Insufficient collateralValue after withdrawal.
-        vm.assume(collateralValueInitial - collateralValueDecrease < usedMargin);
+        // No underflow Withdrawal, test-case: Insufficient collateralValue after withdrawal.
+        collateralValueDecrease = bound(
+            collateralValueDecrease,
+            collateralValueInitial > usedMargin ? collateralValueInitial - usedMargin + 1 : 0,
+            collateralValueInitial
+        );
 
         // Set minimumMargin
         accountExtension.setMinimumMargin(uint96(minimumMargin));
@@ -504,8 +506,8 @@ contract Withdraw_AccountV3_Fuzz_Test is AccountV3_Fuzz_Test {
         erc1155InitialAmount = uint112(bound(erc1155InitialAmount, 0, type(uint112).max - 1));
 
         // And: total deposit amounts are bigger than zero.
-        vm.assume(erc20InitialAmount > 0);
-        vm.assume(erc1155InitialAmount > 0);
+        erc20InitialAmount = uint112(bound(erc20InitialAmount, 1, type(uint112).max));
+        erc1155InitialAmount = uint112(bound(erc1155InitialAmount, 1, type(uint112).max));
         // And: Assets don't underflow.
         erc20WithdrawAmount = uint112(bound(erc20WithdrawAmount, 0, erc20InitialAmount - 1));
         erc1155WithdrawAmount = uint112(bound(erc1155WithdrawAmount, 0, erc1155InitialAmount - 1));
@@ -650,21 +652,16 @@ contract Withdraw_AccountV3_Fuzz_Test is AccountV3_Fuzz_Test {
         uint256 minimumMargin
     ) public {
         // Test-case: With debt.
-        debt = bound(debt, 1, type(uint256).max);
-
-        // No overflow of Used Margin.
-        minimumMargin = bound(minimumMargin, 0, type(uint256).max - debt);
+        // No overflow of Used Margin, and the used margin fits in the collateral value.
         minimumMargin = bound(minimumMargin, 0, type(uint96).max);
+        debt = bound(debt, 1, type(uint112).max - 1 - minimumMargin);
         uint256 usedMargin = debt + minimumMargin;
 
         // "exposure" is strictly smaller than "maxExposure".
-        collateralValueInitial = uint112(bound(collateralValueInitial, 0, type(uint112).max - 1));
+        collateralValueInitial = uint112(bound(collateralValueInitial, usedMargin, type(uint112).max - 1));
 
-        // No underflow Withdrawal.
-        collateralValueDecrease = bound(collateralValueDecrease, 0, collateralValueInitial);
-
-        // test-case: Insufficient collateralValue after withdrawal.
-        vm.assume(collateralValueInitial - collateralValueDecrease >= usedMargin);
+        // No underflow Withdrawal, test-case: Sufficient collateralValue after withdrawal.
+        collateralValueDecrease = bound(collateralValueDecrease, 0, collateralValueInitial - usedMargin);
 
         // Set minimumMargin
         accountExtension.setMinimumMargin(uint96(minimumMargin));

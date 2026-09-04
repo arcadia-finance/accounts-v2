@@ -40,7 +40,7 @@ contract DecreaseLiquidity_AbstractStakingAM_Fuzz_Test is AbstractStakingAM_Fuzz
 
     function testFuzz_Revert_decreaseLiquidity_NotOwner(uint256 id, uint128 amount, address owner) public {
         // Given : Amount is greater than 0.
-        vm.assume(amount > 0);
+        amount = uint128(bound(amount, 1, type(uint128).max));
 
         // Given : Owner is not the caller.
         vm.assume(owner != users.accountOwner);
@@ -69,12 +69,7 @@ contract DecreaseLiquidity_AbstractStakingAM_Fuzz_Test is AbstractStakingAM_Fuzz
         vm.assume(account_ != address(stakingAM));
         vm.assume(account_ != address(rewardToken));
         // Given : Valid state
-        (assetState, positionState) = givenValidStakingAMState(assetState, positionState);
-
-        // And : Account has a non-zero balance.
-        vm.assume(positionState.amountStaked > 0);
-        // And : Account has a balance smaller as type(uint128).max.
-        vm.assume(positionState.amountStaked < type(uint128).max);
+        (assetState, positionState) = givenValidStakingAMState(assetState, positionState, 1, type(uint128).max);
 
         // And: State is persisted.
         setStakingAMState(assetState, positionState, asset, positionId);
@@ -109,10 +104,7 @@ contract DecreaseLiquidity_AbstractStakingAM_Fuzz_Test is AbstractStakingAM_Fuzz
         vm.assume(account_ != asset);
 
         // Given : Valid state
-        (assetState, positionState) = givenValidStakingAMState(assetState, positionState);
-
-        // And : Account has a non-zero balance
-        vm.assume(positionState.amountStaked > 0);
+        (assetState, positionState) = givenValidStakingAMState(assetState, positionState, 1, type(uint128).max);
 
         // And: State is persisted.
         setStakingAMState(assetState, positionState, asset, positionId);
@@ -192,10 +184,7 @@ contract DecreaseLiquidity_AbstractStakingAM_Fuzz_Test is AbstractStakingAM_Fuzz
             vm.assume(account_ != asset);
 
             // Given : Valid state
-            (assetState, positionState) = givenValidStakingAMState(assetState, positionState);
-
-            // And : Account has a balance bigger as 1.
-            vm.assume(positionState.amountStaked > 1);
+            (assetState, positionState) = givenValidStakingAMState(assetState, positionState, 2, type(uint128).max);
 
             // And: State is persisted.
             setStakingAMState(assetState, positionState, asset, positionId);
@@ -274,12 +263,9 @@ contract DecreaseLiquidity_AbstractStakingAM_Fuzz_Test is AbstractStakingAM_Fuzz
         vm.assume(account_ != asset);
 
         // Given : Valid state
-        (assetState, positionState) = givenValidStakingAMState(assetState, positionState);
+        (assetState, positionState) = givenValidStakingAMState(assetState, positionState, 1, type(uint128).max);
 
-        // And : Account has a non-zero balance
-        vm.assume(positionState.amountStaked > 0);
-
-        // And reward is zero.
+        // And: reward is zero.
         positionState.lastRewardPosition = 0;
         positionState.lastRewardPerTokenPosition = assetState.lastRewardPerTokenGlobal;
         assetState.currentRewardGlobal = 0;
@@ -350,12 +336,9 @@ contract DecreaseLiquidity_AbstractStakingAM_Fuzz_Test is AbstractStakingAM_Fuzz
             vm.assume(account_ != asset);
 
             // Given : Valid state
-            (assetState, positionState) = givenValidStakingAMState(assetState, positionState);
+            (assetState, positionState) = givenValidStakingAMState(assetState, positionState, 2, type(uint128).max);
 
-            // And : Account has a balance bigger as 1.
-            vm.assume(positionState.amountStaked > 1);
-
-            // And reward is zero.
+            // And: reward is zero.
             positionState.lastRewardPosition = 0;
             positionState.lastRewardPerTokenPosition = assetState.lastRewardPerTokenGlobal;
             assetState.currentRewardGlobal = 0;

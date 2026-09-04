@@ -34,16 +34,8 @@ contract GetPrincipalAmounts_UniswapV3AM_Fuzz_Test is UniswapV3AM_Fuzz_Test {
         uint256 priceToken1
     ) public view {
         // Check that ticks are within allowed ranges.
-        vm.assume(tickLower < tickUpper);
-        vm.assume(isWithinAllowedRange(tickLower));
-        vm.assume(isWithinAllowedRange(tickUpper));
-
-        // Avoid divide by 0, which is already checked in earlier in function.
-        vm.assume(priceToken1 > 0);
-        // Function will overFlow, not realistic.
-        vm.assume(priceToken0 <= type(uint256).max / 1e28);
-        // Cast to uint160 will overflow, not realistic.
-        vm.assume(priceToken0 / priceToken1 < 2 ** 128);
+        (tickLower, tickUpper) = givenValidTicks(tickLower, tickUpper);
+        (priceToken0, priceToken1) = givenValidPrices(priceToken0, priceToken1);
 
         uint160 sqrtPriceX96 = uniV3AM.getSqrtPriceX96(priceToken0, priceToken1);
         (uint256 expectedAmount0, uint256 expectedAmount1) = LiquidityAmounts.getAmountsForLiquidity(
