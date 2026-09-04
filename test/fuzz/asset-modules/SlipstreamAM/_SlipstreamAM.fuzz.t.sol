@@ -24,8 +24,7 @@ abstract contract SlipstreamAM_Fuzz_Test is Fuzz_Test, SlipstreamFixture {
     /////////////////////////////////////////////////////////////// */
 
     uint256 internal constant INT256_MAX = 2 ** 255 - 1;
-    // While the true minimum value of an int256 is 2 ** 255, Solidity overflows on a negation (since INT256_MAX is one less).
-    // -> This true minimum value will overflow and revert.
+    // Negating the true minimum of 2 ** 255 overflows, so this stops one below it.
     uint256 internal constant INT256_MIN = 2 ** 255 - 1;
 
     /* ///////////////////////////////////////////////////////////////

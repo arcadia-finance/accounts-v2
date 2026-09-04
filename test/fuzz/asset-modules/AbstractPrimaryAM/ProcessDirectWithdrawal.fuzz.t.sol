@@ -28,7 +28,7 @@ contract ProcessDirectWithdrawal_AbstractPrimaryAM_Fuzz_Test is AbstractPrimaryA
         address unprivilegedAddress_,
         uint128 amount
     ) public {
-        // Given "caller" is not the Registry.
+        // Given: "caller" is not the Registry.
         vm.assume(unprivilegedAddress_ != address(registry));
 
         // And: The value of the exposure does not overflow.

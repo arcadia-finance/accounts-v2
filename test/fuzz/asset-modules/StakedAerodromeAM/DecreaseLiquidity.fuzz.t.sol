@@ -143,7 +143,7 @@ contract DecreaseLiquidity_StakedAerodromeAM_Fuzz_Test is StakedAerodromeAM_Fuzz
         // And : Enough AERO is claimable in stakedAerodromeAM
         deal(AERO, address(stakedAerodromeAM), currentRewardAccount);
 
-        // And reward is non-zero.
+        // And: reward is non-zero.
         vm.assume(currentRewardAccount > 0);
 
         // When : Account withdraws full position from stakingAM
@@ -237,7 +237,7 @@ contract DecreaseLiquidity_StakedAerodromeAM_Fuzz_Test is StakedAerodromeAM_Fuzz
             aeroGauge.deposit(positionState.amountStaked);
             vm.stopPrank();
 
-            // And reward is non-zero.
+            // And: reward is non-zero.
             currentRewardAccount = stakedAerodromeAM.rewardOf(positionId);
             vm.assume(currentRewardAccount > 0);
 
@@ -322,7 +322,7 @@ contract DecreaseLiquidity_StakedAerodromeAM_Fuzz_Test is StakedAerodromeAM_Fuzz
         // Given : Valid state
         (assetState, positionState) = givenValidStakingAMState(assetState, positionState, 1, type(uint128).max);
 
-        // And reward is zero.
+        // And: reward is zero.
         positionState.lastRewardPosition = 0;
         positionState.lastRewardPerTokenPosition = assetState.lastRewardPerTokenGlobal;
         assetState.currentRewardGlobal = 0;
@@ -406,7 +406,7 @@ contract DecreaseLiquidity_StakedAerodromeAM_Fuzz_Test is StakedAerodromeAM_Fuzz
             // Given : Valid state
             (assetState, positionState) = givenValidStakingAMState(assetState, positionState, 2, type(uint128).max);
 
-            // And reward is zero.
+            // And: reward is zero.
             positionState.lastRewardPosition = 0;
             positionState.lastRewardPerTokenPosition = assetState.lastRewardPerTokenGlobal;
             assetState.currentRewardGlobal = 0;
@@ -517,7 +517,7 @@ contract DecreaseLiquidity_StakedAerodromeAM_Fuzz_Test is StakedAerodromeAM_Fuzz
         // And : Assume previously earned rewards were previously claimed by the stakedAerodromeAM
         deal(AERO, address(stakedAerodromeAM), positionState.lastRewardPosition);
 
-        // And reward is non-zero.
+        // And: reward is non-zero.
         vm.assume(currentRewardAccount > 0);
 
         // When : Account withdraws full position from stakingAM

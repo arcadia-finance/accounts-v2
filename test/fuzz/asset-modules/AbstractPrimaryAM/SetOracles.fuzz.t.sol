@@ -131,7 +131,7 @@ contract CheckOracleSequence_AbstractPrimaryAM_Fuzz_Test is AbstractPrimaryAM_Fu
             vm.assume(oracleNew != oraclesOld[i]);
         }
 
-        // And one of the old oracles is not active anymore.
+        // And: one of the old oracles is not active anymore.
         vm.assume(oraclesOld[0] != oracleNew);
         oracleModule.setIsActive(oraclesOld[0], false);
 
@@ -161,11 +161,11 @@ contract CheckOracleSequence_AbstractPrimaryAM_Fuzz_Test is AbstractPrimaryAM_Fu
         bytes32 oracleSequenceOld = getOracleSequence(lengthOld, directionsOld, oraclesOld);
         assetModule.setAssetInformation(asset, assetId, 0, oracleSequenceOld);
 
-        // And one of the old oracles is not active anymore.
+        // And: one of the old oracles is not active anymore.
         vm.assume(oraclesOld[0] != oracleNew);
         oracleModule.setIsActive(oraclesOld[0], false);
 
-        // And new oracles have a bad sequence.
+        // And: new oracles have a bad sequence.
         (bytes16 baseAsset, bytes16 quoteAsset) =
             directionNew ? (bytes16("A"), bytes16("NON_USD")) : (bytes16("NON_USD"), bytes16("A"));
         addMockedOracle(oracleNew, 0, baseAsset, quoteAsset, false);
@@ -196,7 +196,7 @@ contract CheckOracleSequence_AbstractPrimaryAM_Fuzz_Test is AbstractPrimaryAM_Fu
         bytes32 oracleSequenceOld = getOracleSequence(lengthOld, directionsOld, oraclesOld);
         assetModule.setAssetInformation(asset, assetId, 0, oracleSequenceOld);
 
-        // And one of the old oracles is not active anymore.
+        // And: one of the old oracles is not active anymore.
         lengthNew = bound(lengthNew, 1, 3);
         for (uint256 i; i < lengthNew; ++i) {
             vm.assume(oraclesOld[0] != oraclesNew[i]);

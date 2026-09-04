@@ -122,7 +122,7 @@ contract Burn_AbstractStakingAM_Fuzz_Test is AbstractStakingAM_Fuzz_Test {
             // Given: Valid state
             (assetState, positionState) = givenValidStakingAMState(assetState, positionState, 1, type(uint128).max);
 
-            // And reward is zero.
+            // And: reward is zero.
             positionState.lastRewardPosition = 0;
             positionState.lastRewardPerTokenPosition = assetState.lastRewardPerTokenGlobal;
             assetState.currentRewardGlobal = 0;

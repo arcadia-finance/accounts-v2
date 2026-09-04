@@ -37,8 +37,7 @@ abstract contract DefaultUniswapV4AM_Fuzz_Test is Fuzz_Test, UniswapV4Fixture {
     ERC20 token1;
 
     uint256 internal constant INT256_MAX = 2 ** 255 - 1;
-    // While the true minimum value of an int256 is 2 ** 255, Solidity overflows on a negation (since INT256_MAX is one less).
-    // -> This true minimum value will overflow and revert.
+    // Negating the true minimum of 2 ** 255 overflows, so this stops one below it.
     uint256 internal constant INT256_MIN = 2 ** 255 - 1;
 
     /* ///////////////////////////////////////////////////////////////
@@ -202,7 +201,9 @@ abstract contract DefaultUniswapV4AM_Fuzz_Test is Fuzz_Test, UniswapV4Fixture {
             // And : Liquidity is within range
             uint256 maxLiquidity = getLiquidityDeltaFromAmounts(tickLower, tickUpper, sqrtPriceX96);
             uint256 maxTickLiquidity = poolManager.getTickSpacingToMaxLiquidityPerTick(1);
-            liquidity = bound(liquidity, 1, maxLiquidity < maxTickLiquidity ? maxLiquidity : maxTickLiquidity);
+            if (maxLiquidity > maxTickLiquidity) maxLiquidity = maxTickLiquidity;
+            vm.assume(maxLiquidity > 0);
+            liquidity = bound(liquidity, 1, maxLiquidity);
         }
 
         // Create Uniswap V4 pool initiated at tickCurrent with fee 500 and tickSpacing 1.

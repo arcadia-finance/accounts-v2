@@ -29,7 +29,7 @@ contract ProcessIndirectDeposit_AbstractPrimaryAM_Fuzz_Test is AbstractPrimaryAM
         uint256 exposureUpperAssetToAsset,
         int256 deltaExposureUpperAssetToAsset
     ) public {
-        // Given "caller" is not the Registry.
+        // Given: "caller" is not the Registry.
         vm.assume(unprivilegedAddress_ != address(registry));
 
         // And: The value of the exposure does not overflow.

@@ -51,7 +51,7 @@ contract GetRiskFactors_AerodromePoolAM_Fuzz_Test is AerodromePoolAM_Fuzz_Test {
             ? uint256(riskFactor).mulDivDown(liquidationFactor0, AssetValuationLib.ONE_4)
             : uint256(riskFactor).mulDivDown(liquidationFactor1, AssetValuationLib.ONE_4);
 
-        // And riskFactor is set.
+        // And: riskFactor is set.
         vm.prank(address(registry));
         aeroPoolAM.setRiskParameters(creditor, 0, riskFactor);
 
@@ -60,10 +60,10 @@ contract GetRiskFactors_AerodromePoolAM_Fuzz_Test is AerodromePoolAM_Fuzz_Test {
         vm.prank(users.owner);
         aeroPoolAM.addAsset(address(aeroPool));
 
-        // And riskFactors are set for token0.
+        // And: riskFactors are set for token0.
         vm.startPrank(address(registry));
         erc20AM.setRiskParameters(creditor, address(mockERC20.token1), 0, 0, collateralFactor0, liquidationFactor0);
-        // And riskFactors are set for token1.
+        // And: riskFactors are set for token1.
         erc20AM.setRiskParameters(creditor, address(mockERC20.stable1), 0, 0, collateralFactor1, liquidationFactor1);
         vm.stopPrank();
 

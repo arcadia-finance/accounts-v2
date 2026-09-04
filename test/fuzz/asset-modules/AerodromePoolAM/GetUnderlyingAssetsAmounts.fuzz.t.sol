@@ -189,10 +189,10 @@ contract GetUnderlyingAssetsAmounts_AerodromePoolAM_Fuzz_Test is AerodromePoolAM
         // Given : Valid state
         testVars = givenValidTestVarsStable(testVars);
 
-        // And state is persisted.
+        // And: state is persisted.
         testVars = initAndSetValidStateInPoolFixture(testVars);
 
-        // And reserves are increased to that k reverts.
+        // And: reserves are increased to that k reverts.
         reserve0_ = bound(reserve0_, 15_511_800_965 * 10 ** testVars.decimals0, type(uint256).max);
         reserve1_ = bound(reserve1_, 15_511_800_965 * 10 ** testVars.decimals1, type(uint256).max);
         stdstore.target(address(aeroPool)).sig(aeroPool.reserve0.selector).checked_write(reserve0_);
@@ -251,7 +251,7 @@ contract GetUnderlyingAssetsAmounts_AerodromePoolAM_Fuzz_Test is AerodromePoolAM
         );
         vm.assume(k / testVars.priceToken0 > type(uint256).max / testVars.priceToken1);
 
-        // And state is persisted.
+        // And: state is persisted.
         testVars = initAndSetValidStateInPoolFixture(testVars);
 
         bytes32 assetKey = bytes32(abi.encodePacked(uint96(0), address(aeroPool)));
@@ -313,7 +313,7 @@ contract GetUnderlyingAssetsAmounts_AerodromePoolAM_Fuzz_Test is AerodromePoolAM
         // And: c does not overflow
         vm.assume(k / testVars.priceToken0 <= type(uint256).max / testVars.priceToken1);
 
-        // And state is persisted.
+        // And: state is persisted.
         testVars = initAndSetValidStateInPoolFixture(testVars);
 
         bytes32 assetKey = bytes32(abi.encodePacked(uint96(0), address(aeroPool)));
@@ -372,7 +372,7 @@ contract GetUnderlyingAssetsAmounts_AerodromePoolAM_Fuzz_Test is AerodromePoolAM
         // And: x overflows (test-case).
         vm.assume(c / d > type(uint256).max / 1e36);
 
-        // And state is persisted.
+        // And: state is persisted.
         testVars = initAndSetValidStateInPoolFixture(testVars);
 
         bytes32 assetKey = bytes32(abi.encodePacked(uint96(0), address(aeroPool)));
@@ -439,7 +439,7 @@ contract GetUnderlyingAssetsAmounts_AerodromePoolAM_Fuzz_Test is AerodromePoolAM
         vm.assume(trustedReserve0 > 1);
         testVars.assetAmount = bound(testVars.assetAmount, type(uint256).max / trustedReserve0 + 1, type(uint256).max);
 
-        // And state is persisted.
+        // And: state is persisted.
         testVars = initAndSetValidStateInPoolFixture(testVars);
 
         bytes32 assetKey = bytes32(abi.encodePacked(uint96(0), address(aeroPool)));
@@ -511,7 +511,7 @@ contract GetUnderlyingAssetsAmounts_AerodromePoolAM_Fuzz_Test is AerodromePoolAM
         vm.assume(trustedReserve1 > 1);
         testVars.assetAmount = bound(testVars.assetAmount, type(uint256).max / trustedReserve1 + 1, type(uint256).max);
 
-        // And state is persisted.
+        // And: state is persisted.
         testVars = initAndSetValidStateInPoolFixture(testVars);
 
         bytes32 assetKey = bytes32(abi.encodePacked(uint96(0), address(aeroPool)));
@@ -538,7 +538,7 @@ contract GetUnderlyingAssetsAmounts_AerodromePoolAM_Fuzz_Test is AerodromePoolAM
         // And : rate of asset0 is zero.
         testVars.priceToken0 = 0;
 
-        // And state is persisted.
+        // And: state is persisted.
         testVars = initAndSetValidStateInPoolFixture(testVars);
 
         bytes32 assetKey = bytes32(abi.encodePacked(uint96(0), address(aeroPool)));
@@ -570,7 +570,7 @@ contract GetUnderlyingAssetsAmounts_AerodromePoolAM_Fuzz_Test is AerodromePoolAM
         // And : rate of asset0 is zero.
         testVars.priceToken1 = 0;
 
-        // And state is persisted.
+        // And: state is persisted.
         testVars = initAndSetValidStateInPoolFixture(testVars);
 
         bytes32 assetKey = bytes32(abi.encodePacked(uint96(0), address(aeroPool)));
@@ -601,7 +601,7 @@ contract GetUnderlyingAssetsAmounts_AerodromePoolAM_Fuzz_Test is AerodromePoolAM
         // Given : Valid state
         testVars = givenValidTestVarsVolatile(testVars);
 
-        // And state is persisted.
+        // And: state is persisted.
         testVars = initAndSetValidStateInPoolFixture(testVars);
 
         uint256[] memory underlyingAssetsAmounts;
@@ -693,7 +693,7 @@ contract GetUnderlyingAssetsAmounts_AerodromePoolAM_Fuzz_Test is AerodromePoolAM
         // Given : Valid state
         testVars = givenValidTestVarsVolatile(testVars);
 
-        // And state is persisted.
+        // And: state is persisted.
         testVars = initAndSetValidStateInPoolFixture(testVars);
 
         uint256[] memory underlyingAssetsAmounts;
@@ -746,7 +746,7 @@ contract GetUnderlyingAssetsAmounts_AerodromePoolAM_Fuzz_Test is AerodromePoolAM
         // And : rate of asset0 is zero.
         testVars.priceToken0 = 0;
 
-        // And state is persisted.
+        // And: state is persisted.
         testVars = initAndSetValidStateInPoolFixture(testVars);
 
         bytes32 assetKey = bytes32(abi.encodePacked(uint96(0), address(aeroPool)));
@@ -778,7 +778,7 @@ contract GetUnderlyingAssetsAmounts_AerodromePoolAM_Fuzz_Test is AerodromePoolAM
         // And : rate of asset0 is zero.
         testVars.priceToken1 = 0;
 
-        // And state is persisted.
+        // And: state is persisted.
         testVars = initAndSetValidStateInPoolFixture(testVars);
 
         bytes32 assetKey = bytes32(abi.encodePacked(uint96(0), address(aeroPool)));
@@ -809,7 +809,7 @@ contract GetUnderlyingAssetsAmounts_AerodromePoolAM_Fuzz_Test is AerodromePoolAM
         // Given : Valid state
         testVars = givenValidTestVarsStable(testVars);
 
-        // And state is persisted.
+        // And: state is persisted.
         testVars = initAndSetValidStateInPoolFixture(testVars);
 
         uint256 trustedReserve0;
@@ -911,7 +911,7 @@ contract GetUnderlyingAssetsAmounts_AerodromePoolAM_Fuzz_Test is AerodromePoolAM
         // Given : Valid state
         testVars = givenValidTestVarsStable(testVars);
 
-        // And state is persisted.
+        // And: state is persisted.
         testVars = initAndSetValidStateInPoolFixture(testVars);
 
         uint256 trustedReserve0;

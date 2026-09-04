@@ -265,7 +265,7 @@ contract DecreaseLiquidity_AbstractStakingAM_Fuzz_Test is AbstractStakingAM_Fuzz
         // Given : Valid state
         (assetState, positionState) = givenValidStakingAMState(assetState, positionState, 1, type(uint128).max);
 
-        // And reward is zero.
+        // And: reward is zero.
         positionState.lastRewardPosition = 0;
         positionState.lastRewardPerTokenPosition = assetState.lastRewardPerTokenGlobal;
         assetState.currentRewardGlobal = 0;
@@ -338,7 +338,7 @@ contract DecreaseLiquidity_AbstractStakingAM_Fuzz_Test is AbstractStakingAM_Fuzz
             // Given : Valid state
             (assetState, positionState) = givenValidStakingAMState(assetState, positionState, 2, type(uint128).max);
 
-            // And reward is zero.
+            // And: reward is zero.
             positionState.lastRewardPosition = 0;
             positionState.lastRewardPerTokenPosition = assetState.lastRewardPerTokenGlobal;
             assetState.currentRewardGlobal = 0;
