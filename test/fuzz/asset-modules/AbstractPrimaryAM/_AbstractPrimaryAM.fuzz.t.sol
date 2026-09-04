@@ -4,6 +4,7 @@
  */
 pragma solidity ^0.8.0;
 
+import { BitPackingLib } from "../../../../src/libraries/BitPackingLib.sol";
 import { Fuzz_Test } from "../../Fuzz.t.sol";
 import { OracleModuleMock } from "../../../utils/mocks/oracle-modules/OracleModuleMock.sol";
 import { PrimaryAMMock } from "../../../utils/mocks/asset-modules/PrimaryAMMock.sol";
@@ -32,7 +33,8 @@ abstract contract AbstractPrimaryAM_Fuzz_Test is Fuzz_Test {
         uint96 assetId;
         uint112 exposureAssetLast;
         uint112 exposureAssetMax;
-        uint256 usdExposureUpperAssetToAsset;
+        uint64 assetUnit;
+        uint256 rateInUsd;
     }
 
     /*////////////////////////////////////////////////////////////////
@@ -41,6 +43,8 @@ abstract contract AbstractPrimaryAM_Fuzz_Test is Fuzz_Test {
 
     PrimaryAMMock internal assetModule;
     OracleModuleMock internal oracleModule;
+
+    uint256 internal constant PRIMARY_AM_ORACLE_ID = 999;
 
     /* ///////////////////////////////////////////////////////////////
                               SETUP
@@ -51,6 +55,8 @@ abstract contract AbstractPrimaryAM_Fuzz_Test is Fuzz_Test {
 
         vm.prank(users.owner);
         assetModule = new PrimaryAMMock(users.owner, address(registry), 0);
+
+        oracleModule = new OracleModuleMock(users.owner, address(registry));
     }
 
     /* ///////////////////////////////////////////////////////////////
@@ -65,7 +71,17 @@ abstract contract AbstractPrimaryAM_Fuzz_Test is Fuzz_Test {
         oracleModule.setRate(oracleId, rate);
     }
 
-    // forge-lint: disable-next-item(mixed-case-function)
+    // forge-lint: disable-next-item(mixed-case-function,unsafe-typecast)
+    function setPrimaryAMOracle(address asset, uint256 assetId, uint64 assetUnit, uint256 usdValue) public {
+        addMockedOracle(PRIMARY_AM_ORACLE_ID, usdValue, bytes16("A"), bytes16("USD"), true);
+        uint80[] memory oracleIds = new uint80[](1);
+        oracleIds[0] = uint80(PRIMARY_AM_ORACLE_ID);
+        bool[] memory baseToQuoteAsset = new bool[](1);
+        baseToQuoteAsset[0] = true;
+        assetModule.setAssetInformation(asset, assetId, assetUnit, BitPackingLib.pack(baseToQuoteAsset, oracleIds));
+    }
+
+    // forge-lint: disable-next-item(mixed-case-function,unsafe-typecast)
     function setPrimaryAMAssetState(PrimaryAMAssetState memory assetState) internal {
         assetModule.setExposure(
             assetState.creditor,
@@ -75,6 +91,6 @@ abstract contract AbstractPrimaryAM_Fuzz_Test is Fuzz_Test {
             assetState.exposureAssetMax
         );
 
-        assetModule.setUsdValue(assetState.usdExposureUpperAssetToAsset);
+        setPrimaryAMOracle(assetState.asset, assetState.assetId, assetState.assetUnit, assetState.rateInUsd);
     }
 }

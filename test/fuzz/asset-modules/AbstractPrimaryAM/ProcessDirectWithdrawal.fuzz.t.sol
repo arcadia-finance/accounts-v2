@@ -31,6 +31,10 @@ contract ProcessDirectWithdrawal_AbstractPrimaryAM_Fuzz_Test is AbstractPrimaryA
         // Given "caller" is not the Registry.
         vm.assume(unprivilegedAddress_ != address(registry));
 
+        // And: The value of the exposure does not overflow.
+        assetState.assetUnit = uint64(bound(assetState.assetUnit, 1, type(uint64).max));
+        assetState.rateInUsd = bound(assetState.rateInUsd, 0, type(uint256).max / 1e18);
+
         // And: State is persisted.
         setPrimaryAMAssetState(assetState);
 
@@ -47,6 +51,10 @@ contract ProcessDirectWithdrawal_AbstractPrimaryAM_Fuzz_Test is AbstractPrimaryA
     {
         // Given: exposure does not underflow after withdrawal (test-case).
         amount = bound(amount, 0, assetState.exposureAssetLast);
+
+        // And: The value of the exposure does not overflow.
+        assetState.assetUnit = uint64(bound(assetState.assetUnit, 1, type(uint64).max));
+        assetState.rateInUsd = bound(assetState.rateInUsd, 0, type(uint256).max / 1e18);
 
         // And: State is persisted.
         setPrimaryAMAssetState(assetState);
@@ -69,6 +77,10 @@ contract ProcessDirectWithdrawal_AbstractPrimaryAM_Fuzz_Test is AbstractPrimaryA
     ) public {
         // Given: exposure does underflow after withdrawal (test-case).
         amount = bound(amount, assetState.exposureAssetLast, type(uint256).max);
+
+        // And: The value of the exposure does not overflow.
+        assetState.assetUnit = uint64(bound(assetState.assetUnit, 1, type(uint64).max));
+        assetState.rateInUsd = bound(assetState.rateInUsd, 0, type(uint256).max / 1e18);
 
         // And: State is persisted.
         setPrimaryAMAssetState(assetState);

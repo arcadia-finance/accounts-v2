@@ -23,6 +23,7 @@ import { LiquidityAmounts } from "../../../../src/asset-modules/UniswapV3/librar
 import { Permit2Fixture } from "../../../utils/fixtures/permit2/Permit2Fixture.f.sol";
 import { PoolKey } from "../../../../lib/v4-periphery/lib/v4-core/src/types/PoolKey.sol";
 import { PositionInfoLibrary, PositionInfo } from "../../../../lib/v4-periphery/src/libraries/PositionInfoLibrary.sol";
+import { SqrtPriceMath } from "../../../../lib/v4-periphery/lib/v4-core/src/libraries/SqrtPriceMath.sol";
 import { StateLibrary } from "../../../../lib/v4-periphery/lib/v4-core/src/libraries/StateLibrary.sol";
 import { StateView } from "../../../../lib/v4-periphery/src/lens/StateView.sol";
 import { Test } from "../../../../lib/forge-std/src/Test.sol";
@@ -257,24 +258,15 @@ contract UniswapV4Fixture is Test, Permit2Fixture, WETH9Fixture {
 
         tokenId = positionManagerV4.nextTokenId();
 
-        (uint160 sqrtPriceX96,,,) = stateView.getSlot0(poolKey.toId());
-
-        (uint256 amount0, uint256 amount1) = LiquidityAmounts.getAmountsForLiquidity(
-            sqrtPriceX96,
-            TickMath.getSqrtPriceAtTick(tickLower),
-            TickMath.getSqrtPriceAtTick(tickUpper),
-            // forge-lint: disable-next-line(unsafe-typecast)
-            uint128(liquidity)
-        );
+        // forge-lint: disable-next-line(unsafe-typecast)
+        (uint256 amount0, uint256 amount1) = amountsOwedForLiquidity(poolKey, tickLower, tickUpper, uint128(liquidity));
 
         // Deal and approve tokens
         address token0 = Currency.unwrap(poolKey.currency0);
         address token1 = Currency.unwrap(poolKey.currency1);
 
-        // We can have some rounding issues between lib calculated amounts and contract, thus increase amount by 1
-        // Todo : further investigate rounding diff
-        token0 == address(0) ? vm.deal(liquidityProvider, amount0 + 1) : deal(token0, liquidityProvider, amount0 + 1);
-        deal(token1, liquidityProvider, amount1 + 1);
+        token0 == address(0) ? vm.deal(liquidityProvider, amount0) : deal(token0, liquidityProvider, amount0);
+        deal(token1, liquidityProvider, amount1);
 
         // Approvals via permit2
         if (token0 != address(0)) approveV4PositionManagerFor(liquidityProvider, token0);
@@ -282,7 +274,26 @@ contract UniswapV4Fixture is Test, Permit2Fixture, WETH9Fixture {
 
         vm.prank(liquidityProvider);
         // forge-lint: disable-next-item(arbitrary-send-eth)
-        positionManagerV4.modifyLiquidities{ value: token0 == address(0) ? amount0 + 1 : 0 }(mintData, block.timestamp);
+        positionManagerV4.modifyLiquidities{ value: token0 == address(0) ? amount0 : 0 }(mintData, block.timestamp);
+    }
+
+    function amountsOwedForLiquidity(PoolKey memory poolKey, int24 tickLower, int24 tickUpper, uint128 liquidity)
+        internal
+        view
+        returns (uint256 amount0, uint256 amount1)
+    {
+        (uint160 sqrtPriceX96, int24 tick,,) = stateView.getSlot0(poolKey.toId());
+        uint160 sqrtPriceLower = TickMath.getSqrtPriceAtTick(tickLower);
+        uint160 sqrtPriceUpper = TickMath.getSqrtPriceAtTick(tickUpper);
+
+        if (tick < tickLower) {
+            amount0 = SqrtPriceMath.getAmount0Delta(sqrtPriceLower, sqrtPriceUpper, liquidity, true);
+        } else if (tick < tickUpper) {
+            amount0 = SqrtPriceMath.getAmount0Delta(sqrtPriceX96, sqrtPriceUpper, liquidity, true);
+            amount1 = SqrtPriceMath.getAmount1Delta(sqrtPriceLower, sqrtPriceX96, liquidity, true);
+        } else {
+            amount1 = SqrtPriceMath.getAmount1Delta(sqrtPriceLower, sqrtPriceUpper, liquidity, true);
+        }
     }
 
     function isWithinAllowedRangeV4(int24 tick) internal pure returns (bool) {

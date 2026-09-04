@@ -68,7 +68,7 @@ contract AddAsset_RegistryL1_Fuzz_Test is RegistryL1_Fuzz_Test {
         vm.assume(assetType > 0);
 
         // And: asset is not yet added.
-        vm.assume(registry_.inRegistry(newAsset) == false);
+        vm.assume(!registry_.inRegistry(newAsset));
 
         // When: erc20AM calls addAsset with input of address(eth)
         vm.startPrank(address(erc20AM));

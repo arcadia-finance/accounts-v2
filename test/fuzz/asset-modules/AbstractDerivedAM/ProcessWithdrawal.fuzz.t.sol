@@ -5,6 +5,7 @@
 pragma solidity ^0.8.0;
 
 import { AbstractDerivedAM_Fuzz_Test } from "./_AbstractDerivedAM.fuzz.t.sol";
+import { BitPackingLib } from "../../../../src/libraries/BitPackingLib.sol";
 
 /**
  * @notice Fuzz tests for the function "_processWithdrawal" of contract "AbstractDerivedAM".
@@ -31,20 +32,16 @@ contract ProcessWithdrawal_AbstractDerivedAM_Fuzz_Test is AbstractDerivedAM_Fuzz
         // Given: valid initial state.
         (protocolState, assetState, underlyingPMState) = givenValidState(protocolState, assetState, underlyingPMState);
 
-        // And: No overflow on exposureAssetToUnderlyingAsset.
-        assetState.exposureAssetToUnderlyingAsset =
-            bound(assetState.exposureAssetToUnderlyingAsset, 0, type(uint112).max);
-
         // And: delta "usdExposureAsset" is positive (test-case).
-        vm.assume(assetState.lastUsdExposureAsset < type(uint112).max);
-        underlyingPMState.usdValue =
-            bound(underlyingPMState.usdValue, assetState.lastUsdExposureAsset + 1, type(uint112).max);
+        uint256 usdValue = usdExposureToUnderlyingAsset(assetState, underlyingPMState);
+        vm.assume(usdValue > 0);
+        assetState.lastUsdExposureAsset = uint112(bound(assetState.lastUsdExposureAsset, 0, usdValue - 1));
 
         // And: "usdExposureProtocol" overflows (unrealistically big).
         protocolState.lastUsdExposureProtocol = uint112(
             bound(
                 protocolState.lastUsdExposureProtocol,
-                type(uint112).max - (underlyingPMState.usdValue - assetState.lastUsdExposureAsset) + 1,
+                type(uint112).max - (usdValue - assetState.lastUsdExposureAsset) + 1,
                 type(uint112).max
             )
         );
@@ -71,24 +68,20 @@ contract ProcessWithdrawal_AbstractDerivedAM_Fuzz_Test is AbstractDerivedAM_Fuzz
         // Given: valid initial state.
         (protocolState, assetState, underlyingPMState) = givenValidState(protocolState, assetState, underlyingPMState);
 
-        // And: No overflow on exposureAssetToUnderlyingAsset.
-        assetState.exposureAssetToUnderlyingAsset =
-            bound(assetState.exposureAssetToUnderlyingAsset, 0, type(uint112).max);
-
         // And: delta "usdExposureAsset" is positive (test-case).
-        underlyingPMState.usdValue =
-            bound(underlyingPMState.usdValue, assetState.lastUsdExposureAsset, type(uint112).max);
+        uint256 usdValue = usdExposureToUnderlyingAsset(assetState, underlyingPMState);
+        assetState.lastUsdExposureAsset = uint112(bound(assetState.lastUsdExposureAsset, 0, usdValue));
 
         // And: "usdExposureProtocol" does not overflow (unrealistically big).
         protocolState.lastUsdExposureProtocol = uint112(
             bound(
                 protocolState.lastUsdExposureProtocol,
                 assetState.lastUsdExposureAsset,
-                type(uint112).max - (underlyingPMState.usdValue - assetState.lastUsdExposureAsset)
+                type(uint112).max - (usdValue - assetState.lastUsdExposureAsset)
             )
         );
         uint256 usdExposureProtocolExpected =
-            protocolState.lastUsdExposureProtocol + (underlyingPMState.usdValue - assetState.lastUsdExposureAsset);
+            protocolState.lastUsdExposureProtocol + (usdValue - assetState.lastUsdExposureAsset);
 
         // And: exposure does not exceeds max exposure.
         protocolState.maxUsdExposureProtocol =
@@ -120,7 +113,7 @@ contract ProcessWithdrawal_AbstractDerivedAM_Fuzz_Test is AbstractDerivedAM_Fuzz
         uint256 usdExposureAsset = derivedAM.processWithdrawal(assetState.creditor, assetKey, exposureAsset);
 
         // Then: Transaction returns correct "usdExposureAsset".
-        assertEq(usdExposureAsset, underlyingPMState.usdValue);
+        assertEq(usdExposureAsset, usdValue);
 
         // And: "lastExposureAssetToUnderlyingAsset" is updated.
         assertEq(
@@ -130,7 +123,7 @@ contract ProcessWithdrawal_AbstractDerivedAM_Fuzz_Test is AbstractDerivedAM_Fuzz
 
         // And: "lastUsdExposureAsset" is updated.
         (, uint256 lastUsdExposureAsset) = derivedAM.getAssetExposureLast(assetState.creditor, assetKey);
-        assertEq(lastUsdExposureAsset, underlyingPMState.usdValue);
+        assertEq(lastUsdExposureAsset, usdValue);
 
         // And: "usdExposureProtocol" is updated.
         (uint128 usdExposureProtocolActual,,) = derivedAM.riskParams(assetState.creditor);
@@ -146,24 +139,17 @@ contract ProcessWithdrawal_AbstractDerivedAM_Fuzz_Test is AbstractDerivedAM_Fuzz
         // Given: valid initial state.
         (protocolState, assetState, underlyingPMState) = givenValidState(protocolState, assetState, underlyingPMState);
 
-        // And: No overflow on exposureAssetToUnderlyingAsset.
-        assetState.exposureAssetToUnderlyingAsset =
-            bound(assetState.exposureAssetToUnderlyingAsset, 0, type(uint112).max);
-
         // And: delta "usdExposureAsset" is negative (test-case).
-        vm.assume(assetState.lastUsdExposureAsset > 0);
-        underlyingPMState.usdValue = bound(underlyingPMState.usdValue, 0, assetState.lastUsdExposureAsset - 1);
+        uint256 usdValue = usdExposureToUnderlyingAsset(assetState, underlyingPMState);
+        assetState.lastUsdExposureAsset =
+            uint112(bound(assetState.lastUsdExposureAsset, usdValue + 1, type(uint112).max));
 
         // And: "usdExposureProtocol" does not underflow (test-case).
         protocolState.lastUsdExposureProtocol = uint112(
-            bound(
-                protocolState.lastUsdExposureProtocol,
-                assetState.lastUsdExposureAsset - underlyingPMState.usdValue,
-                type(uint112).max
-            )
+            bound(protocolState.lastUsdExposureProtocol, assetState.lastUsdExposureAsset - usdValue, type(uint112).max)
         );
         uint256 usdExposureProtocolExpected =
-            protocolState.lastUsdExposureProtocol - (assetState.lastUsdExposureAsset - underlyingPMState.usdValue);
+            protocolState.lastUsdExposureProtocol - (assetState.lastUsdExposureAsset - usdValue);
 
         // And: State is persisted.
         setDerivedAMProtocolState(protocolState, assetState.creditor);
@@ -191,7 +177,7 @@ contract ProcessWithdrawal_AbstractDerivedAM_Fuzz_Test is AbstractDerivedAM_Fuzz
         uint256 usdExposureAsset = derivedAM.processWithdrawal(assetState.creditor, assetKey, exposureAsset);
 
         // Then: Transaction returns correct "usdExposureAsset".
-        assertEq(usdExposureAsset, underlyingPMState.usdValue);
+        assertEq(usdExposureAsset, usdValue);
 
         // And: "lastExposureAssetToUnderlyingAsset" is updated.
         assertEq(
@@ -201,7 +187,7 @@ contract ProcessWithdrawal_AbstractDerivedAM_Fuzz_Test is AbstractDerivedAM_Fuzz
 
         // And: "lastUsdExposureAsset" is updated.
         (, uint256 lastUsdExposureAsset) = derivedAM.getAssetExposureLast(assetState.creditor, assetKey);
-        assertEq(lastUsdExposureAsset, underlyingPMState.usdValue);
+        assertEq(lastUsdExposureAsset, usdValue);
 
         // And: "usdExposureProtocol" is updated.
         (uint128 usdExposureProtocolActual,,) = derivedAM.riskParams(assetState.creditor);
@@ -217,20 +203,14 @@ contract ProcessWithdrawal_AbstractDerivedAM_Fuzz_Test is AbstractDerivedAM_Fuzz
         // Given: valid initial state.
         (protocolState, assetState, underlyingPMState) = givenValidState(protocolState, assetState, underlyingPMState);
 
-        // And: No overflow on exposureAssetToUnderlyingAsset.
-        assetState.exposureAssetToUnderlyingAsset =
-            bound(assetState.exposureAssetToUnderlyingAsset, 0, type(uint112).max);
-
         // And: delta "usdExposureAsset" is negative (test-case).
-        vm.assume(assetState.lastUsdExposureAsset > 0);
-        underlyingPMState.usdValue = bound(underlyingPMState.usdValue, 0, assetState.lastUsdExposureAsset - 1);
+        uint256 usdValue = usdExposureToUnderlyingAsset(assetState, underlyingPMState);
+        assetState.lastUsdExposureAsset =
+            uint112(bound(assetState.lastUsdExposureAsset, usdValue + 1, type(uint112).max));
 
         // And: "usdExposureProtocol" does underflow (test-case).
-        protocolState.lastUsdExposureProtocol = uint112(
-            bound(
-                protocolState.lastUsdExposureProtocol, 0, assetState.lastUsdExposureAsset - underlyingPMState.usdValue
-            )
-        );
+        protocolState.lastUsdExposureProtocol =
+            uint112(bound(protocolState.lastUsdExposureProtocol, 0, assetState.lastUsdExposureAsset - usdValue));
 
         // And: State is persisted.
         setDerivedAMProtocolState(protocolState, assetState.creditor);
@@ -258,7 +238,7 @@ contract ProcessWithdrawal_AbstractDerivedAM_Fuzz_Test is AbstractDerivedAM_Fuzz
         uint256 usdExposureAsset = derivedAM.processWithdrawal(assetState.creditor, assetKey, exposureAsset);
 
         // Then: Transaction returns correct "usdExposureAsset".
-        assertEq(usdExposureAsset, underlyingPMState.usdValue);
+        assertEq(usdExposureAsset, usdValue);
 
         // And: "lastExposureAssetToUnderlyingAsset" is updated.
         assertEq(
@@ -268,7 +248,7 @@ contract ProcessWithdrawal_AbstractDerivedAM_Fuzz_Test is AbstractDerivedAM_Fuzz
 
         // And: "lastUsdExposureAsset" is updated.
         (, uint256 lastUsdExposureAsset) = derivedAM.getAssetExposureLast(assetState.creditor, assetKey);
-        assertEq(lastUsdExposureAsset, underlyingPMState.usdValue);
+        assertEq(lastUsdExposureAsset, usdValue);
 
         // And: "usdExposureProtocol" is updated.
         (uint128 usdExposureProtocolActual,,) = derivedAM.riskParams(assetState.creditor);
@@ -316,6 +296,18 @@ contract ProcessWithdrawal_AbstractDerivedAM_Fuzz_Test is AbstractDerivedAM_Fuzz
         registry.setAssetModule(underlyingAssetB, address(primaryAM));
         primaryAM.setExposure(creditor, underlyingAssetA, 0, 0, type(uint112).max);
         primaryAM.setExposure(creditor, underlyingAssetB, 0, 0, type(uint112).max);
+
+        // And: Both underlying assets are priced, the values themselves are not asserted here.
+        {
+            addMockedOracle(PRIMARY_AM_ORACLE_ID, 0, bytes16("A"), bytes16("USD"), true);
+            uint80[] memory oracleIds = new uint80[](1);
+            oracleIds[0] = uint80(PRIMARY_AM_ORACLE_ID);
+            bool[] memory baseToQuoteAsset = new bool[](1);
+            baseToQuoteAsset[0] = true;
+            bytes32 sequence = BitPackingLib.pack(baseToQuoteAsset, oracleIds);
+            primaryAM.setAssetInformation(underlyingAssetA, 0, 1, sequence);
+            primaryAM.setAssetInformation(underlyingAssetB, 0, 1, sequence);
+        }
 
         // And: A deposit of the asset was processed.
         bytes32 assetKey = derivedAM.getKeyFromAsset(asset, assetId);

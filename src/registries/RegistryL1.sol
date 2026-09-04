@@ -80,8 +80,10 @@ contract RegistryL1 is IRegistry, RegistryGuardian {
     ////////////////////////////////////////////////////////////// */
 
     event AssetAdded(address indexed assetAddress, address indexed assetModule);
+    // forge-lint: disable-next-item(event-fields)
     event AssetModuleAdded(address assetModule);
     event OracleAdded(uint256 indexed oracleId, address indexed oracleModule);
+    // forge-lint: disable-next-item(event-fields)
     event OracleModuleAdded(address oracleModule);
 
     /* //////////////////////////////////////////////////////////////
@@ -107,6 +109,7 @@ contract RegistryL1 is IRegistry, RegistryGuardian {
     /**
      * @dev Only Oracle Modules can call functions with this modifier.
      */
+    // forge-lint: disable-next-item(modifier-used-only-once)
     modifier onlyOracleModule() {
         if (!isOracleModule[msg.sender]) revert RegistryErrors.OnlyOracleModule();
         _;

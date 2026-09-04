@@ -30,29 +30,23 @@ contract GetFreeMargin_AccountV3_Fuzz_Test is AccountV3_Fuzz_Test {
                               TESTS
     //////////////////////////////////////////////////////////////*/
 
-    // TODO: add processDeposit and withdrawal when opening and closing a margin account.
-    /*     function testFuzz_Success_getFreeMargin_CreditorNotSet(
-        uint256 openDebt,
-        uint256 minimumMargin,
-        uint128 collateralValue
-    ) public {
-        // Test-case: creditor is not set.
-        accountExtension.setCreditor(address(0));
+    function testFuzz_Success_getFreeMargin_CreditorNotSet(uint112 collateralValue) public {
+        // Given: No creditor is set.
+        vm.prank(users.accountOwner);
+        accountExtension.closeMarginAccount();
 
-        // Set minimumMargin
-        accountExtension.setMinimumMargin(uint96(minimumMargin));
-
-        // Mock initial debt.
-        creditorStable1.setOpenPosition(address(accountExtension), openDebt);
-
-        // Given: "exposure" is strictly smaller than "maxExposure".
+        // And: "exposure" is strictly smaller than "maxExposure".
         collateralValue = uint112(bound(collateralValue, 0, type(uint112).max - 1));
 
-        // Set Liquidation Value of assets (Liquidation value of token1 is 1:1 the amount of token1 tokens).
+        // And: Assets are deposited.
         depositErc20InAccount(accountExtension, mockERC20.stable1, collateralValue);
 
-        assertEq(collateralValue, accountExtension.getFreeMargin());
-    } */
+        // Then: Without a Creditor no risk factors are set, so the Account has no collateral value
+        // and no free margin, independent of the assets deposited.
+        assertEq(accountExtension.getUsedMargin(), 0);
+        assertEq(accountExtension.getCollateralValue(), 0);
+        assertEq(accountExtension.getFreeMargin(), 0);
+    }
 
     function testFuzz_Success_getFreeMargin_CreditorIsSet_NonZeroFreeMargin(
         uint256 openDebt,

@@ -12,6 +12,7 @@ import { StdStorage, stdStorage } from "../../../../lib/forge-std/src/Test.sol";
 /**
  * @notice Fuzz tests for the function "getUsdValueExposureToUnderlyingAssetAfterDeposit" of contract "RegistryL2".
  */
+// forge-lint: disable-next-item(unsafe-typecast)
 contract GetUsdValueExposureToUnderlyingAssetAfterDeposit_RegistryL2_Fuzz_Test is RegistryL2_Fuzz_Test {
     using stdStorage for StdStorage;
     /* ///////////////////////////////////////////////////////////////
@@ -51,13 +52,21 @@ contract GetUsdValueExposureToUnderlyingAssetAfterDeposit_RegistryL2_Fuzz_Test i
         uint96 underlyingAssetId,
         uint256 exposureAssetToUnderlyingAsset,
         int256 deltaExposureAssetToUnderlyingAsset,
+        uint64 assetUnit,
         uint256 usdValue
     ) public {
         vm.assume(deltaExposureAssetToUnderlyingAsset <= type(int112).max); // MaxExposure.
         vm.assume(deltaExposureAssetToUnderlyingAsset > type(int256).min); // Overflows on inversion.
 
         registry.setAssetModule(underlyingAsset, address(primaryAM));
-        primaryAM.setUsdValue(usdValue);
+
+        // And: The asset price does not overflow.
+        assetUnit = uint64(bound(assetUnit, 1, type(uint64).max));
+        usdValue = bound(usdValue, 0, type(uint256).max / 1e18);
+        exposureAssetToUnderlyingAsset = bound(
+            exposureAssetToUnderlyingAsset, 0, usdValue == 0 ? type(uint256).max : type(uint256).max / usdValue
+        );
+        setPrimaryAMOracle(underlyingAsset, underlyingAssetId, assetUnit, usdValue);
 
         vm.prank(users.riskManager);
         registry.setRiskParametersOfPrimaryAsset(
@@ -91,6 +100,6 @@ contract GetUsdValueExposureToUnderlyingAssetAfterDeposit_RegistryL2_Fuzz_Test i
             deltaExposureAssetToUnderlyingAsset
         );
 
-        assertEq(usdExposureAssetToUnderlyingAsset, usdValue);
+        assertEq(usdExposureAssetToUnderlyingAsset, exposureAssetToUnderlyingAsset * usdValue / assetUnit);
     }
 }

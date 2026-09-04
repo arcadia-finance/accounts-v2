@@ -7,6 +7,7 @@ pragma solidity ^0.8.0;
 import { RegistryErrors } from "../../../../src/libraries/Errors.sol";
 import { RegistryL2_Fuzz_Test } from "./_RegistryL2.fuzz.t.sol";
 import { RegistryL2 } from "../../../../src/registries/RegistryL2.sol";
+
 /**
  * @notice Fuzz tests for the function "addAsset" of contract "RegistryL2".
  */
@@ -68,7 +69,7 @@ contract AddAsset_RegistryL2_Fuzz_Test is RegistryL2_Fuzz_Test {
         vm.assume(assetType > 0);
 
         // And: asset is not yet added.
-        vm.assume(registry.inRegistry(newAsset) == false);
+        vm.assume(!registry.inRegistry(newAsset));
 
         // When: erc20AM calls addAsset with input of address(eth)
         vm.startPrank(address(erc20AM));

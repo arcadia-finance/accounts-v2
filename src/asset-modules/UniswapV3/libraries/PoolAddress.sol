@@ -24,6 +24,7 @@ library PoolAddress {
         pure
         returns (address pool)
     {
+        // forge-lint: disable-next-line(custom-errors)
         require(token0 < token1);
         pool = address(
             uint160(

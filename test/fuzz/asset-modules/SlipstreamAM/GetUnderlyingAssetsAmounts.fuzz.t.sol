@@ -148,12 +148,9 @@ contract GetUnderlyingAssetsAmounts_SlipstreamAM_Fuzz_Test is SlipstreamAM_Fuzz_
         // And: position is valid.
         position = givenValidPosition(position);
 
-        // And: there is no fee.
-        // ToDo: include fees.
+        // And: fees are the already realised fees (tokensOwed), the pool has no fee growth.
         position.feeGrowthInside0LastX128 = 0;
         position.feeGrowthInside1LastX128 = 0;
-        position.tokensOwed0 = 0;
-        position.tokensOwed1 = 0;
 
         // And: State is persisted.
         addAssetToArcadia(address(token0), int256(asset0.usdValue));
@@ -185,8 +182,16 @@ contract GetUnderlyingAssetsAmounts_SlipstreamAM_Fuzz_Test is SlipstreamAM_Fuzz_
             TickMath.getSqrtRatioAtTick(position.tickUpper),
             position.liquidity
         );
-        assertEq(underlyingAssetsAmounts[0], expectedUnderlyingAssetsAmount0);
-        assertEq(underlyingAssetsAmounts[1], expectedUnderlyingAssetsAmount1);
+
+        // And: fees are added to the principal, capped at the principal.
+        uint256 expectedFee0 = position.tokensOwed0 > expectedUnderlyingAssetsAmount0
+            ? expectedUnderlyingAssetsAmount0
+            : position.tokensOwed0;
+        uint256 expectedFee1 = position.tokensOwed1 > expectedUnderlyingAssetsAmount1
+            ? expectedUnderlyingAssetsAmount1
+            : position.tokensOwed1;
+        assertEq(underlyingAssetsAmounts[0], expectedUnderlyingAssetsAmount0 + expectedFee0);
+        assertEq(underlyingAssetsAmounts[1], expectedUnderlyingAssetsAmount1 + expectedFee1);
     }
 
     function testFuzz_Success_GetUnderlyingAssetsAmounts_AmountIsZero(uint96 tokenId) public view {

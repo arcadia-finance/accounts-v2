@@ -34,8 +34,6 @@ contract GetValue_UniswapV3AM_Fuzz_Test is UniswapV3AM_Fuzz_Test {
                               TESTS
     //////////////////////////////////////////////////////////////*/
 
-    // ToDo: getValue with fuzzed tokensOwed and pending Fees.
-
     function testFuzz_Success_getValue_valueInUsd(TestVariables memory vars) public {
         // Check that ticks are within allowed ranges.
         vm.assume(vars.tickLower < vars.tickUpper);

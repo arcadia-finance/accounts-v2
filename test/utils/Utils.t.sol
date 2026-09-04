@@ -27,6 +27,7 @@ contract Utils_Test is Test {
     function test_Revert_veryBadBytesReplacer_Short() public {
         bytes memory bytecode = hex"4fe34f199b19b2b4f47f68442619d555527d244f78a3297ea8";
         bytes32 target = 0xe34f199b19b2b4f47f68442619d555527d244f78a3297ea89325f843f87b8b54;
+        // forge-lint: disable-next-line(too-many-digits)
         bytes32 replacement = 0x100000000000000000000000000000000000000000000000000000000000000f;
 
         vm.expectRevert();
@@ -36,6 +37,7 @@ contract Utils_Test is Test {
     function test_Revert_veryBadBytesReplacer_NoMatch() public {
         bytes memory bytecode = hex"e34f199b19b2b4f47f68442619d555527d244f78a3297ea89325f843f87b8b55";
         bytes32 target = 0xe34f199b19b2b4f47f68442619d555527d244f78a3297ea89325f843f87b8b54;
+        // forge-lint: disable-next-line(too-many-digits)
         bytes32 replacement = 0x100000000000000000000000000000000000000000000000000000000000000f;
 
         vm.expectRevert();
@@ -45,6 +47,7 @@ contract Utils_Test is Test {
     function test_Success_veryBadBytesReplacer_FirstByte() public view {
         bytes memory bytecode = hex"e34f199b19b2b4f47f68442619d555527d244f78a3297ea89325f843f87b8b544f4f";
         bytes32 target = 0xe34f199b19b2b4f47f68442619d555527d244f78a3297ea89325f843f87b8b54;
+        // forge-lint: disable-next-line(too-many-digits)
         bytes32 replacement = 0x100000000000000000000000000000000000000000000000000000000000000f;
 
         bytes memory expectedResult = hex"100000000000000000000000000000000000000000000000000000000000000f4f4f";
@@ -56,6 +59,7 @@ contract Utils_Test is Test {
     function test_Success_veryBadBytesReplacer_LastByte() public view {
         bytes memory bytecode = hex"4f4fe34f199b19b2b4f47f68442619d555527d244f78a3297ea89325f843f87b8b54";
         bytes32 target = 0xe34f199b19b2b4f47f68442619d555527d244f78a3297ea89325f843f87b8b54;
+        // forge-lint: disable-next-line(too-many-digits)
         bytes32 replacement = 0x100000000000000000000000000000000000000000000000000000000000000f;
 
         bytes memory expectedResult = hex"4f4f100000000000000000000000000000000000000000000000000000000000000f";
@@ -67,6 +71,7 @@ contract Utils_Test is Test {
     function test_Success_veryBadBytesReplacer_MiddleByte() public view {
         bytes memory bytecode = hex"4fe34f199b19b2b4f47f68442619d555527d244f78a3297ea89325f843f87b8b544f";
         bytes32 target = 0xe34f199b19b2b4f47f68442619d555527d244f78a3297ea89325f843f87b8b54;
+        // forge-lint: disable-next-line(too-many-digits)
         bytes32 replacement = 0x100000000000000000000000000000000000000000000000000000000000000f;
 
         bytes memory expectedResult = hex"4f100000000000000000000000000000000000000000000000000000000000000f4f";

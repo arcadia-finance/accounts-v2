@@ -98,6 +98,7 @@ contract AccountLogicMock is AccountStorageV2 {
     /**
      * @dev Throws if called by any account other than an Asset Manager or the owner.
      */
+    // forge-lint: disable-next-item(modifier-used-only-once)
     modifier onlyAssetManager() {
         // A custom error would need to read out owner + creditor + isAssetManager storage
         require(

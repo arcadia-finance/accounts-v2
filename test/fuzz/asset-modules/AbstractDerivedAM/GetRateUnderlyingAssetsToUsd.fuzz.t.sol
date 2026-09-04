@@ -11,7 +11,7 @@ import { AssetValueAndRiskFactors } from "../../../../src/libraries/AssetValuati
 /**
  * @notice Fuzz tests for the function "_getRateUnderlyingAssetsToUsd" of contract "AbstractDerivedAM".
  */
-// forge-lint: disable-next-item(mixed-case-variable)
+// forge-lint: disable-next-item(mixed-case-variable,unsafe-typecast)
 contract GetRateUnderlyingAssetsToUsd_AbstractDerivedAM_Fuzz_Test is AbstractDerivedAM_Fuzz_Test {
     /* ///////////////////////////////////////////////////////////////
                               SETUP
@@ -32,13 +32,16 @@ contract GetRateUnderlyingAssetsToUsd_AbstractDerivedAM_Fuzz_Test is AbstractDer
         assetState.assetId = bound(assetState.assetId, 0, type(uint96).max);
         assetState.underlyingAssetId = bound(assetState.underlyingAssetId, 0, type(uint96).max);
 
+        // And: The asset price does not overflow.
+        underlyingPMState.assetUnit = uint64(bound(underlyingPMState.assetUnit, 1, type(uint64).max));
+        underlyingPMState.rateInUsd = bound(underlyingPMState.rateInUsd, 0, type(uint256).max / 1e18);
+
         // And: State is persisted.
         setDerivedAMAssetState(assetState);
         setUnderlyingAssetModuleState(assetState, underlyingPMState);
 
         // Prepare input.
         bytes32[] memory underlyingAssetKeys = new bytes32[](1);
-        // forge-lint: disable-next-item(unsafe-typecast)
         underlyingAssetKeys[0] =
             bytes32(abi.encodePacked(uint96(assetState.underlyingAssetId), assetState.underlyingAsset));
 
@@ -59,6 +62,8 @@ contract GetRateUnderlyingAssetsToUsd_AbstractDerivedAM_Fuzz_Test is AbstractDer
             derivedAM.getRateUnderlyingAssetsToUsd(assetState.creditor, underlyingAssetKeys);
 
         // And: Transaction returns correct "rateUnderlyingAssetsToUsd".
-        assertEq(rateUnderlyingAssetsToUsd[0].assetValue, underlyingPMState.usdValue);
+        assertEq(
+            rateUnderlyingAssetsToUsd[0].assetValue, 1e18 * underlyingPMState.rateInUsd / underlyingPMState.assetUnit
+        );
     }
 }
