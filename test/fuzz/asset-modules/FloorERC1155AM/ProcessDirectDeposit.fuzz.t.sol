@@ -41,8 +41,8 @@ contract ProcessDirectDeposit_FloorERC1155AM_Fuzz_Test is FloorERC1155AM_Fuzz_Te
     }
 
     function testFuzz_Revert_processDirectDeposit_OverExposure(uint128 amount, uint112 maxExposure) public {
-        vm.assume(maxExposure > 0); //Asset is allowed
-        vm.assume(amount >= maxExposure);
+        maxExposure = uint112(bound(maxExposure, 1, type(uint112).max));
+        amount = uint128(bound(amount, maxExposure, type(uint128).max));
         vm.prank(users.owner);
         floorERC1155AM.addAsset(address(mockERC1155.sft2), 1, oraclesSft2ToUsd);
         vm.prank(users.riskManager);
@@ -55,7 +55,7 @@ contract ProcessDirectDeposit_FloorERC1155AM_Fuzz_Test is FloorERC1155AM_Fuzz_Te
     }
 
     function testFuzz_Revert_processDirectDeposit_WrongID(uint96 assetId, uint128 amount) public {
-        vm.assume(assetId > 0); //Wrong Id
+        assetId = uint96(bound(assetId, 1, type(uint96).max));
         vm.prank(users.owner);
         floorERC1155AM.addAsset(address(mockERC1155.sft2), 0, oraclesSft2ToUsd);
 

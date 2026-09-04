@@ -78,14 +78,19 @@ abstract contract AbstractStakingAM_Fuzz_Test is Fuzz_Test {
     // forge-lint: disable-next-item(mixed-case-function,mixed-case-variable)
     function givenValidStakingAMState(
         StakingAMStateForAsset memory stakingAMStateForAsset,
-        StakingAM.PositionState memory stakingAMStateForPosition
+        StakingAM.PositionState memory stakingAMStateForPosition,
+        uint128 minAmountStaked,
+        uint128 maxTotalStaked
     ) public pure returns (StakingAMStateForAsset memory, StakingAM.PositionState memory) {
         // Given: More than 1 gwei is staked.
-        stakingAMStateForAsset.totalStaked = uint128(bound(stakingAMStateForAsset.totalStaked, 1, type(uint128).max));
+        stakingAMStateForAsset.totalStaked = uint128(
+            bound(stakingAMStateForAsset.totalStaked, minAmountStaked == 0 ? 1 : minAmountStaked, maxTotalStaked)
+        );
 
         // And: totalStaked should be >= to amountStakedForPosition (invariant).
-        stakingAMStateForPosition.amountStaked =
-            uint128(bound(stakingAMStateForPosition.amountStaked, 0, stakingAMStateForAsset.totalStaked));
+        stakingAMStateForPosition.amountStaked = uint128(
+            bound(stakingAMStateForPosition.amountStaked, minAmountStaked, stakingAMStateForAsset.totalStaked)
+        );
 
         // And: deltaRewardPerToken is smaller or equal as type(uint128).max (no overflow safeCastTo128).
         stakingAMStateForAsset.currentRewardGlobal = bound(

@@ -33,7 +33,7 @@ contract Mint_AbstractStakingAM_Fuzz_Test is AbstractStakingAM_Fuzz_Test {
 
     function testFuzz_Revert_mint_AssetNotAllowed(uint8 assetDecimals, uint128 amount, address account_) public {
         // Given : Amount is greater than zero
-        vm.assume(amount > 0);
+        amount = uint128(bound(amount, 1, type(uint128).max));
 
         assetDecimals = uint8(bound(assetDecimals, 0, 18));
         address asset = address(new ERC20Mock("Asset", "AST", assetDecimals));
@@ -73,14 +73,13 @@ contract Mint_AbstractStakingAM_Fuzz_Test is AbstractStakingAM_Fuzz_Test {
 
             // And: Valid state.
             StakingAM.PositionState memory positionState;
-            (assetState, positionState) = givenValidStakingAMState(assetState, positionState);
+            (assetState, positionState) = givenValidStakingAMState(assetState, positionState, 0, type(uint128).max - 1);
 
             // And: State is persisted.
             setStakingAMState(assetState, positionState, asset, 0);
 
             // And: updated totalStake should not be greater than uint128.
             // And: Amount staked is greater than zero.
-            vm.assume(assetState.totalStaked < type(uint128).max);
             amount = uint128(bound(amount, 1, type(uint128).max - assetState.totalStaked));
 
             deal(asset, account_, amount, true);
@@ -141,7 +140,7 @@ contract Mint_AbstractStakingAM_Fuzz_Test is AbstractStakingAM_Fuzz_Test {
 
         // And: Valid state.
         StakingAM.PositionState memory positionState;
-        (assetState, positionState) = givenValidStakingAMState(assetState, positionState);
+        (assetState, positionState) = givenValidStakingAMState(assetState, positionState, 0, type(uint128).max - 1);
 
         // And: TotalStaked is 0.
         assetState.totalStaked = 0;

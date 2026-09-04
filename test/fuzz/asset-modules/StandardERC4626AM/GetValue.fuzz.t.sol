@@ -33,20 +33,19 @@ contract GetValue_StandardERC4626AM_Fuzz_Test is StandardERC4626AM_Fuzz_Test {
         uint256 totalSupply,
         uint256 totalAssets
     ) public {
-        vm.assume(shares <= totalSupply);
-        vm.assume(totalSupply > 0);
-        vm.assume(totalAssets > 0);
-        vm.assume(rateToken1ToUsd_ > 0);
+        totalSupply = bound(totalSupply, 1, type(uint256).max);
+        totalAssets = bound(totalAssets, 1, type(uint256).max);
+        // A single holder can never hold more than totalSupply, and no Overflow ERC4626.
+        uint256 maxShares = type(uint256).max / totalAssets;
+        if (totalSupply < maxShares) maxShares = totalSupply;
+        shares = bound(shares, 1, maxShares);
 
-        // No Overflow Registry
-        vm.assume(rateToken1ToUsd_ <= type(uint256).max / Constants.WAD);
-        // No Overflow ERC4626
-        vm.assume(shares <= type(uint256).max / totalAssets);
-
-        vm.assume(
-            shares * totalAssets / totalSupply
-                > type(uint256).max / (Constants.WAD * rateToken1ToUsd_ / 10 ** Constants.TOKEN_ORACLE_DECIMALS)
-        );
+        // And: The usd value of the shares overflows (test-case), and no Overflow Registry.
+        uint256 assetValue = shares * totalAssets / totalSupply;
+        vm.assume(assetValue > 0);
+        uint256 minRate = type(uint256).max / assetValue / (Constants.WAD / 10 ** Constants.TOKEN_ORACLE_DECIMALS) + 1;
+        vm.assume(minRate <= type(uint256).max / Constants.WAD);
+        rateToken1ToUsd_ = bound(rateToken1ToUsd_, minRate, type(uint256).max / Constants.WAD);
 
         vm.prank(users.transmitter);
         mockOracles.token1ToUsd.transmit(int256(rateToken1ToUsd_));
@@ -74,22 +73,23 @@ contract GetValue_StandardERC4626AM_Fuzz_Test is StandardERC4626AM_Fuzz_Test {
         uint256 totalSupply,
         uint256 totalAssets
     ) public {
-        vm.assume(shares <= totalSupply);
-        vm.assume(totalSupply > 0);
+        totalSupply = bound(totalSupply, 1, type(uint256).max);
 
         // No Overflow Registry
-        vm.assume(rateToken1ToUsd_ <= type(uint256).max / Constants.WAD / 1e18);
-        // No Overflow ERC4626
-        if (totalAssets > 0) {
-            vm.assume(shares <= type(uint256).max / totalAssets);
+        rateToken1ToUsd_ = bound(rateToken1ToUsd_, 0, type(uint256).max / Constants.WAD / 1e18);
+        // A single holder can never hold more than totalSupply, and no Overflow ERC4626.
+        uint256 maxShares = totalSupply;
+        if (totalAssets > 0 && type(uint256).max / totalAssets < maxShares) {
+            maxShares = type(uint256).max / totalAssets;
         }
-        // No Overflow
+        shares = bound(shares, 0, maxShares);
 
-        if (rateToken1ToUsd_ != 0) {
-            vm.assume(
-                shares * totalAssets / totalSupply
-                    <= type(uint256).max / (Constants.WAD * rateToken1ToUsd_ / 10 ** Constants.TOKEN_ORACLE_DECIMALS)
-            );
+        // And: The usd value of the shares does not overflow.
+        uint256 assetValue = shares * totalAssets / totalSupply;
+        if (assetValue > 0) {
+            uint256 maxRate = type(uint256).max / assetValue / (Constants.WAD / 10 ** Constants.TOKEN_ORACLE_DECIMALS);
+            uint256 maxRateRegistry = type(uint256).max / Constants.WAD / 1e18;
+            rateToken1ToUsd_ = bound(rateToken1ToUsd_, 0, maxRate < maxRateRegistry ? maxRate : maxRateRegistry);
         }
 
         uint256 expectedValueInUsd = (Constants.WAD * rateToken1ToUsd_ / 10 ** Constants.TOKEN_ORACLE_DECIMALS)

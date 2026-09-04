@@ -30,6 +30,7 @@ import { Test } from "../../../../lib/forge-std/src/Test.sol";
 import { TickMath } from "../../../../lib/v4-periphery/lib/v4-core/src/libraries/TickMath.sol";
 import { WETH9Fixture } from "../weth9/WETH9Fixture.f.sol";
 
+// forge-lint: disable-next-item(unsafe-typecast)
 contract UniswapV4Fixture is Test, Permit2Fixture, WETH9Fixture {
     using PositionInfoLibrary for PositionInfo;
     using StateLibrary for IPoolManagerExtension;
@@ -48,15 +49,8 @@ contract UniswapV4Fixture is Test, Permit2Fixture, WETH9Fixture {
                                    CONSTANTS
     //////////////////////////////////////////////////////////////////////////*/
 
-    /// The minimum tick that may be passed to #getSqrtRatioAtTick computed from log base 1.0001 of 2**-128
-    int24 internal constant MIN_TICK = -887_272;
-    /// The maximum tick that may be passed to #getSqrtRatioAtTick computed from log base 1.0001 of 2**128
-    int24 internal constant MAX_TICK = 887_272;
-
-    /// The minimum value that can be returned from #getSqrtPriceAtTick. Equivalent to getSqrtPriceAtTick(MIN_TICK)
-    uint160 internal constant MIN_SQRT_PRICE = 4_295_128_739;
-    /// The maximum value that can be returned from #getSqrtPriceAtTick. Equivalent to getSqrtPriceAtTick(MAX_TICK)
-    uint160 internal constant MAX_SQRT_PRICE = 1_461_446_703_485_210_103_287_273_052_203_988_822_378_723_970_342;
+    // The maximum priceToken0 / priceToken1 ratio for which sqrtPriceX96 stays below TickMath.MAX_SQRT_PRICE.
+    uint256 internal constant MAX_PRICE_RATIO = (uint256(TickMath.MAX_SQRT_PRICE) * 1e14 / 2 ** 96) ** 2 / 1e28;
 
     // A struct with the data to encode for position manager actions
     struct Plan {
@@ -296,9 +290,47 @@ contract UniswapV4Fixture is Test, Permit2Fixture, WETH9Fixture {
         }
     }
 
+    function givenValidPrices(uint256 priceToken0, uint256 priceToken1)
+        public
+        pure
+        returns (uint256 priceToken0_, uint256 priceToken1_)
+    {
+        // Avoid divide by 0, which is already checked in earlier in function.
+        priceToken1_ = bound(priceToken1, 1, type(uint256).max / 10 ** 18);
+        // Function will overFlow, not realistic.
+        uint256 maxPriceToken0 = type(uint256).max / 10 ** 28;
+        // Cast to uint160 will overflow, not realistic.
+        if (priceToken1_ < 2 ** 128) {
+            uint256 maxRatio = priceToken1_ * MAX_PRICE_RATIO;
+            if (maxRatio < maxPriceToken0) maxPriceToken0 = maxRatio;
+        }
+        // A priceXd28 of 0 puts sqrtPriceX96 below the minimum.
+        priceToken0_ = bound(priceToken0, (priceToken1_ - 1) / 10 ** 28 + 1, maxPriceToken0);
+    }
+
+    function givenValidExposures(
+        uint256 amount,
+        uint112 initialExposure,
+        uint112 maxExposure,
+        uint256 price,
+        uint256 maxUsdValue
+    ) public pure returns (uint112 initialExposure_, uint112 maxExposure_) {
+        // Usd value of the underlying asset does not overflow.
+        uint256 maxAmount = maxUsdValue / price / 10 ** 18;
+        vm.assume(amount < type(uint112).max);
+        vm.assume(amount < maxAmount);
+
+        // Exposure to the underlying asset stays below maxExposure.
+        maxExposure_ = uint112(bound(maxExposure, amount + 1, type(uint112).max));
+
+        uint256 exposureLimit = maxExposure_ - amount - 1;
+        uint256 usdLimit = maxAmount - amount - 1;
+        initialExposure_ = uint112(bound(initialExposure, 0, exposureLimit < usdLimit ? exposureLimit : usdLimit));
+    }
+
     function isWithinAllowedRangeV4(int24 tick) internal pure returns (bool) {
         // forge-lint: disable-next-line(unsafe-typecast)
-        return (tick < 0 ? uint256(-int256(tick)) : uint256(int256(tick))) <= uint256(uint24(MAX_TICK));
+        return (tick < 0 ? uint256(-int256(tick)) : uint256(int256(tick))) <= uint256(uint24(TickMath.MAX_TICK));
     }
 
     function getAmountsV4(uint256 id) internal view returns (uint256 amount0, uint256 amount1) {

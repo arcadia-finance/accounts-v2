@@ -47,7 +47,7 @@ contract ProcessIndirectDeposit_FloorERC1155AM_Fuzz_Test is FloorERC1155AM_Fuzz_
         uint256 exposureUpperAssetToAsset,
         int256 deltaExposureUpperAssetToAsset
     ) public {
-        vm.assume(assetId > 0); //Wrong Id
+        assetId = uint96(bound(assetId, 1, type(uint96).max));
         vm.prank(users.owner);
         floorERC1155AM.addAsset(address(mockERC1155.sft2), 0, oraclesSft2ToUsd);
 
@@ -64,10 +64,12 @@ contract ProcessIndirectDeposit_FloorERC1155AM_Fuzz_Test is FloorERC1155AM_Fuzz_
         int256 deltaExposureUpperAssetToAsset,
         uint112 maxExposure
     ) public {
-        vm.assume(deltaExposureUpperAssetToAsset > 0);
-        vm.assume(uint256(deltaExposureUpperAssetToAsset) < maxExposure);
+        deltaExposureUpperAssetToAsset = bound(
+            deltaExposureUpperAssetToAsset, 1, int256(uint256(type(uint112).max)) - 1
+        );
+        maxExposure = uint112(bound(maxExposure, uint256(deltaExposureUpperAssetToAsset) + 1, type(uint112).max));
         // To avoid overflow when calculating "usdExposureUpperAssetToAsset"
-        vm.assume(exposureUpperAssetToAsset < type(uint112).max);
+        exposureUpperAssetToAsset = bound(exposureUpperAssetToAsset, 0, type(uint112).max - 1);
 
         vm.prank(users.owner);
         floorERC1155AM.addAsset(address(mockERC1155.sft2), 0, oraclesSft2ToUsd);
@@ -76,7 +78,11 @@ contract ProcessIndirectDeposit_FloorERC1155AM_Fuzz_Test is FloorERC1155AM_Fuzz_
 
         (uint256 actualValueInUsd,,) = floorERC1155AM.getValue(address(creditorUsd), address(mockERC1155.sft2), 0, 1);
 
-        vm.assume(actualValueInUsd * exposureUpperAssetToAsset < type(uint256).max);
+        exposureUpperAssetToAsset = bound(
+            exposureUpperAssetToAsset,
+            0,
+            actualValueInUsd == 0 ? type(uint256).max : type(uint256).max / actualValueInUsd
+        );
 
         vm.prank(address(registry));
         (uint256 recursiveCalls, uint256 usdExposureUpperAssetToAsset) = floorERC1155AM.processIndirectDeposit(
@@ -119,7 +125,11 @@ contract ProcessIndirectDeposit_FloorERC1155AM_Fuzz_Test is FloorERC1155AM_Fuzz_
 
         (uint256 actualValueInUsd,,) = floorERC1155AM.getValue(address(creditorUsd), address(mockERC1155.sft2), 0, 1);
 
-        vm.assume(actualValueInUsd * exposureUpperAssetToAsset < type(uint256).max);
+        exposureUpperAssetToAsset = bound(
+            exposureUpperAssetToAsset,
+            0,
+            actualValueInUsd == 0 ? type(uint256).max : type(uint256).max / actualValueInUsd
+        );
 
         vm.prank(address(registry));
         (uint256 recursiveCalls, uint256 usdExposureUpperAssetToAsset) = floorERC1155AM.processIndirectDeposit(
@@ -163,7 +173,11 @@ contract ProcessIndirectDeposit_FloorERC1155AM_Fuzz_Test is FloorERC1155AM_Fuzz_
 
         (uint256 actualValueInUsd,,) = floorERC1155AM.getValue(address(creditorUsd), address(mockERC1155.sft2), 0, 1);
 
-        vm.assume(actualValueInUsd * exposureUpperAssetToAsset < type(uint256).max);
+        exposureUpperAssetToAsset = bound(
+            exposureUpperAssetToAsset,
+            0,
+            actualValueInUsd == 0 ? type(uint256).max : type(uint256).max / actualValueInUsd
+        );
 
         vm.prank(address(registry));
         (uint256 recursiveCalls, uint256 usdExposureUpperAssetToAsset) = floorERC1155AM.processIndirectDeposit(

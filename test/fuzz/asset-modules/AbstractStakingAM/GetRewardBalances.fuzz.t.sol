@@ -238,7 +238,7 @@ contract GetRewardBalances_AbstractStakingAM_Fuzz_Test is AbstractStakingAM_Fuzz
         address asset = addAsset(assetDecimals);
 
         // Given : Valid state
-        (assetState, positionState) = givenValidStakingAMState(assetState, positionState);
+        (assetState, positionState) = givenValidStakingAMState(assetState, positionState, 0, type(uint128).max);
 
         // And: State is persisted.
         setStakingAMState(assetState, positionState, asset, positionId);
@@ -276,7 +276,7 @@ contract GetRewardBalances_AbstractStakingAM_Fuzz_Test is AbstractStakingAM_Fuzz
         address asset = addAsset(assetDecimals);
 
         // Given : Valid state
-        (assetState, positionState) = givenValidStakingAMState(assetState, positionState);
+        (assetState, positionState) = givenValidStakingAMState(assetState, positionState, 0, type(uint128).max);
 
         // And: State is persisted.
         setStakingAMState(assetState, positionState, asset, positionId);

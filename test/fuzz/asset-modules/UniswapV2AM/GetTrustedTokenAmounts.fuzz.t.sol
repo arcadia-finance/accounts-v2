@@ -11,6 +11,7 @@ import { StdStorage, stdStorage } from "../../../../lib/forge-std/src/Test.sol";
 /**
  * @notice Fuzz tests for the function "getTrustedTokenAmounts" of contract "UniswapV2AM".
  */
+// forge-lint: disable-next-item(unsafe-typecast)
 contract GetTrustedTokenAmounts_UniswapV2AM_Fuzz_Test is UniswapV2AM_Fuzz_Test {
     using stdStorage for StdStorage;
     /* ///////////////////////////////////////////////////////////////
@@ -36,12 +37,15 @@ contract GetTrustedTokenAmounts_UniswapV2AM_Fuzz_Test is UniswapV2AM_Fuzz_Test {
         uint256 liquidityAmount
     ) public {
         // Only test for balanced pool, other tests guarantee that _getTrustedReserves brings unbalanced pool into balance
-        vm.assume(liquidityAmount > 0); // division by 0
-        vm.assume(reserve0 > 0); // division by 0
-        vm.assume(reserve1 > 0); // division by 0
-        vm.assume(liquidityAmount <= totalSupply); // single user can never hold more than totalSupply
-        vm.assume(liquidityAmount <= type(uint256).max / reserve0); // overflow, unrealistic big liquidityAmount
-        vm.assume(liquidityAmount <= type(uint256).max / reserve1); // overflow, unrealistic big liquidityAmount
+        // division by 0
+        totalSupply = bound(totalSupply, 1, type(uint256).max);
+        reserve0 = uint112(bound(reserve0, 1, type(uint112).max));
+        reserve1 = uint112(bound(reserve1, 1, type(uint112).max));
+        // single user can never hold more than totalSupply, and no overflow on unrealistic big liquidityAmount
+        uint256 maxLiquidityAmount = type(uint256).max / reserve0;
+        if (type(uint256).max / reserve1 < maxLiquidityAmount) maxLiquidityAmount = type(uint256).max / reserve1;
+        if (totalSupply < maxLiquidityAmount) maxLiquidityAmount = totalSupply;
+        liquidityAmount = bound(liquidityAmount, 1, maxLiquidityAmount);
 
         // Given: The reserves in the pool are reserve0 and reserve1
         pairToken1Token2.setReserves(reserve0, reserve1);

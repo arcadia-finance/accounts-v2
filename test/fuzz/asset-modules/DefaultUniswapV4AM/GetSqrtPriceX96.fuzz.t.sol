@@ -36,13 +36,10 @@ contract GetSqrtPriceX96_DefaultUniswapV4AM_Fuzz_Test is DefaultUniswapV4AM_Fuzz
     }
 
     function testFuzz_Success_getSqrtPriceX96_Overflow(uint256 priceToken0, uint256 priceToken1) public view {
-        // Given : Avoid divide by 0, which is already checked in earlier in function.
-        priceToken1 = bound(priceToken1, 1, type(uint256).max);
-        // And : priceToken0 is max 1.158e+49, otherwise function would overflow, not realistic.
-        priceToken0 = bound(priceToken0, 0, type(uint256).max / 1e28);
-
-        // And : Cast to uint160 overflows (test-case).
-        vm.assume(priceToken0 / priceToken1 >= 2 ** 128);
+        // Given : Cast to uint160 overflows (test-case).
+        priceToken0 = bound(priceToken0, 2 ** 128, type(uint256).max / 1e28);
+        // And : Avoid divide by 0, which is already checked in earlier in function.
+        priceToken1 = bound(priceToken1, 1, priceToken0 / 2 ** 128);
 
         uint256 priceXd28 = priceToken0 * 1e28 / priceToken1;
         uint256 sqrtPriceXd14 = FixedPointMathLib.sqrt(priceXd28);
@@ -61,7 +58,7 @@ contract GetSqrtPriceX96_DefaultUniswapV4AM_Fuzz_Test is DefaultUniswapV4AM_Fuzz
         // And : priceToken0 is max 1.158e+49, otherwise function would overflow, not realistic.
         priceToken0 = bound(priceToken0, 0, type(uint256).max / 1e28);
         // And : Cast to uint160 will overflow, not realistic.
-        vm.assume(priceToken0 / priceToken1 < 2 ** 128);
+        if (priceToken1 < 2 ** 128) priceToken0 = bound(priceToken0, 0, priceToken1 * 2 ** 128);
 
         uint256 priceXd28 = priceToken0 * 1e28 / priceToken1;
         uint256 sqrtPriceXd14 = FixedPointMathLib.sqrt(priceXd28);

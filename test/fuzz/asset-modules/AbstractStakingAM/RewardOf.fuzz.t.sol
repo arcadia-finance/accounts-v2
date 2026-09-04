@@ -10,6 +10,7 @@ import { FixedPointMathLib } from "../../../../lib/solmate/src/utils/FixedPointM
 /**
  * @notice Fuzz tests for the function "rewardOf" of contract "StakingAM".
  */
+// forge-lint: disable-next-item(unsafe-typecast)
 contract RewardOf_AbstractStakingAM_Fuzz_Test is AbstractStakingAM_Fuzz_Test {
     using FixedPointMathLib for uint256;
 
@@ -35,10 +36,7 @@ contract RewardOf_AbstractStakingAM_Fuzz_Test is AbstractStakingAM_Fuzz_Test {
         address asset = addAsset(assetDecimals);
 
         // Given : Valid state
-        (assetState, positionState) = givenValidStakingAMState(assetState, positionState);
-
-        // And : Account has a non-zero balance
-        vm.assume(positionState.amountStaked > 0);
+        (assetState, positionState) = givenValidStakingAMState(assetState, positionState, 1, type(uint128).max);
 
         // And: State is persisted.
         setStakingAMState(assetState, positionState, asset, positionId);

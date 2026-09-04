@@ -231,7 +231,8 @@ abstract contract AbstractDerivedAM_Fuzz_Test is Fuzz_Test {
             exposureAsset = assetState.exposureAssetLast + uint256(deltaExposureUpperAssetToAsset);
         } else {
             // And: No overflow on negation most negative int256 (this overflows).
-            vm.assume(deltaExposureUpperAssetToAsset > type(int256).min);
+            deltaExposureUpperAssetToAsset =
+                bound(deltaExposureUpperAssetToAsset, type(int256).min + 1, type(int256).max);
 
             if (uint256(-deltaExposureUpperAssetToAsset) < assetState.exposureAssetLast) {
                 exposureAsset = uint256(assetState.exposureAssetLast) - uint256(-deltaExposureUpperAssetToAsset);
@@ -280,6 +281,14 @@ abstract contract AbstractDerivedAM_Fuzz_Test is Fuzz_Test {
         uint256 usdValue = usdExposureToUnderlyingAsset(assetState, underlyingPMState);
         uint256 usdExposureProtocolExpected;
         if (usdValue >= assetState.lastUsdExposureAsset) {
+            // Leave room for the added exposure, the invariant on lastUsdExposureAsset still holds.
+            protocolState.lastUsdExposureProtocol = uint112(
+                bound(
+                    protocolState.lastUsdExposureProtocol,
+                    assetState.lastUsdExposureAsset,
+                    type(uint112).max - (usdValue - assetState.lastUsdExposureAsset) - 1
+                )
+            );
             usdExposureProtocolExpected =
                 protocolState.lastUsdExposureProtocol + (usdValue - assetState.lastUsdExposureAsset);
         } else {
@@ -288,7 +297,6 @@ abstract contract AbstractDerivedAM_Fuzz_Test is Fuzz_Test {
                 ? protocolState.lastUsdExposureProtocol - (assetState.lastUsdExposureAsset - usdValue)
                 : 0;
         }
-        vm.assume(usdExposureProtocolExpected < type(uint112).max);
         protocolState.maxUsdExposureProtocol =
             uint112(bound(protocolState.maxUsdExposureProtocol, usdExposureProtocolExpected + 1, type(uint112).max));
 

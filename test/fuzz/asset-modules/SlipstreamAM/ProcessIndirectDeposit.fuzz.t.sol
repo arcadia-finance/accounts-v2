@@ -56,21 +56,17 @@ contract ProcessIndirectDeposit_SlipstreamAM_Fuzz_Test is SlipstreamAM_Fuzz_Test
     ) public {
         vm.assume(unprivilegedAddress != address(registry));
 
-        vm.assume(tickLower < tickUpper);
-        vm.assume(isWithinAllowedRange(tickLower));
-        vm.assume(isWithinAllowedRange(tickUpper));
-
-        vm.assume(liquidity > 0);
+        (tickLower, tickUpper) = givenValidTicks(tickLower, tickUpper);
 
         // Calculate and check that tick current is within allowed ranges.
+        (priceToken0, priceToken1) = givenValidPrices(priceToken0, priceToken1);
         uint160 sqrtPriceX96 = uint160(calculateAndValidateRangeTickCurrent(priceToken0, priceToken1));
-        vm.assume(isWithinAllowedRange(TickMath.getTickAtSqrtRatio(sqrtPriceX96)));
 
         // Create Slipstream pool initiated at tickCurrent with cardinality 300.
         pool = createPoolCL(address(token0), address(token1), 1, sqrtPriceX96, 300);
 
         // Check that Liquidity is within allowed ranges.
-        vm.assume(liquidity <= pool.maxLiquidityPerTick());
+        liquidity = uint128(bound(liquidity, 1, pool.maxLiquidityPerTick()));
 
         // Mint liquidity position.
         (uint256 tokenId,,) = addLiquidityCL(pool, liquidity, users.liquidityProvider, tickLower, tickUpper, false);
@@ -92,24 +88,19 @@ contract ProcessIndirectDeposit_SlipstreamAM_Fuzz_Test is SlipstreamAM_Fuzz_Test
         uint256 exposureUpperAssetToAsset,
         int256 amount
     ) public {
-        vm.assume(amount != 0);
-        vm.assume(amount != 1);
+        vm.assume(amount != 0 && amount != 1);
 
-        vm.assume(tickLower < tickUpper);
-        vm.assume(isWithinAllowedRange(tickLower));
-        vm.assume(isWithinAllowedRange(tickUpper));
-
-        vm.assume(liquidity > 0);
+        (tickLower, tickUpper) = givenValidTicks(tickLower, tickUpper);
 
         // Calculate and check that tick current is within allowed ranges.
+        (priceToken0, priceToken1) = givenValidPrices(priceToken0, priceToken1);
         uint160 sqrtPriceX96 = uint160(calculateAndValidateRangeTickCurrent(priceToken0, priceToken1));
-        vm.assume(isWithinAllowedRange(TickMath.getTickAtSqrtRatio(sqrtPriceX96)));
 
         // Create Slipstream pool initiated at tickCurrent with cardinality 300.
         pool = createPoolCL(address(token0), address(token1), 1, sqrtPriceX96, 300);
 
         // Check that Liquidity is within allowed ranges.
-        vm.assume(liquidity <= pool.maxLiquidityPerTick());
+        liquidity = uint128(bound(liquidity, 1, pool.maxLiquidityPerTick()));
 
         // Mint liquidity position.
         (uint256 tokenId,,) = addLiquidityCL(pool, liquidity, users.liquidityProvider, tickLower, tickUpper, false);
@@ -133,21 +124,17 @@ contract ProcessIndirectDeposit_SlipstreamAM_Fuzz_Test is SlipstreamAM_Fuzz_Test
         uint112 maxExposure0,
         uint112 maxExposure1
     ) public {
-        vm.assume(tickLower < tickUpper);
-        vm.assume(isWithinAllowedRange(tickLower));
-        vm.assume(isWithinAllowedRange(tickUpper));
-
-        vm.assume(liquidity > 0);
+        (tickLower, tickUpper) = givenValidTicks(tickLower, tickUpper);
 
         // Calculate and check that tick current is within allowed ranges.
+        (priceToken0, priceToken1) = givenValidPrices(priceToken0, priceToken1);
         uint160 sqrtPriceX96 = uint160(calculateAndValidateRangeTickCurrent(priceToken0, priceToken1));
-        vm.assume(isWithinAllowedRange(TickMath.getTickAtSqrtRatio(sqrtPriceX96)));
 
         // Create Slipstream pool initiated at tickCurrent with cardinality 300.
         pool = createPoolCL(address(token0), address(token1), 1, sqrtPriceX96, 300);
 
         // Check that Liquidity is within allowed ranges.
-        vm.assume(liquidity <= pool.maxLiquidityPerTick());
+        liquidity = uint128(bound(liquidity, 1, pool.maxLiquidityPerTick()));
 
         // Mint liquidity position.
         (uint256 tokenId,,) = addLiquidityCL(pool, liquidity, users.liquidityProvider, tickLower, tickUpper, false);
@@ -168,12 +155,10 @@ contract ProcessIndirectDeposit_SlipstreamAM_Fuzz_Test is SlipstreamAM_Fuzz_Test
             );
 
             // Check that exposure to underlying tokens stays below maxExposures.
-            vm.assume(amount0 + initialExposure0 < maxExposure0);
-            vm.assume(amount1 + initialExposure1 < maxExposure1);
-
-            // And: Usd value of underlying assets does not overflow.
-            vm.assume(amount0 + initialExposure0 <= type(uint256).max / priceToken0 / 10 ** (18 - 0)); // divided by 10 ** (18 - DecimalsOracle).
-            vm.assume(amount1 + initialExposure1 <= type(uint256).max / priceToken1 / 10 ** (18 - 0)); // divided by 10 ** (18 - DecimalsOracle).
+            (initialExposure0, maxExposure0) =
+                givenValidExposures(amount0, initialExposure0, maxExposure0, priceToken0, type(uint256).max);
+            (initialExposure1, maxExposure1) =
+                givenValidExposures(amount1, initialExposure1, maxExposure1, priceToken1, type(uint256).max);
         }
 
         // Add underlying tokens and its oracles to Arcadia.
@@ -235,21 +220,17 @@ contract ProcessIndirectDeposit_SlipstreamAM_Fuzz_Test is SlipstreamAM_Fuzz_Test
         uint112 maxExposure0,
         uint112 maxExposure1
     ) public {
-        vm.assume(tickLower < tickUpper);
-        vm.assume(isWithinAllowedRange(tickLower));
-        vm.assume(isWithinAllowedRange(tickUpper));
-
-        vm.assume(liquidity > 0);
+        (tickLower, tickUpper) = givenValidTicks(tickLower, tickUpper);
 
         // Calculate and check that tick current is within allowed ranges.
+        (priceToken0, priceToken1) = givenValidPrices(priceToken0, priceToken1);
         uint160 sqrtPriceX96 = uint160(calculateAndValidateRangeTickCurrent(priceToken0, priceToken1));
-        vm.assume(isWithinAllowedRange(TickMath.getTickAtSqrtRatio(sqrtPriceX96)));
 
         // Create Slipstream pool initiated at tickCurrent with cardinality 300.
         pool = createPoolCL(address(token0), address(token1), 1, sqrtPriceX96, 300);
 
         // Check that Liquidity is within allowed ranges.
-        vm.assume(liquidity <= pool.maxLiquidityPerTick());
+        liquidity = uint128(bound(liquidity, 1, pool.maxLiquidityPerTick()));
 
         // Mint liquidity position.
         (uint256 tokenId,,) = addLiquidityCL(pool, liquidity, users.liquidityProvider, tickLower, tickUpper, false);
@@ -270,12 +251,10 @@ contract ProcessIndirectDeposit_SlipstreamAM_Fuzz_Test is SlipstreamAM_Fuzz_Test
             );
 
             // Check that exposure to underlying tokens stays below maxExposures.
-            vm.assume(amount0 + initialExposure0 < maxExposure0);
-            vm.assume(amount1 + initialExposure1 < maxExposure1);
-
-            // And: Usd value of underlying assets does not overflow.
-            vm.assume(amount0 + initialExposure0 <= type(uint256).max / priceToken0 / 10 ** (18 - 0)); // divided by 10 ** (18 - DecimalsOracle).
-            vm.assume(amount1 + initialExposure1 <= type(uint256).max / priceToken1 / 10 ** (18 - 0)); // divided by 10 ** (18 - DecimalsOracle).
+            (initialExposure0, maxExposure0) =
+                givenValidExposures(amount0, initialExposure0, maxExposure0, priceToken0, type(uint256).max);
+            (initialExposure1, maxExposure1) =
+                givenValidExposures(amount1, initialExposure1, maxExposure1, priceToken1, type(uint256).max);
         }
 
         // Add underlying tokens and its oracles to Arcadia.
@@ -336,13 +315,11 @@ contract ProcessIndirectDeposit_SlipstreamAM_Fuzz_Test is SlipstreamAM_Fuzz_Test
         uint112 maxExposure0,
         uint112 maxExposure1
     ) public {
-        vm.assume(tickLower < tickUpper);
-        vm.assume(isWithinAllowedRange(tickLower));
-        vm.assume(isWithinAllowedRange(tickUpper));
+        (tickLower, tickUpper) = givenValidTicks(tickLower, tickUpper);
 
         // Calculate and check that tick current is within allowed ranges.
+        (priceToken0, priceToken1) = givenValidPrices(priceToken0, priceToken1);
         uint160 sqrtPriceX96 = uint160(calculateAndValidateRangeTickCurrent(priceToken0, priceToken1));
-        vm.assume(isWithinAllowedRange(TickMath.getTickAtSqrtRatio(sqrtPriceX96)));
 
         // Create Slipstream pool initiated at tickCurrent with cardinality 300.
         pool = createPoolCL(address(token0), address(token1), 1, sqrtPriceX96, 300);
@@ -375,12 +352,10 @@ contract ProcessIndirectDeposit_SlipstreamAM_Fuzz_Test is SlipstreamAM_Fuzz_Test
                 );
 
                 // Check that exposure to underlying tokens stays below maxExposures.
-                vm.assume(amount0 + initialExposure0 < maxExposure0);
-                vm.assume(amount1 + initialExposure1 < maxExposure1);
-
-                // And: Usd exposure of underlying assets does not overflow.
-                vm.assume(amount0 + initialExposure0 <= type(uint256).max / priceToken0 / 10 ** (18 - 0)); // divided by 10 ** (18 - DecimalsOracle).
-                vm.assume(amount1 + initialExposure1 <= type(uint256).max / priceToken1 / 10 ** (18 - 0)); // divided by 10 ** (18 - DecimalsOracle).
+                (initialExposure0, maxExposure0) =
+                    givenValidExposures(amount0, initialExposure0, maxExposure0, priceToken0, type(uint256).max);
+                (initialExposure1, maxExposure1) =
+                    givenValidExposures(amount1, initialExposure1, maxExposure1, priceToken1, type(uint256).max);
             }
 
             // Add underlying tokens and its oracles to Arcadia.

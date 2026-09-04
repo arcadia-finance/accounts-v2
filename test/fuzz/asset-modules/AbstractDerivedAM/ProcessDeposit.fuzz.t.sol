@@ -41,7 +41,7 @@ contract ProcessDeposit_AbstractDerivedAM_Fuzz_Test is AbstractDerivedAM_Fuzz_Te
         protocolState.lastUsdExposureProtocol = uint112(
             bound(
                 protocolState.lastUsdExposureProtocol,
-                assetState.lastUsdExposureAsset,
+                assetState.lastUsdExposureAsset == 0 ? 1 : assetState.lastUsdExposureAsset,
                 type(uint112).max - (usdValue - assetState.lastUsdExposureAsset)
             )
         );
@@ -49,7 +49,6 @@ contract ProcessDeposit_AbstractDerivedAM_Fuzz_Test is AbstractDerivedAM_Fuzz_Te
             protocolState.lastUsdExposureProtocol + (usdValue - assetState.lastUsdExposureAsset);
 
         // And: exposure exceeds max exposure.
-        vm.assume(usdExposureProtocolExpected > 0);
         protocolState.maxUsdExposureProtocol =
             uint112(bound(protocolState.maxUsdExposureProtocol, 0, usdExposureProtocolExpected - 1));
 
@@ -117,14 +116,11 @@ contract ProcessDeposit_AbstractDerivedAM_Fuzz_Test is AbstractDerivedAM_Fuzz_Te
             bound(
                 protocolState.lastUsdExposureProtocol,
                 assetState.lastUsdExposureAsset,
-                type(uint112).max - (usdValue - assetState.lastUsdExposureAsset)
+                type(uint112).max - (usdValue - assetState.lastUsdExposureAsset) - 1
             )
         );
         uint256 usdExposureProtocolExpected =
             protocolState.lastUsdExposureProtocol + (usdValue - assetState.lastUsdExposureAsset);
-
-        // And: "exposure" is strictly smaller than "maxExposure" (test-case).
-        vm.assume(usdExposureProtocolExpected < type(uint112).max);
         protocolState.maxUsdExposureProtocol =
             uint112(bound(protocolState.maxUsdExposureProtocol, usdExposureProtocolExpected + 1, type(uint112).max));
 
@@ -193,7 +189,6 @@ contract ProcessDeposit_AbstractDerivedAM_Fuzz_Test is AbstractDerivedAM_Fuzz_Te
             protocolState.lastUsdExposureProtocol - (assetState.lastUsdExposureAsset - usdValue);
 
         // And: "exposure" is strictly smaller than "maxExposure" (test-case).
-        vm.assume(usdExposureProtocolExpected < type(uint112).max);
         protocolState.maxUsdExposureProtocol =
             uint112(bound(protocolState.maxUsdExposureProtocol, usdExposureProtocolExpected + 1, type(uint112).max));
 

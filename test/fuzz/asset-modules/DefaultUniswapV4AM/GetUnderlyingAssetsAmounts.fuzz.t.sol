@@ -10,13 +10,16 @@ import { DefaultUniswapV4AM_Fuzz_Test } from "./_DefaultUniswapV4AM.fuzz.t.sol";
 import { FixedPoint128 } from "../../../../lib/v4-periphery/lib/v4-core/src/libraries/FixedPoint128.sol";
 import { FixedPointMathLib } from "../../../../lib/solmate/src/utils/FixedPointMathLib.sol";
 import { LiquidityAmounts } from "../../../../src/asset-modules/UniswapV3/libraries/LiquidityAmounts.sol";
+import {
+    LiquidityAmountsExtension
+} from "../../../utils/fixtures/uniswap-v3/extensions/libraries/LiquidityAmountsExtension.sol";
 import { PositionInfoLibrary } from "../../../../lib/v4-periphery/src/libraries/PositionInfoLibrary.sol";
 import { TickMath } from "../../../../lib/v4-periphery/lib/v4-core/src/libraries/TickMath.sol";
 
 /**
  * @notice Fuzz tests for the function "_getUnderlyingAssetsAmounts" of contract "DefaultUniswapV4AM".
  */
-// forge-lint: disable-next-item(unsafe-typecast)
+// forge-lint: disable-next-item(unsafe-typecast,divide-before-multiply)
 contract GetUnderlyingAssetsAmounts_DefaultUniswapV4AM_Fuzz_Test is DefaultUniswapV4AM_Fuzz_Test {
     using FixedPointMathLib for uint256;
     /* ///////////////////////////////////////////////////////////////
@@ -65,7 +68,7 @@ contract GetUnderlyingAssetsAmounts_DefaultUniswapV4AM_Fuzz_Test is DefaultUnisw
         // And: State is valid for pool and position.
         randomPoolKey = initializePoolV4(address(token0_), address(token1_), 1e18, address(validHook), 500, 1);
         (tickLower, tickUpper) = givenValidTicks(tickLower, tickUpper);
-        vm.assume(liquidity > 0);
+        liquidity = uint128(bound(liquidity, 1, type(uint128).max));
         bytes32 positionKey =
             keccak256(abi.encodePacked(address(positionManagerV4), tickLower, tickUpper, bytes32(uint256(tokenId))));
         poolManager.setPositionLiquidity(randomPoolKey.toId(), positionKey, liquidity);
@@ -111,7 +114,7 @@ contract GetUnderlyingAssetsAmounts_DefaultUniswapV4AM_Fuzz_Test is DefaultUnisw
         // And: State is valid for pool and position.
         randomPoolKey = initializePoolV4(address(token0_), address(token1_), 1e18, address(validHook), 500, 1);
         (tickLower, tickUpper) = givenValidTicks(tickLower, tickUpper);
-        vm.assume(liquidity > 0);
+        liquidity = uint128(bound(liquidity, 1, type(uint128).max));
         bytes32 positionKey =
             keccak256(abi.encodePacked(address(positionManagerV4), tickLower, tickUpper, bytes32(uint256(tokenId))));
         poolManager.setPositionLiquidity(randomPoolKey.toId(), positionKey, liquidity);
@@ -167,16 +170,25 @@ contract GetUnderlyingAssetsAmounts_DefaultUniswapV4AM_Fuzz_Test is DefaultUnisw
         asset0.usdValue = bound(asset0.usdValue, 0, type(uint256).max / 10 ** (46 - asset0.decimals));
 
         // And: No overflow in capped fee calculation (max fee that can be considered as underlying amount to avoid bypassing max exposure)
-        asset1.usdValue = bound(asset1.usdValue, 0, type(uint256).max / 10 ** (46 - asset1.decimals));
+        asset1.usdValue = bound(asset1.usdValue, 1, type(uint256).max / 10 ** (46 - asset1.decimals));
 
         // And: Cast to uint160 in _getSqrtPriceX96 does not overflow.
         if (asset1.usdValue > 0) {
-            vm.assume(asset0.usdValue / asset1.usdValue / 10 ** asset0.decimals < 2 ** 128 / 10 ** asset1.decimals);
+            uint256 maxUsdValue0 = type(uint256).max / 10 ** (46 - asset0.decimals);
+            uint256 maxRatio = 2 ** 128 / 10 ** asset1.decimals;
+            if (maxRatio < maxUsdValue0 / asset1.usdValue / 10 ** asset0.decimals) {
+                maxUsdValue0 = asset1.usdValue * maxRatio * 10 ** asset0.decimals - 1;
+            }
+            // And: sqrtPriceX96 is within the allowed range.
+            if (asset1.usdValue < 2 ** 128) {
+                uint256 ratioBound = asset1.usdValue * MAX_PRICE_RATIO;
+                if (ratioBound < maxUsdValue0) maxUsdValue0 = ratioBound;
+            }
+            asset0.usdValue = bound(asset0.usdValue, (asset1.usdValue - 1) / 10 ** 28 + 1, maxUsdValue0);
         }
 
         // Calculate and check that tick current is within allowed ranges.
         uint160 sqrtPriceX96_ = uint160(calculateAndValidateRangeTickCurrent(asset0.usdValue, asset1.usdValue));
-        vm.assume(isWithinAllowedRangeV4(TickMath.getTickAtSqrtPrice(sqrtPriceX96_)));
 
         // And: State is valid for pool and position.
         {
@@ -187,17 +199,26 @@ contract GetUnderlyingAssetsAmounts_DefaultUniswapV4AM_Fuzz_Test is DefaultUnisw
                 abi.encodePacked(address(positionManagerV4), tickLower, tickUpper, bytes32(uint256(tokenId)))
             );
 
-            vm.assume(liquidity > 0);
-            // And: No overflow in capped fee calculation (max fee that can be considered as underlying amount to avoid bypassing max exposure)
+            // And: The amounts stay within the capped fee calculation and the principals do not overflow.
+            {
+                uint256 maxAmount0 = type(uint256).max / (asset0.usdValue * 10 ** (18 - asset0.decimals));
+                uint256 maxAmount1 = type(uint256).max / (asset1.usdValue * 10 ** (18 - asset1.decimals));
+                if (maxAmount0 > type(uint96).max - 1) maxAmount0 = type(uint96).max - 1;
+                if (maxAmount1 > type(uint96).max - 1) maxAmount1 = type(uint96).max - 1;
+                uint256 maxLiquidity = LiquidityAmountsExtension.getLiquidityForAmounts(
+                    sqrtPriceX96_,
+                    TickMath.getSqrtPriceAtTick(tickLower),
+                    TickMath.getSqrtPriceAtTick(tickUpper),
+                    maxAmount0,
+                    maxAmount1
+                );
+                vm.assume(maxLiquidity > 0);
+                if (maxLiquidity > type(uint128).max) maxLiquidity = type(uint128).max;
+                liquidity = uint128(bound(liquidity, 1, maxLiquidity));
+            }
             (uint256 amount0, uint256 amount1) = LiquidityAmounts.getAmountsForLiquidity(
                 sqrtPriceX96_, TickMath.getSqrtPriceAtTick(tickLower), TickMath.getSqrtPriceAtTick(tickUpper), liquidity
             );
-            vm.assume(amount0 < type(uint96).max);
-            vm.assume(amount1 < type(uint96).max);
-
-            // And: principals do not overflow.
-            vm.assume(amount0 < type(uint256).max / (asset0.usdValue * 10 ** (18 - asset0.decimals)));
-            vm.assume(amount1 < type(uint256).max / (asset1.usdValue * 10 ** (18 - asset1.decimals)));
 
             poolManager.setPositionLiquidity(randomPoolKey.toId(), positionKey, liquidity);
             positionManagerV4.setPosition(users.owner, randomPoolKey, tickLower, tickUpper, tokenId);
@@ -250,16 +271,25 @@ contract GetUnderlyingAssetsAmounts_DefaultUniswapV4AM_Fuzz_Test is DefaultUnisw
         asset0.usdValue = bound(asset0.usdValue, 0, type(uint256).max / 10 ** (46 - asset0.decimals));
 
         // And: No overflow in capped fee calculation (max fee that can be considered as underlying amount to avoid bypassing max exposure)
-        asset1.usdValue = bound(asset1.usdValue, 0, type(uint256).max / 10 ** (46 - asset1.decimals));
+        asset1.usdValue = bound(asset1.usdValue, 1, type(uint256).max / 10 ** (46 - asset1.decimals));
 
         // And: Cast to uint160 in _getSqrtPriceX96 does not overflow.
         if (asset1.usdValue > 0) {
-            vm.assume(asset0.usdValue / asset1.usdValue / 10 ** asset0.decimals < 2 ** 128 / 10 ** asset1.decimals);
+            uint256 maxUsdValue0 = type(uint256).max / 10 ** (46 - asset0.decimals);
+            uint256 maxRatio = 2 ** 128 / 10 ** asset1.decimals;
+            if (maxRatio < maxUsdValue0 / asset1.usdValue / 10 ** asset0.decimals) {
+                maxUsdValue0 = asset1.usdValue * maxRatio * 10 ** asset0.decimals - 1;
+            }
+            // And: sqrtPriceX96 is within the allowed range.
+            if (asset1.usdValue < 2 ** 128) {
+                uint256 ratioBound = asset1.usdValue * MAX_PRICE_RATIO;
+                if (ratioBound < maxUsdValue0) maxUsdValue0 = ratioBound;
+            }
+            asset0.usdValue = bound(asset0.usdValue, (asset1.usdValue - 1) / 10 ** 28 + 1, maxUsdValue0);
         }
 
         // Calculate and check that tick current is within allowed ranges.
         uint160 sqrtPriceX96_ = uint160(calculateAndValidateRangeTickCurrent(asset0.usdValue, asset1.usdValue));
-        vm.assume(isWithinAllowedRangeV4(TickMath.getTickAtSqrtPrice(sqrtPriceX96_)));
 
         // And: State is valid for pool and position.
         {
@@ -269,17 +299,26 @@ contract GetUnderlyingAssetsAmounts_DefaultUniswapV4AM_Fuzz_Test is DefaultUnisw
                 abi.encodePacked(address(positionManagerV4), tickLower, tickUpper, bytes32(uint256(tokenId)))
             );
 
-            vm.assume(liquidity > 0);
-            // And: No overflow in capped fee calculation (max fee that can be considered as underlying amount to avoid bypassing max exposure)
+            // And: The amounts stay within the capped fee calculation and the principals do not overflow.
+            {
+                uint256 maxAmount0 = type(uint256).max / (asset0.usdValue * 10 ** (18 - asset0.decimals));
+                uint256 maxAmount1 = type(uint256).max / (asset1.usdValue * 10 ** (18 - asset1.decimals));
+                if (maxAmount0 > type(uint96).max - 1) maxAmount0 = type(uint96).max - 1;
+                if (maxAmount1 > type(uint96).max - 1) maxAmount1 = type(uint96).max - 1;
+                uint256 maxLiquidity = LiquidityAmountsExtension.getLiquidityForAmounts(
+                    sqrtPriceX96_,
+                    TickMath.getSqrtPriceAtTick(tickLower),
+                    TickMath.getSqrtPriceAtTick(tickUpper),
+                    maxAmount0,
+                    maxAmount1
+                );
+                vm.assume(maxLiquidity > 0);
+                if (maxLiquidity > type(uint128).max) maxLiquidity = type(uint128).max;
+                liquidity = uint128(bound(liquidity, 1, maxLiquidity));
+            }
             (uint256 amount0, uint256 amount1) = LiquidityAmounts.getAmountsForLiquidity(
                 sqrtPriceX96_, TickMath.getSqrtPriceAtTick(tickLower), TickMath.getSqrtPriceAtTick(tickUpper), liquidity
             );
-            vm.assume(amount0 < type(uint96).max);
-            vm.assume(amount1 < type(uint96).max);
-
-            // And: principals do not overflow.
-            vm.assume(amount0 < type(uint256).max / (asset0.usdValue * 10 ** (18 - asset0.decimals)));
-            vm.assume(amount1 < type(uint256).max / (asset1.usdValue * 10 ** (18 - asset1.decimals)));
 
             poolManager.setPositionLiquidity(randomPoolKey.toId(), positionKey, liquidity);
             positionManagerV4.setPosition(users.owner, randomPoolKey, tickLower, tickUpper, tokenId);
@@ -338,17 +377,28 @@ contract GetUnderlyingAssetsAmounts_DefaultUniswapV4AM_Fuzz_Test is DefaultUnisw
         asset0.usdValue = bound(asset0.usdValue, 0, type(uint128).max / 10 ** (46 - asset0.decimals));
 
         // And: No overflow in capped fee calculation (max fee that can be considered as underlying amount to avoid bypassing max exposure)
-        asset1.usdValue = bound(asset1.usdValue, 0, type(uint128).max / 10 ** (46 - asset1.decimals));
+        uint256 maxUsdValue1 = type(uint128).max / 10 ** (46 - asset1.decimals);
+        vm.assume(maxUsdValue1 > 0);
+        asset1.usdValue = bound(asset1.usdValue, 1, maxUsdValue1);
 
         // And: Cast to uint160 in _getSqrtPriceX96 does not overflow.
         if (asset1.usdValue > 0) {
-            vm.assume(asset0.usdValue / asset1.usdValue / 10 ** asset0.decimals < 2 ** 128 / 10 ** asset1.decimals);
+            uint256 maxUsdValue0 = type(uint256).max / 10 ** (46 - asset0.decimals);
+            uint256 maxRatio = 2 ** 128 / 10 ** asset1.decimals;
+            if (maxRatio < maxUsdValue0 / asset1.usdValue / 10 ** asset0.decimals) {
+                maxUsdValue0 = asset1.usdValue * maxRatio * 10 ** asset0.decimals - 1;
+            }
+            // And: sqrtPriceX96 is within the allowed range.
+            if (asset1.usdValue < 2 ** 128) {
+                uint256 ratioBound = asset1.usdValue * MAX_PRICE_RATIO;
+                if (ratioBound < maxUsdValue0) maxUsdValue0 = ratioBound;
+            }
+            asset0.usdValue = bound(asset0.usdValue, (asset1.usdValue - 1) / 10 ** 28 + 1, maxUsdValue0);
         }
 
         // Calculate and check that tick current is within allowed ranges.
         {
             uint160 sqrtPriceX96_ = uint160(calculateAndValidateRangeTickCurrent(asset0.usdValue, asset1.usdValue));
-            vm.assume(isWithinAllowedRangeV4(TickMath.getTickAtSqrtPrice(sqrtPriceX96_)));
 
             // And: State is valid for pool and position.
             randomPoolKey =
@@ -358,13 +408,22 @@ contract GetUnderlyingAssetsAmounts_DefaultUniswapV4AM_Fuzz_Test is DefaultUnisw
                 abi.encodePacked(address(positionManagerV4), tickLower, tickUpper, bytes32(uint256(tokenId)))
             );
 
-            vm.assume(liquidity > 0);
-            // And: No overflow in capped fee calculation (max fee that can be considered as underlying amount to avoid bypassing max exposure)
+            // And: The amounts stay within the capped fee calculation.
+            {
+                uint256 maxLiquidity = LiquidityAmountsExtension.getLiquidityForAmounts(
+                    sqrtPriceX96_,
+                    TickMath.getSqrtPriceAtTick(tickLower),
+                    TickMath.getSqrtPriceAtTick(tickUpper),
+                    type(uint96).max - 1,
+                    type(uint96).max - 1
+                );
+                vm.assume(maxLiquidity > 0);
+                if (maxLiquidity > type(uint128).max) maxLiquidity = type(uint128).max;
+                liquidity = uint128(bound(liquidity, 1, maxLiquidity));
+            }
             (uint256 amount0, uint256 amount1) = LiquidityAmounts.getAmountsForLiquidity(
                 sqrtPriceX96_, TickMath.getSqrtPriceAtTick(tickLower), TickMath.getSqrtPriceAtTick(tickUpper), liquidity
             );
-            vm.assume(amount0 < type(uint96).max);
-            vm.assume(amount1 < type(uint96).max);
 
             poolManager.setPositionLiquidity(randomPoolKey.toId(), positionKey, liquidity);
             positionManagerV4.setPosition(users.owner, randomPoolKey, tickLower, tickUpper, tokenId);
@@ -406,7 +465,7 @@ contract GetUnderlyingAssetsAmounts_DefaultUniswapV4AM_Fuzz_Test is DefaultUnisw
             }
 
             {
-                vm.assume(feeData.desiredFee1 <= type(uint256).max / FixedPoint128.Q128);
+                feeData.desiredFee1 = bound(feeData.desiredFee1, 0, type(uint256).max / FixedPoint128.Q128);
                 uint256 feeGrowthDiff1X128 = feeData.desiredFee1.mulDivDown(FixedPoint128.Q128, liquidity);
                 feeData.upperFeeGrowthOutside1X128 =
                     bound(feeData.upperFeeGrowthOutside1X128, 0, type(uint256).max - feeGrowthDiff1X128);
@@ -470,17 +529,28 @@ contract GetUnderlyingAssetsAmounts_DefaultUniswapV4AM_Fuzz_Test is DefaultUnisw
         asset0.usdValue = bound(asset0.usdValue, 0, type(uint128).max / 10 ** (46 - asset0.decimals));
 
         // And: No overflow in capped fee calculation (max fee that can be considered as underlying amount to avoid bypassing max exposure)
-        asset1.usdValue = bound(asset1.usdValue, 0, type(uint128).max / 10 ** (46 - asset1.decimals));
+        uint256 maxUsdValue1 = type(uint128).max / 10 ** (46 - asset1.decimals);
+        vm.assume(maxUsdValue1 > 0);
+        asset1.usdValue = bound(asset1.usdValue, 1, maxUsdValue1);
 
         // And: Cast to uint160 in _getSqrtPriceX96 does not overflow.
         if (asset1.usdValue > 0) {
-            vm.assume(asset0.usdValue / asset1.usdValue / 10 ** asset0.decimals < 2 ** 128 / 10 ** asset1.decimals);
+            uint256 maxUsdValue0 = type(uint256).max / 10 ** (46 - asset0.decimals);
+            uint256 maxRatio = 2 ** 128 / 10 ** asset1.decimals;
+            if (maxRatio < maxUsdValue0 / asset1.usdValue / 10 ** asset0.decimals) {
+                maxUsdValue0 = asset1.usdValue * maxRatio * 10 ** asset0.decimals - 1;
+            }
+            // And: sqrtPriceX96 is within the allowed range.
+            if (asset1.usdValue < 2 ** 128) {
+                uint256 ratioBound = asset1.usdValue * MAX_PRICE_RATIO;
+                if (ratioBound < maxUsdValue0) maxUsdValue0 = ratioBound;
+            }
+            asset0.usdValue = bound(asset0.usdValue, (asset1.usdValue - 1) / 10 ** 28 + 1, maxUsdValue0);
         }
 
         // Calculate and check that tick current is within allowed ranges.
         {
             uint160 sqrtPriceX96_ = uint160(calculateAndValidateRangeTickCurrent(asset0.usdValue, asset1.usdValue));
-            vm.assume(isWithinAllowedRangeV4(TickMath.getTickAtSqrtPrice(sqrtPriceX96_)));
 
             // And: State is valid for pool and position.
             randomPoolKey =
@@ -490,13 +560,22 @@ contract GetUnderlyingAssetsAmounts_DefaultUniswapV4AM_Fuzz_Test is DefaultUnisw
                 abi.encodePacked(address(positionManagerV4), tickLower, tickUpper, bytes32(uint256(tokenId)))
             );
 
-            vm.assume(liquidity > 0);
-            // And: No overflow in capped fee calculation (max fee that can be considered as underlying amount to avoid bypassing max exposure)
+            // And: The amounts stay within the capped fee calculation.
+            {
+                uint256 maxLiquidity = LiquidityAmountsExtension.getLiquidityForAmounts(
+                    sqrtPriceX96_,
+                    TickMath.getSqrtPriceAtTick(tickLower),
+                    TickMath.getSqrtPriceAtTick(tickUpper),
+                    type(uint96).max - 1,
+                    type(uint96).max - 1
+                );
+                vm.assume(maxLiquidity > 0);
+                if (maxLiquidity > type(uint128).max) maxLiquidity = type(uint128).max;
+                liquidity = uint128(bound(liquidity, 1, maxLiquidity));
+            }
             (uint256 amount0, uint256 amount1) = LiquidityAmounts.getAmountsForLiquidity(
                 sqrtPriceX96_, TickMath.getSqrtPriceAtTick(tickLower), TickMath.getSqrtPriceAtTick(tickUpper), liquidity
             );
-            vm.assume(amount0 < type(uint96).max);
-            vm.assume(amount1 < type(uint96).max);
 
             poolManager.setPositionLiquidity(randomPoolKey.toId(), positionKey, liquidity);
             positionManagerV4.setPosition(users.owner, randomPoolKey, tickLower, tickUpper, tokenId);

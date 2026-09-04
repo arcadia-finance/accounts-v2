@@ -160,7 +160,6 @@ contract ProcessIndirectWithdrawal_AbstractPrimaryAM_Fuzz_Test is AbstractPrimar
             0,
             assetState.rateInUsd == 0 ? type(uint256).max : type(uint256).max / assetState.rateInUsd
         );
-
         // And: State is persisted.
         setPrimaryAMAssetState(assetState);
 
@@ -199,7 +198,6 @@ contract ProcessIndirectWithdrawal_AbstractPrimaryAM_Fuzz_Test is AbstractPrimar
             0,
             assetState.rateInUsd == 0 ? type(uint256).max : type(uint256).max / assetState.rateInUsd
         );
-
         // And: State is persisted.
         setPrimaryAMAssetState(assetState);
 

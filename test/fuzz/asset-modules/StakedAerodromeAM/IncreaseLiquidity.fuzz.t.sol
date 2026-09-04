@@ -40,9 +40,9 @@ contract IncreaseLiquidity_StakedAerodromeAM_Fuzz_Test is StakedAerodromeAM_Fuzz
         vm.assume(account_ != randomAddress);
         vm.assume(account_ != address(0));
         // Given : Amount is greater than zero
-        vm.assume(amount > 0);
+        amount = uint128(bound(amount, 1, type(uint128).max));
         // Given : positionId is greater than 0
-        vm.assume(positionId > 0);
+        positionId = uint96(bound(positionId, 1, type(uint96).max));
         // Given : Owner of positionId is not the Account
         stakedAerodromeAM.setOwnerOfPositionId(randomAddress, positionId);
 
@@ -98,7 +98,7 @@ contract IncreaseLiquidity_StakedAerodromeAM_Fuzz_Test is StakedAerodromeAM_Fuzz
             stakedAerodromeAM.addAsset(address(aeroGauge));
 
             // Given : Valid state
-            (assetState, positionState) = givenValidStakingAMState(assetState, positionState);
+            (assetState, positionState) = givenValidStakingAMState(assetState, positionState, 0, type(uint128).max - 1);
 
             // And: State is persisted.
             setStakedAerodromeAMState(assetState, positionState, address(aeroPool), positionId);
@@ -108,7 +108,6 @@ contract IncreaseLiquidity_StakedAerodromeAM_Fuzz_Test is StakedAerodromeAM_Fuzz
 
             // And: updated totalStake should not be greater than uint128.
             // And: Amount staked is greater than zero.
-            vm.assume(assetState.totalStaked < type(uint128).max);
             amount = uint128(bound(amount, 1, type(uint128).max - assetState.totalStaked));
 
             deal(address(aeroPool), account_, amount);

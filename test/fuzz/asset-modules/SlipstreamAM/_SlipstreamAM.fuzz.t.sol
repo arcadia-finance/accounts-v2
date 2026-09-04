@@ -16,6 +16,7 @@ import { TickMath } from "../../../../src/asset-modules/UniswapV3/libraries/Tick
 /**
  * @notice Common logic needed by all "SlipstreamAM" fuzz tests.
  */
+// forge-lint: disable-next-item(unsafe-typecast)
 abstract contract SlipstreamAM_Fuzz_Test is Fuzz_Test, SlipstreamFixture {
     using stdStorage for StdStorage;
     /* ///////////////////////////////////////////////////////////////
@@ -103,20 +104,9 @@ abstract contract SlipstreamAM_Fuzz_Test is Fuzz_Test, SlipstreamFixture {
         pure
         returns (uint256 sqrtPriceX96)
     {
-        // Avoid divide by 0, which is already checked in earlier in function.
-        vm.assume(priceToken1 > 0);
-        // Function will overFlow, not realistic.
-        vm.assume(priceToken0 <= type(uint256).max / 10 ** 28);
-        vm.assume(priceToken1 <= type(uint256).max / 10 ** 18);
-        // Cast to uint160 will overflow, not realistic.
-        vm.assume(priceToken0 / priceToken1 < 2 ** 128);
-
-        // sqrtPriceX96 must be within ranges, or TickMath reverts.
         uint256 priceXd28 = priceToken0 * 1e28 / priceToken1;
         uint256 sqrtPriceXd14 = FixedPointMathLib.sqrt(priceXd28);
         sqrtPriceX96 = sqrtPriceXd14 * 2 ** 96 / 1e14;
-        vm.assume(sqrtPriceX96 >= 4_295_128_739);
-        vm.assume(sqrtPriceX96 <= 1_461_446_703_485_210_103_287_273_052_203_988_822_378_723_970_342);
     }
 
     function givenValidPosition(NonfungiblePositionManagerMock.Position memory position)
@@ -125,14 +115,22 @@ abstract contract SlipstreamAM_Fuzz_Test is Fuzz_Test, SlipstreamFixture {
         returns (NonfungiblePositionManagerMock.Position memory)
     {
         // Given: poolId is non zero (=position is initialised).
-        // forge-lint: disable-next-item(unsafe-typecast)
         position.poolId = uint80(bound(position.poolId, 1, type(uint80).max));
 
         // And: Ticks are within allowed ranges.
-        vm.assume(isWithinAllowedRange(position.tickLower));
-        vm.assume(isWithinAllowedRange(position.tickUpper));
+        position.tickLower = int24(bound(position.tickLower, TickMath.MIN_TICK, TickMath.MAX_TICK));
+        position.tickUpper = int24(bound(position.tickUpper, TickMath.MIN_TICK, TickMath.MAX_TICK));
 
         return position;
+    }
+
+    function givenValidTicks(int24 tickLower, int24 tickUpper)
+        public
+        pure
+        returns (int24 tickLower_, int24 tickUpper_)
+    {
+        tickLower_ = int24(bound(tickLower, TickMath.MIN_TICK, TickMath.MAX_TICK - 2));
+        tickUpper_ = int24(bound(tickUpper, tickLower_ + 1, TickMath.MAX_TICK));
     }
 
     function isWithinAllowedRange(int24 tick) internal pure returns (bool) {

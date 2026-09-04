@@ -54,7 +54,7 @@ contract GetFreeMargin_AccountV3_Fuzz_Test is AccountV3_Fuzz_Test {
         uint112 collateralValue
     ) public {
         // No overflow of Used Margin.
-        vm.assume(openDebt <= type(uint256).max - minimumMargin);
+        openDebt = bound(openDebt, 0, type(uint256).max - minimumMargin);
 
         // "exposure" is strictly smaller than "maxExposure" -> collateralValue < type(uint128).max.
         // Non zero free margin -> "collateralValue" bigger than "usedMargin".

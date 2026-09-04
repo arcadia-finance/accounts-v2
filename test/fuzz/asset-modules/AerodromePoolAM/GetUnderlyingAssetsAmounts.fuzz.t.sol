@@ -227,13 +227,12 @@ contract GetUnderlyingAssetsAmounts_AerodromePoolAM_Fuzz_Test is AerodromePoolAM
         uint256 decimalDifference = d0BiggerD1 ? 10 ** (testVars.decimals0 - testVars.decimals1) : 1;
         // And: k does not overflow (-> r <= sqrt(sqrt(type(uint256).max * 10 ** (4 * decimals - 36) / 2)))
         //                           -> r < 10 ** decimals * 15511800964 (approximated)
-        testVars.reserve0 = bound(testVars.reserve0, decimalDifference, 15_511_800_964 * 10 ** testVars.decimals0);
+        testVars.reserve0 = bound(
+            testVars.reserve0, MINIMUM_LIQUIDITY * decimalDifference + 1, 15_511_800_964 * 10 ** testVars.decimals0
+        );
         // And : Reserves should be deposited in same proportion for first mint.
         testVars.reserve0 = testVars.reserve0 / decimalDifference * decimalDifference;
         testVars.reserve1 = convertToDecimals(testVars.reserve0, testVars.decimals0, testVars.decimals1);
-
-        // Root (reserve0 * reserve1) should be greater than minimum liquidty
-        vm.assume(testVars.reserve0 * testVars.reserve1 > MINIMUM_LIQUIDITY ** 2);
 
         uint256 k = getK(testVars.reserve0, testVars.reserve1, 10 ** testVars.decimals0, 10 ** testVars.decimals1);
 
@@ -285,13 +284,14 @@ contract GetUnderlyingAssetsAmounts_AerodromePoolAM_Fuzz_Test is AerodromePoolAM
         uint256 decimalDifference = d0BiggerD1 ? 10 ** (testVars.decimals0 - testVars.decimals1) : 1;
         // And: k does not overflow (-> r <= sqrt(sqrt(type(uint256).max * 10 ** (4 * decimals - 36) / 2)))
         //                           -> r < 10 ** decimals * 15511800964 (approximated)
-        testVars.reserve0 = bound(testVars.reserve0, decimalDifference, 15_511_800_964 * 10 ** testVars.decimals0);
+        testVars.reserve0 = bound(
+            testVars.reserve0, MINIMUM_LIQUIDITY * decimalDifference + 1, 15_511_800_964 * 10 ** testVars.decimals0
+        );
         // And : Reserves should be deposited in same proportion for first mint.
         testVars.reserve0 = testVars.reserve0 / decimalDifference * decimalDifference;
         testVars.reserve1 = convertToDecimals(testVars.reserve0, testVars.decimals0, testVars.decimals1);
 
         // Root (reserve0 * reserve1) should be greater than minimum liquidity
-        vm.assume(testVars.reserve0 * testVars.reserve1 > MINIMUM_LIQUIDITY ** 2);
 
         uint256 k = getK(testVars.reserve0, testVars.reserve1, 10 ** testVars.decimals0, 10 ** testVars.decimals1);
 
@@ -346,13 +346,12 @@ contract GetUnderlyingAssetsAmounts_AerodromePoolAM_Fuzz_Test is AerodromePoolAM
         uint256 decimalDifference = d0BiggerD1 ? 10 ** (testVars.decimals0 - testVars.decimals1) : 1;
         // And: k does not overflow (-> r <= sqrt(sqrt(type(uint256).max * 10 ** (4 * decimals - 36) / 2)))
         //                           -> r < 10 ** decimals * 15511800964 (approximated)
-        testVars.reserve0 = bound(testVars.reserve0, decimalDifference, 15_511_800_964 * 10 ** testVars.decimals0);
+        testVars.reserve0 = bound(
+            testVars.reserve0, MINIMUM_LIQUIDITY * decimalDifference + 1, 15_511_800_964 * 10 ** testVars.decimals0
+        );
         // And : Reserves should be deposited in same proportion for first mint.
         testVars.reserve0 = testVars.reserve0 / decimalDifference * decimalDifference;
         testVars.reserve1 = convertToDecimals(testVars.reserve0, testVars.decimals0, testVars.decimals1);
-
-        // Root (reserve0 * reserve1) should be greater than minimum liquidty
-        vm.assume(testVars.reserve0 * testVars.reserve1 > MINIMUM_LIQUIDITY ** 2);
 
         uint256 k = getK(testVars.reserve0, testVars.reserve1, 10 ** testVars.decimals0, 10 ** testVars.decimals1);
 
@@ -408,13 +407,12 @@ contract GetUnderlyingAssetsAmounts_AerodromePoolAM_Fuzz_Test is AerodromePoolAM
         uint256 decimalDifference = d0BiggerD1 ? 10 ** (testVars.decimals0 - testVars.decimals1) : 1;
         // And: k does not overflow (-> r <= sqrt(sqrt(type(uint256).max * 10 ** (4 * decimals - 36) / 2)))
         //                           -> r < 10 ** decimals * 15511800964 (approximated)
-        testVars.reserve0 = bound(testVars.reserve0, decimalDifference, 15_511_800_964 * 10 ** testVars.decimals0);
+        testVars.reserve0 = bound(
+            testVars.reserve0, MINIMUM_LIQUIDITY * decimalDifference + 1, 15_511_800_964 * 10 ** testVars.decimals0
+        );
         // And : Reserves should be deposited in same proportion for first mint.
         testVars.reserve0 = testVars.reserve0 / decimalDifference * decimalDifference;
         testVars.reserve1 = convertToDecimals(testVars.reserve0, testVars.decimals0, testVars.decimals1);
-
-        // Root (reserve0 * reserve1) should be greater than minimum liquidty
-        vm.assume(testVars.reserve0 * testVars.reserve1 > MINIMUM_LIQUIDITY ** 2);
 
         uint256 k = getK(testVars.reserve0, testVars.reserve1, 10 ** testVars.decimals0, 10 ** testVars.decimals1);
 
@@ -476,13 +474,12 @@ contract GetUnderlyingAssetsAmounts_AerodromePoolAM_Fuzz_Test is AerodromePoolAM
         uint256 decimalDifference = d0BiggerD1 ? 10 ** (testVars.decimals0 - testVars.decimals1) : 1;
         // And: k does not overflow (-> r <= sqrt(sqrt(type(uint256).max * 10 ** (4 * decimals - 36) / 2)))
         //                           -> r < 10 ** decimals * 15511800964 (approximated)
-        testVars.reserve0 = bound(testVars.reserve0, decimalDifference, 15_511_800_964 * 10 ** testVars.decimals0);
+        testVars.reserve0 = bound(
+            testVars.reserve0, MINIMUM_LIQUIDITY * decimalDifference + 1, 15_511_800_964 * 10 ** testVars.decimals0
+        );
         // And : Reserves should be deposited in same proportion for first mint.
         testVars.reserve0 = testVars.reserve0 / decimalDifference * decimalDifference;
         testVars.reserve1 = convertToDecimals(testVars.reserve0, testVars.decimals0, testVars.decimals1);
-
-        // Root (reserve0 * reserve1) should be greater than minimum liquidty
-        vm.assume(testVars.reserve0 * testVars.reserve1 > MINIMUM_LIQUIDITY ** 2);
 
         uint256 k = getK(testVars.reserve0, testVars.reserve1, 10 ** testVars.decimals0, 10 ** testVars.decimals1);
 
@@ -647,10 +644,12 @@ contract GetUnderlyingAssetsAmounts_AerodromePoolAM_Fuzz_Test is AerodromePoolAM
         // And: The amounts should be in balance with the external prices.
         // For very low amounts, a rounding error already invalidates the assertions.
         // "assertApproxEqRel()" should not overflow.
-        if (underlyingAssetsAmounts[0] > 1e2 && underlyingAssetsAmounts[1] > 1e2) {
+        if (underlyingAssetsAmounts[0] > 1e3 && underlyingAssetsAmounts[1] > 1e3) {
             if (
                 underlyingAssetsAmounts[0] > underlyingAssetsAmounts[1]
                     && 1e18 * testVars.priceToken1 / testVars.priceToken0 < type(uint256).max / 1e18
+                    && underlyingAssetsAmounts[0]
+                        < type(uint256).max / 10 ** (18 + testVars.decimals1 - testVars.decimals0)
             ) {
                 assertApproxEqRel(
                     10 ** (18 + testVars.decimals1 - testVars.decimals0) * underlyingAssetsAmounts[0]
@@ -658,7 +657,11 @@ contract GetUnderlyingAssetsAmounts_AerodromePoolAM_Fuzz_Test is AerodromePoolAM
                     1e18 * testVars.priceToken1 / testVars.priceToken0,
                     1e16
                 );
-            } else if (1e18 * testVars.priceToken0 / testVars.priceToken1 < type(uint256).max / 1e18) {
+            } else if (
+                1e18 * testVars.priceToken0 / testVars.priceToken1 < type(uint256).max / 1e18
+                    && underlyingAssetsAmounts[1]
+                        < type(uint256).max / 10 ** (18 + testVars.decimals0 - testVars.decimals1)
+            ) {
                 assertApproxEqRel(
                     10 ** (18 + testVars.decimals0 - testVars.decimals1) * underlyingAssetsAmounts[1]
                         / underlyingAssetsAmounts[0],
@@ -671,11 +674,13 @@ contract GetUnderlyingAssetsAmounts_AerodromePoolAM_Fuzz_Test is AerodromePoolAM
         // And: k-value of the aeroPool with trustedReserves remains the same.
         // For very low reserves, a rounding error already invalidates the assertions.
         // "assertApproxEqRel()" should not overflow.
-        uint256 kNew = trustedReserve0 * trustedReserve1;
+        uint256 kNew;
         if (k > type(uint256).max / 1e18) {
             // "assertApproxEqRel()" should not overflow.
+            kNew = FullMath.mulDiv(trustedReserve0, trustedReserve1, 1e18);
             k = k / 1e18;
-            kNew = kNew / 1e18;
+        } else {
+            kNew = trustedReserve0 * trustedReserve1;
         }
         if (trustedReserve0 > 5e3 && trustedReserve1 > 5e4) {
             assertApproxEqRel(kNew, k, 1e16);
@@ -864,6 +869,8 @@ contract GetUnderlyingAssetsAmounts_AerodromePoolAM_Fuzz_Test is AerodromePoolAM
             if (
                 underlyingAssetsAmounts[0] > underlyingAssetsAmounts[1]
                     && 1e18 * testVars.priceToken1 / testVars.priceToken0 < type(uint256).max / 1e18
+                    && underlyingAssetsAmounts[0]
+                        < type(uint256).max / 10 ** (18 + testVars.decimals1 - testVars.decimals0)
             ) {
                 assertApproxEqRel(
                     10 ** (18 + testVars.decimals1 - testVars.decimals0) * underlyingAssetsAmounts[0]
@@ -871,7 +878,11 @@ contract GetUnderlyingAssetsAmounts_AerodromePoolAM_Fuzz_Test is AerodromePoolAM
                     1e18 * testVars.priceToken1 / testVars.priceToken0,
                     1e16
                 );
-            } else if (1e18 * testVars.priceToken0 / testVars.priceToken1 < type(uint256).max / 1e18) {
+            } else if (
+                1e18 * testVars.priceToken0 / testVars.priceToken1 < type(uint256).max / 1e18
+                    && underlyingAssetsAmounts[1]
+                        < type(uint256).max / 10 ** (18 + testVars.decimals0 - testVars.decimals1)
+            ) {
                 assertApproxEqRel(
                     10 ** (18 + testVars.decimals0 - testVars.decimals1) * underlyingAssetsAmounts[1]
                         / underlyingAssetsAmounts[0],

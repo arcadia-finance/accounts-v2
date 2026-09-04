@@ -93,8 +93,9 @@ contract GetUsdValueExposureToUnderlyingAssetAfterDeposit_UniswapV4HooksRegistry
         uint64 assetUnit,
         uint256 usdValue
     ) public {
-        vm.assume(deltaExposureAssetToUnderlyingAsset <= type(int112).max); // MaxExposure.
-        vm.assume(deltaExposureAssetToUnderlyingAsset > type(int256).min); // Overflows on inversion.
+        // MaxExposure, and no overflow on inversion.
+        deltaExposureAssetToUnderlyingAsset =
+            bound(deltaExposureAssetToUnderlyingAsset, type(int256).min + 1, type(int112).max);
 
         registry.setAssetModule(underlyingAsset, address(primaryAM));
 

@@ -124,20 +124,9 @@ abstract contract DefaultUniswapV4AM_Fuzz_Test is Fuzz_Test, UniswapV4Fixture {
         pure
         returns (uint256 sqrtPriceX96)
     {
-        // Avoid divide by 0, which is already checked in earlier in function.
-        vm.assume(priceToken1 > 0);
-        // Function will overFlow, not realistic.
-        vm.assume(priceToken0 <= type(uint256).max / 10 ** 28);
-        vm.assume(priceToken1 <= type(uint256).max / 10 ** 18);
-        // Cast to uint160 will overflow, not realistic.
-        vm.assume(priceToken0 / priceToken1 < 2 ** 128);
-
-        // sqrtPriceX96 must be within ranges, or TickMath reverts.
         uint256 priceXd28 = priceToken0 * 1e28 / priceToken1;
         uint256 sqrtPriceXd14 = FixedPointMathLib.sqrt(priceXd28);
         sqrtPriceX96 = sqrtPriceXd14 * 2 ** 96 / 1e14;
-        vm.assume(sqrtPriceX96 >= MIN_SQRT_PRICE);
-        vm.assume(sqrtPriceX96 <= MAX_SQRT_PRICE);
     }
 
     function givenValidTicks(int24 tickLower, int24 tickUpper)
@@ -145,8 +134,8 @@ abstract contract DefaultUniswapV4AM_Fuzz_Test is Fuzz_Test, UniswapV4Fixture {
         pure
         returns (int24 tickLower_, int24 tickUpper_)
     {
-        tickLower_ = int24(bound(tickLower, MIN_TICK, MAX_TICK - 2));
-        tickUpper_ = int24(bound(tickUpper, tickLower_ + 1, MAX_TICK));
+        tickLower_ = int24(bound(tickLower, TickMath.MIN_TICK, TickMath.MAX_TICK - 2));
+        tickUpper_ = int24(bound(tickUpper, tickLower_ + 1, TickMath.MAX_TICK));
     }
 
     // From UniV4-core tests
@@ -193,19 +182,17 @@ abstract contract DefaultUniswapV4AM_Fuzz_Test is Fuzz_Test, UniswapV4Fixture {
         uint160 sqrtPriceX96 = uint160(calculateAndValidateRangeTickCurrent(priceToken0, priceToken1));
         int24 currentTick = TickMath.getTickAtSqrtPrice(sqrtPriceX96);
 
-        vm.assume(isWithinAllowedRangeV4(currentTick));
-
         // And : Valid ticks
         if (outOfRange == 1) {
             // Position should be fully in token 1
-            vm.assume(currentTick > MIN_TICK + 2);
-            tickUpper = int24(bound(tickUpper, MIN_TICK + 2, currentTick));
-            tickLower = int24(bound(tickLower, MIN_TICK, tickUpper - 1));
+            vm.assume(currentTick > TickMath.MIN_TICK + 2);
+            tickUpper = int24(bound(tickUpper, TickMath.MIN_TICK + 2, currentTick));
+            tickLower = int24(bound(tickLower, TickMath.MIN_TICK, tickUpper - 1));
         } else if (outOfRange == 2) {
             // Position should be fully in token 0
-            vm.assume(currentTick < MAX_TICK - 2);
-            tickLower = int24(bound(tickLower, currentTick + 1, MAX_TICK - 2));
-            tickUpper = int24(bound(tickUpper, tickLower + 1, MAX_TICK));
+            vm.assume(currentTick < TickMath.MAX_TICK - 2);
+            tickLower = int24(bound(tickLower, currentTick + 1, TickMath.MAX_TICK - 2));
+            tickUpper = int24(bound(tickUpper, tickLower + 1, TickMath.MAX_TICK));
         } else {
             // Ticks between min and max tick
             (tickLower, tickUpper) = givenValidTicks(tickLower, tickUpper);
@@ -214,8 +201,8 @@ abstract contract DefaultUniswapV4AM_Fuzz_Test is Fuzz_Test, UniswapV4Fixture {
         {
             // And : Liquidity is within range
             uint256 maxLiquidity = getLiquidityDeltaFromAmounts(tickLower, tickUpper, sqrtPriceX96);
-            liquidity = bound(liquidity, 1, maxLiquidity);
-            vm.assume(liquidity <= poolManager.getTickSpacingToMaxLiquidityPerTick(1));
+            uint256 maxTickLiquidity = poolManager.getTickSpacingToMaxLiquidityPerTick(1);
+            liquidity = bound(liquidity, 1, maxLiquidity < maxTickLiquidity ? maxLiquidity : maxTickLiquidity);
         }
 
         // Create Uniswap V4 pool initiated at tickCurrent with fee 500 and tickSpacing 1.

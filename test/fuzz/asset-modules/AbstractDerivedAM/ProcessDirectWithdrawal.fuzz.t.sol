@@ -45,7 +45,7 @@ contract ProcessDirectWithdrawal_AbstractDerivedAM_Fuzz_Test is AbstractDerivedA
         int256 amount
     ) public {
         // And: No overflow on negation most negative int256 (this overflows).
-        vm.assume(amount > type(int256).min);
+        amount = bound(amount, type(int256).min + 1, type(int256).max);
         amount = amount >= 0 ? -amount : amount;
 
         // And: Withdrawal does not revert.

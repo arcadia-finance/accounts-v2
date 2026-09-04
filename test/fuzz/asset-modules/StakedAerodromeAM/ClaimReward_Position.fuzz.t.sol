@@ -67,7 +67,7 @@ contract ClaimReward_Position_StakedAerodromeAM_Fuzz_Test is StakedAerodromeAM_F
         stakedAerodromeAM.addAsset(address(aeroGauge));
 
         // Given: Valid state
-        (assetState, positionState) = givenValidStakingAMState(assetState, positionState);
+        (assetState, positionState) = givenValidStakingAMState(assetState, positionState, 0, type(uint128).max);
 
         // And: State is persisted.
         setStakedAerodromeAMState(assetState, positionState, address(aeroPool), positionId);
@@ -140,7 +140,7 @@ contract ClaimReward_Position_StakedAerodromeAM_Fuzz_Test is StakedAerodromeAM_F
         stakedAerodromeAM.addAsset(address(aeroGauge));
 
         // Given: Valid state
-        (assetState, positionState) = givenValidStakingAMState(assetState, positionState);
+        (assetState, positionState) = givenValidStakingAMState(assetState, positionState, 0, type(uint128).max);
 
         // And reward is zero.
         positionState.lastRewardPosition = 0;

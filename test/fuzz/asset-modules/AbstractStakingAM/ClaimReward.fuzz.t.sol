@@ -58,7 +58,7 @@ contract ClaimReward_AbstractStakingAM_Fuzz_Test is AbstractStakingAM_Fuzz_Test 
         address asset = addAsset(assetDecimals);
 
         // Given: Valid state
-        (assetState, positionState) = givenValidStakingAMState(assetState, positionState);
+        (assetState, positionState) = givenValidStakingAMState(assetState, positionState, 0, type(uint128).max);
 
         // And: State is persisted.
         setStakingAMState(assetState, positionState, asset, positionId);
@@ -127,7 +127,7 @@ contract ClaimReward_AbstractStakingAM_Fuzz_Test is AbstractStakingAM_Fuzz_Test 
         address asset = addAsset(assetDecimals);
 
         // Given: Valid state
-        (assetState, positionState) = givenValidStakingAMState(assetState, positionState);
+        (assetState, positionState) = givenValidStakingAMState(assetState, positionState, 0, type(uint128).max);
 
         // And reward is zero.
         positionState.lastRewardPosition = 0;

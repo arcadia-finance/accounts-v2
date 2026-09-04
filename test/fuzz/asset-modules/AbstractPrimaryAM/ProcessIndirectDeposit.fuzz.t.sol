@@ -119,6 +119,8 @@ contract ProcessIndirectDeposit_AbstractPrimaryAM_Fuzz_Test is AbstractPrimaryAM
             assetState.rateInUsd == 0 ? type(uint256).max : type(uint256).max / assetState.rateInUsd
         );
 
+        // And: Negating the delta does not overflow.
+        deltaExposureUpperAssetToAsset = bound(deltaExposureUpperAssetToAsset, 0, uint256(type(int256).max));
         // And: State is persisted.
         setPrimaryAMAssetState(assetState);
 
@@ -203,7 +205,6 @@ contract ProcessIndirectDeposit_AbstractPrimaryAM_Fuzz_Test is AbstractPrimaryAM
             0,
             assetState.rateInUsd == 0 ? type(uint256).max : type(uint256).max / assetState.rateInUsd
         );
-
         // And: State is persisted.
         setPrimaryAMAssetState(assetState);
 
@@ -247,7 +248,6 @@ contract ProcessIndirectDeposit_AbstractPrimaryAM_Fuzz_Test is AbstractPrimaryAM
             0,
             assetState.rateInUsd == 0 ? type(uint256).max : type(uint256).max / assetState.rateInUsd
         );
-
         // And: State is persisted.
         setPrimaryAMAssetState(assetState);
 

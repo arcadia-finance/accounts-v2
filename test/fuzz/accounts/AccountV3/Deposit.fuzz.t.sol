@@ -72,7 +72,7 @@ contract Deposit_AccountV3_Fuzz_Test is AccountV3_Fuzz_Test {
     }
 
     function testFuzz_Revert_deposit_tooManyAssets(uint8 arrLength) public {
-        vm.assume(arrLength > accountExtension.ASSET_LIMIT() && arrLength < 50);
+        arrLength = uint8(bound(arrLength, accountExtension.ASSET_LIMIT() + 1, 49));
 
         address[] memory assetAddresses = new address[](arrLength);
 
@@ -90,10 +90,10 @@ contract Deposit_AccountV3_Fuzz_Test is AccountV3_Fuzz_Test {
     }
 
     function testFuzz_Revert_deposit_tooManyAssetsNotAtOnce(uint8 arrLength, uint8 amountToken1) public {
-        vm.assume(uint256(arrLength) + 1 > accountExtension.ASSET_LIMIT() && arrLength < 50);
+        arrLength = uint8(bound(arrLength, accountExtension.ASSET_LIMIT(), 49));
 
         //deposit a single asset first
-        vm.assume(amountToken1 > 0);
+        amountToken1 = uint8(bound(amountToken1, 1, type(uint8).max));
         depositErc20InAccount(mockERC20.token1, amountToken1, users.accountOwner, address(accountExtension));
 
         //then try to go over the asset limit
@@ -214,7 +214,7 @@ contract Deposit_AccountV3_Fuzz_Test is AccountV3_Fuzz_Test {
     }
 
     function testFuzz_Revert_deposit_UnknownAssetType(uint96 assetType, address assetModule) public {
-        vm.assume(assetType > 3);
+        assetType = uint96(bound(assetType, 3 + 1, type(uint96).max));
 
         registry.setAssetInformation(address(mockERC20.token1), assetType, assetModule);
 

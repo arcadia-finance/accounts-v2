@@ -11,6 +11,7 @@ import { AssetValuationLib, AssetValueAndRiskFactors } from "../../../src/librar
 /**
  * @notice Fuzz tests for the function "calculateCollateralFactor" of contract "AssetValuationLib".
  */
+// forge-lint: disable-next-item(unsafe-typecast)
 contract CalculateCollateralFactor_AssetValuationLib_Fuzz_Test is AssetValuationLib_Fuzz_Test {
     /* ///////////////////////////////////////////////////////////////
                               SETUP
@@ -36,8 +37,8 @@ contract CalculateCollateralFactor_AssetValuationLib_Fuzz_Test is AssetValuation
         values[1].assetValue = secondValue;
 
         // And: collateral factors are within allowed ranges
-        vm.assume(firstCollFactor <= AssetValuationLib.ONE_4);
-        vm.assume(secondCollFactor <= AssetValuationLib.ONE_4);
+        firstCollFactor = uint16(bound(firstCollFactor, 0, AssetValuationLib.ONE_4));
+        secondCollFactor = uint16(bound(secondCollFactor, 0, AssetValuationLib.ONE_4));
 
         values[0].collateralFactor = firstCollFactor;
         values[1].collateralFactor = secondCollFactor;

@@ -11,6 +11,7 @@ import { AssetValuationLib, AssetValueAndRiskFactors } from "../../../src/librar
 /**
  * @notice Fuzz tests for the function "calculateLiquidationValue" of contract "AssetValuationLib".
  */
+// forge-lint: disable-next-item(unsafe-typecast)
 contract CalculateLiquidationValue_AssetValuationLib_Fuzz_Test is AssetValuationLib_Fuzz_Test {
     /* ///////////////////////////////////////////////////////////////
                               SETUP
@@ -36,8 +37,8 @@ contract CalculateLiquidationValue_AssetValuationLib_Fuzz_Test is AssetValuation
         values[1].assetValue = secondValue;
 
         // And: Liquidation factors are within allowed ranges
-        vm.assume(firstLiqFactor <= AssetValuationLib.ONE_4);
-        vm.assume(secondLiqFactor <= AssetValuationLib.ONE_4);
+        firstLiqFactor = uint16(bound(firstLiqFactor, 0, AssetValuationLib.ONE_4));
+        secondLiqFactor = uint16(bound(secondLiqFactor, 0, AssetValuationLib.ONE_4));
 
         values[0].liquidationFactor = firstLiqFactor;
         values[1].liquidationFactor = secondLiqFactor;

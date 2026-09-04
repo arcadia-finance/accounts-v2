@@ -12,6 +12,7 @@ import { AccountV4_Fuzz_Test } from "./_AccountV4.fuzz.t.sol";
 /**
  * @notice Fuzz tests for the function "withdraw" of contract "AccountV4".
  */
+// forge-lint: disable-next-item(unsafe-typecast)
 contract Withdraw_AccountV4_Fuzz_Test is AccountV4_Fuzz_Test {
     /* ///////////////////////////////////////////////////////////////
                               SETUP
@@ -55,7 +56,7 @@ contract Withdraw_AccountV4_Fuzz_Test is AccountV4_Fuzz_Test {
     }
 
     function testFuzz_Revert_withdraw_UnknownAssetType(uint96 assetType) public {
-        vm.assume(assetType > 3);
+        assetType = uint96(bound(assetType, 3 + 1, type(uint96).max));
 
         address[] memory assetAddresses = new address[](1);
         assetAddresses[0] = address(mockERC20.token1);

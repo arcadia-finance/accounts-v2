@@ -51,7 +51,7 @@ contract ProcessDirectDeposit_FloorERC721AM_Fuzz_Test is FloorERC721AM_Fuzz_Test
     }
 
     function testFuzz_Revert_processDirectDeposit_WrongID(uint256 assetId) public {
-        vm.assume(assetId > 1); //Not in range
+        assetId = bound(assetId, 1 + 1, type(uint256).max);
         vm.prank(users.owner);
         floorERC721AM.addAsset(address(mockERC721.nft2), 0, 1, oraclesNft2ToUsd);
         vm.prank(users.riskManager);

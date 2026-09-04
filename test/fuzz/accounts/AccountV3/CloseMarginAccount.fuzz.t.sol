@@ -70,7 +70,7 @@ contract CloseMarginAccount_AccountV3_Fuzz_Test is AccountV3_Fuzz_Test {
         account.openMarginAccount(address(creditorStable1));
 
         // Mock debt.
-        vm.assume(debt_ > 0);
+        debt_ = bound(debt_, 1, type(uint256).max);
         creditorStable1.setOpenPosition(address(account), debt_);
 
         vm.startPrank(users.accountOwner);

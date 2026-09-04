@@ -119,7 +119,7 @@ contract BatchProcessWithdrawal_RegistryL1_Fuzz_Test is RegistryL1_Fuzz_Test {
         address asset
     ) public {
         vm.assume(!registry_.inRegistry(asset));
-        vm.assume(amountDeposited >= amountWithdrawn);
+        amountDeposited = uint112(bound(amountDeposited, amountWithdrawn, type(uint112).max));
 
         stdstore.target(address(registry_))
             .sig(registry_.inRegistry.selector)
@@ -151,7 +151,7 @@ contract BatchProcessWithdrawal_RegistryL1_Fuzz_Test is RegistryL1_Fuzz_Test {
     ) public {
         vm.assume(!registry_.inRegistry(asset));
         amountWithdrawn = uint112(bound(amountWithdrawn, 1, type(uint112).max));
-        vm.assume(amountDeposited >= amountWithdrawn);
+        amountDeposited = uint112(bound(amountDeposited, amountWithdrawn, type(uint112).max));
 
         stdstore.target(address(registry_))
             .sig(registry_.inRegistry.selector)
