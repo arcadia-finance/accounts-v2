@@ -98,7 +98,7 @@ contract Lock_AccountsGuard_Fuzz_Test is AccountsGuard_Fuzz_Test {
         vm.prank(users.owner);
         accountsGuard.setPauseFlag(false);
 
-        // And: The Account can sign its own transactions. Necessary for test with transient storage.
+        // And: The Account can sign its own transactions.
         privateKey = uint248(bound(privateKey, 1, type(uint248).max));
         address account_ = vm.addr(privateKey);
         factory.setAccount(account_, 11);

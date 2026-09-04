@@ -81,8 +81,7 @@ contract GetRiskFactors_StakedStargateAM_Fuzz_Test is StakedStargateAM_Fuzz_Test
         // And reward is available.
         lpStakingTimeMock.setInfoForPoolId(pid, underlyingAssetsAmounts[1], address(poolMock));
 
-        // And: The reward token is priced by the same oracle rate as token1, the pool token converts
-        // LP to the underlying with the pool its own liquidity to supply ratio.
+        // And: The expected value uses the pool its liquidity to supply ratio.
         uint256 value0;
         uint256 value1;
         {

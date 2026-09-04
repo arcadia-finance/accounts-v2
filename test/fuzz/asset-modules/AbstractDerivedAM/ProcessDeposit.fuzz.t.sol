@@ -342,7 +342,7 @@ contract ProcessDeposit_AbstractDerivedAM_Fuzz_Test is AbstractDerivedAM_Fuzz_Te
         primaryAM.setExposure(creditor, underlyingAssetA, 0, 0, type(uint112).max);
         primaryAM.setExposure(creditor, underlyingAssetB, 0, 0, type(uint112).max);
 
-        // And: Both underlying assets are priced, the values themselves are not asserted here.
+        // And: Both underlying assets are priced.
         {
             addMockedOracle(PRIMARY_AM_ORACLE_ID, 0, bytes16("A"), bytes16("USD"), true);
             uint80[] memory oracleIds = new uint80[](1);
