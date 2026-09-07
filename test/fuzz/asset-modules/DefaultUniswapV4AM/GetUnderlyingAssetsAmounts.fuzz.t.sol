@@ -216,10 +216,6 @@ contract GetUnderlyingAssetsAmounts_DefaultUniswapV4AM_Fuzz_Test is DefaultUnisw
                 if (maxLiquidity > type(uint128).max) maxLiquidity = type(uint128).max;
                 liquidity = uint128(bound(liquidity, 1, maxLiquidity));
             }
-            (uint256 amount0, uint256 amount1) = LiquidityAmounts.getAmountsForLiquidity(
-                sqrtPriceX96_, TickMath.getSqrtPriceAtTick(tickLower), TickMath.getSqrtPriceAtTick(tickUpper), liquidity
-            );
-
             poolManager.setPositionLiquidity(randomPoolKey.toId(), positionKey, liquidity);
             positionManagerV4.setPosition(users.owner, randomPoolKey, tickLower, tickUpper, tokenId);
         }
@@ -316,10 +312,6 @@ contract GetUnderlyingAssetsAmounts_DefaultUniswapV4AM_Fuzz_Test is DefaultUnisw
                 if (maxLiquidity > type(uint128).max) maxLiquidity = type(uint128).max;
                 liquidity = uint128(bound(liquidity, 1, maxLiquidity));
             }
-            (uint256 amount0, uint256 amount1) = LiquidityAmounts.getAmountsForLiquidity(
-                sqrtPriceX96_, TickMath.getSqrtPriceAtTick(tickLower), TickMath.getSqrtPriceAtTick(tickUpper), liquidity
-            );
-
             poolManager.setPositionLiquidity(randomPoolKey.toId(), positionKey, liquidity);
             positionManagerV4.setPosition(users.owner, randomPoolKey, tickLower, tickUpper, tokenId);
         }
@@ -421,10 +413,6 @@ contract GetUnderlyingAssetsAmounts_DefaultUniswapV4AM_Fuzz_Test is DefaultUnisw
                 if (maxLiquidity > type(uint128).max) maxLiquidity = type(uint128).max;
                 liquidity = uint128(bound(liquidity, 1, maxLiquidity));
             }
-            (uint256 amount0, uint256 amount1) = LiquidityAmounts.getAmountsForLiquidity(
-                sqrtPriceX96_, TickMath.getSqrtPriceAtTick(tickLower), TickMath.getSqrtPriceAtTick(tickUpper), liquidity
-            );
-
             poolManager.setPositionLiquidity(randomPoolKey.toId(), positionKey, liquidity);
             positionManagerV4.setPosition(users.owner, randomPoolKey, tickLower, tickUpper, tokenId);
         }
@@ -573,10 +561,6 @@ contract GetUnderlyingAssetsAmounts_DefaultUniswapV4AM_Fuzz_Test is DefaultUnisw
                 if (maxLiquidity > type(uint128).max) maxLiquidity = type(uint128).max;
                 liquidity = uint128(bound(liquidity, 1, maxLiquidity));
             }
-            (uint256 amount0, uint256 amount1) = LiquidityAmounts.getAmountsForLiquidity(
-                sqrtPriceX96_, TickMath.getSqrtPriceAtTick(tickLower), TickMath.getSqrtPriceAtTick(tickUpper), liquidity
-            );
-
             poolManager.setPositionLiquidity(randomPoolKey.toId(), positionKey, liquidity);
             positionManagerV4.setPosition(users.owner, randomPoolKey, tickLower, tickUpper, tokenId);
         }
