@@ -122,18 +122,4 @@ abstract contract SlipstreamAM_Fuzz_Test is Fuzz_Test, SlipstreamFixture {
 
         return position;
     }
-
-    function givenValidTicks(int24 tickLower, int24 tickUpper)
-        public
-        pure
-        returns (int24 tickLower_, int24 tickUpper_)
-    {
-        tickLower_ = int24(bound(tickLower, TickMath.MIN_TICK, TickMath.MAX_TICK - 2));
-        tickUpper_ = int24(bound(tickUpper, tickLower_ + 1, TickMath.MAX_TICK));
-    }
-
-    function isWithinAllowedRange(int24 tick) internal pure returns (bool) {
-        // forge-lint: disable-next-line(unsafe-typecast)
-        return (tick < 0 ? uint256(-int256(tick)) : uint256(int256(tick))) <= uint256(uint24(TickMath.MAX_TICK));
-    }
 }

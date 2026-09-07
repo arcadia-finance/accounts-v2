@@ -4,6 +4,7 @@
  */
 pragma solidity ^0.8.0;
 
+import { ConcentratedLiquidityFixture } from "../concentrated-liquidity/ConcentratedLiquidityFixture.f.sol";
 import { Constants } from "../../../utils/Constants.sol";
 import { ERC20 } from "../../../../lib/solmate/src/tokens/ERC20.sol";
 import { FixedPoint128 } from "../../../../src/asset-modules/UniswapV3/libraries/FixedPoint128.sol";
@@ -18,14 +19,7 @@ import { Utils } from "../../../utils/Utils.sol";
 import { WETH9Fixture } from "../weth9/WETH9Fixture.f.sol";
 
 // forge-lint: disable-next-item(unsafe-typecast)
-contract UniswapV3Fixture is WETH9Fixture {
-    /*//////////////////////////////////////////////////////////////////////////
-                                   CONSTANTS
-    //////////////////////////////////////////////////////////////////////////*/
-
-    // The maximum priceToken0 / priceToken1 ratio for which sqrtPriceX96 stays below TickMath.MAX_SQRT_RATIO.
-    uint256 internal constant MAX_PRICE_RATIO = (uint256(TickMath.MAX_SQRT_RATIO) * 1e14 / 2 ** 96) ** 2 / 1e28;
-
+contract UniswapV3Fixture is ConcentratedLiquidityFixture, WETH9Fixture {
     /*//////////////////////////////////////////////////////////////////////////
                                    CONTRACTS
     //////////////////////////////////////////////////////////////////////////*/
@@ -191,58 +185,6 @@ contract UniswapV3Fixture is WETH9Fixture {
                 deadline: type(uint256).max
             })
         );
-    }
-
-    function givenValidPrices(uint256 priceToken0, uint256 priceToken1)
-        public
-        pure
-        returns (uint256 priceToken0_, uint256 priceToken1_)
-    {
-        // Avoid divide by 0, which is already checked in earlier in function.
-        priceToken1_ = bound(priceToken1, 1, type(uint256).max / 10 ** 18);
-        // Function will overFlow, not realistic.
-        uint256 maxPriceToken0 = type(uint256).max / 10 ** 28;
-        // Cast to uint160 will overflow, not realistic.
-        if (priceToken1_ < 2 ** 128) {
-            uint256 maxRatio = priceToken1_ * MAX_PRICE_RATIO;
-            if (maxRatio < maxPriceToken0) maxPriceToken0 = maxRatio;
-        }
-        // A priceXd28 of 0 puts sqrtPriceX96 below the minimum.
-        priceToken0_ = bound(priceToken0, (priceToken1_ - 1) / 10 ** 28 + 1, maxPriceToken0);
-    }
-
-    function givenValidExposures(
-        uint256 amount,
-        uint112 initialExposure,
-        uint112 maxExposure,
-        uint256 price,
-        uint256 maxUsdValue
-    ) public pure returns (uint112 initialExposure_, uint112 maxExposure_) {
-        // Usd value of the underlying asset does not overflow.
-        uint256 maxAmount = maxUsdValue / price / 10 ** 18;
-        vm.assume(amount < type(uint112).max);
-        vm.assume(amount < maxAmount);
-
-        // Exposure to the underlying asset stays below maxExposure.
-        maxExposure_ = uint112(bound(maxExposure, amount + 1, type(uint112).max));
-
-        uint256 exposureLimit = maxExposure_ - amount - 1;
-        uint256 usdLimit = maxAmount - amount - 1;
-        initialExposure_ = uint112(bound(initialExposure, 0, exposureLimit < usdLimit ? exposureLimit : usdLimit));
-    }
-
-    function givenValidTicks(int24 tickLower, int24 tickUpper)
-        public
-        pure
-        returns (int24 tickLower_, int24 tickUpper_)
-    {
-        tickLower_ = int24(bound(tickLower, TickMath.MIN_TICK, TickMath.MAX_TICK - 2));
-        tickUpper_ = int24(bound(tickUpper, tickLower_ + 1, TickMath.MAX_TICK));
-    }
-
-    function isWithinAllowedRange(int24 tick) internal pure returns (bool) {
-        // forge-lint: disable-next-line(unsafe-typecast)
-        return (tick < 0 ? uint256(-int256(tick)) : uint256(int256(tick))) <= uint256(uint24(TickMath.MAX_TICK));
     }
 
     function getAmountsV3(uint256 id) internal view returns (uint256 amount0, uint256 amount1) {

@@ -128,15 +128,6 @@ abstract contract DefaultUniswapV4AM_Fuzz_Test is Fuzz_Test, UniswapV4Fixture {
         sqrtPriceX96 = sqrtPriceXd14 * 2 ** 96 / 1e14;
     }
 
-    function givenValidTicks(int24 tickLower, int24 tickUpper)
-        public
-        pure
-        returns (int24 tickLower_, int24 tickUpper_)
-    {
-        tickLower_ = int24(bound(tickLower, TickMath.MIN_TICK, TickMath.MAX_TICK - 2));
-        tickUpper_ = int24(bound(tickUpper, tickLower_ + 1, TickMath.MAX_TICK));
-    }
-
     // From UniV4-core tests
     function getLiquidityDeltaFromAmounts(int24 tickLower, int24 tickUpper, uint160 sqrtPriceX96)
         public
