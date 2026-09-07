@@ -5,10 +5,9 @@
 pragma solidity ^0.8.0;
 
 import { AbstractPrimaryAM_Fuzz_Test } from "./_AbstractPrimaryAM.fuzz.t.sol";
-
 import { BitPackingLib } from "../../../../src/libraries/BitPackingLib.sol";
-import { PrimaryAM } from "../../../../src/asset-modules/abstracts/AbstractPrimaryAM.sol";
 import { OracleModuleMock } from "../../../utils/mocks/oracle-modules/OracleModuleMock.sol";
+import { PrimaryAM } from "../../../../src/asset-modules/abstracts/AbstractPrimaryAM.sol";
 
 /**
  * @notice Fuzz tests for the function "checkOracleSequence" of contract "AbstractPrimaryAM".

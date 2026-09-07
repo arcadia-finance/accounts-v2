@@ -4,8 +4,6 @@
  */
 pragma solidity ^0.8.0;
 
-import { UniswapV3AM_Fuzz_Test } from "./_UniswapV3AM.fuzz.t.sol";
-
 import { AssetModule } from "../../../../src/asset-modules/abstracts/AbstractAM.sol";
 import { ERC20 } from "../../../../lib/solmate/src/tokens/ERC20.sol";
 import { ERC20Mock } from "../../../utils/mocks/tokens/ERC20Mock.sol";
@@ -18,6 +16,7 @@ import {
 import { LiquidityAmounts } from "../../../../src/asset-modules/UniswapV3/libraries/LiquidityAmounts.sol";
 import { TickMath } from "../../../../src/asset-modules/UniswapV3/libraries/TickMath.sol";
 import { UniswapV3AM } from "../../../../src/asset-modules/UniswapV3/UniswapV3AM.sol";
+import { UniswapV3AM_Fuzz_Test } from "./_UniswapV3AM.fuzz.t.sol";
 
 /**
  * @notice Fuzz tests for the function "processDirectDeposit" of contract "UniswapV3AM".

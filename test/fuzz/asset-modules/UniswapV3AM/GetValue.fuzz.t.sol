@@ -4,8 +4,6 @@
  */
 pragma solidity ^0.8.0;
 
-import { UniswapV3AM_Fuzz_Test } from "./_UniswapV3AM.fuzz.t.sol";
-
 import { AssetValuationLib } from "../../../../src/libraries/AssetValuationLib.sol";
 import { ERC20 } from "../../../../lib/solmate/src/tokens/ERC20.sol";
 import { ERC20Mock } from "../../../utils/mocks/tokens/ERC20Mock.sol";
@@ -14,6 +12,7 @@ import {
 } from "../../../utils/fixtures/uniswap-v3/extensions/interfaces/IUniswapV3PoolExtension.sol";
 import { LiquidityAmounts } from "../../../../src/asset-modules/UniswapV3/libraries/LiquidityAmounts.sol";
 import { TickMath } from "../../../../src/asset-modules/UniswapV3/libraries/TickMath.sol";
+import { UniswapV3AM_Fuzz_Test } from "./_UniswapV3AM.fuzz.t.sol";
 
 /**
  * @notice Fuzz tests for the function "getValue" of contract "UniswapV3AM".

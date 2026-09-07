@@ -4,9 +4,8 @@
  */
 pragma solidity ^0.8.0;
 
-import { UniswapV3AM_Fuzz_Test } from "./_UniswapV3AM.fuzz.t.sol";
-
 import { RegistryErrors } from "../../../../src/libraries/Errors.sol";
+import { UniswapV3AM_Fuzz_Test } from "./_UniswapV3AM.fuzz.t.sol";
 import { UniswapV3AMExtension } from "../../../utils/extensions/UniswapV3AMExtension.sol";
 
 /**

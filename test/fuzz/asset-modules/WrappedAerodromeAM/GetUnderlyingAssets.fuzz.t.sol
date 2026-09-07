@@ -23,24 +23,25 @@ contract GetUnderlyingAssets_WrappedAerodromeAM_Fuzz_Test is WrappedAerodromeAM_
     /////////////////////////////////////////////////////////////// */
 
     function testFuzz_Success_getUnderlyingAssets(bool stable, uint96 positionId) public {
-        // Given : the aeroPool is allowed in the Registry
+        // Given: A pool that is allowed in the Registry.
         aeroPool = createPoolAerodrome(address(mockERC20.token1), address(mockERC20.stable1), stable);
         vm.prank(users.owner);
         aerodromePoolAM.addAsset(address(aeroPool));
 
-        // And : Calling addAsset()
+        // And: The pool is added as an asset.
         wrappedAerodromeAM.addAsset(address(aeroPool));
 
-        // And : Set Asset for positionId
+        // And: The position holds that pool.
         wrappedAerodromeAM.setPoolInPosition(address(aeroPool), positionId);
 
-        // When : Calling getUnderlyingAssets()
+        // When: The underlying assets of the position are read.
         bytes32 assetKey = wrappedAerodromeAM.getKeyFromAsset(address(wrappedAerodromeAM), positionId);
         bytes32[] memory underlyingAssetKeys = wrappedAerodromeAM.getUnderlyingAssets(assetKey);
 
-        // Then : Underlying assets returned should be correct
+        // Then: The pool is the first underlying asset.
         assertEq(underlyingAssetKeys[0], wrappedAerodromeAM.getKeyFromAsset(address(aeroPool), 0));
-        // Then : Asset and gauge info should be updated
+
+        // And: Both pool tokens follow in sorted order.
         if (address(mockERC20.token1) < address(mockERC20.stable1)) {
             assertEq(underlyingAssetKeys[1], wrappedAerodromeAM.getKeyFromAsset(address(mockERC20.token1), 0));
             assertEq(underlyingAssetKeys[2], wrappedAerodromeAM.getKeyFromAsset(address(mockERC20.stable1), 0));

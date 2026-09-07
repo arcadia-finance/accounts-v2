@@ -4,10 +4,9 @@
  */
 pragma solidity ^0.8.0;
 
-import { UniswapV3AM_Fuzz_Test } from "./_UniswapV3AM.fuzz.t.sol";
-
 import { LiquidityAmounts } from "../../../../src/asset-modules/UniswapV3/libraries/LiquidityAmounts.sol";
 import { TickMath } from "../../../../src/asset-modules/UniswapV3/libraries/TickMath.sol";
+import { UniswapV3AM_Fuzz_Test } from "./_UniswapV3AM.fuzz.t.sol";
 
 /**
  * @notice Fuzz tests for the function "getPrincipalAmounts" of contract "UniswapV3AM".

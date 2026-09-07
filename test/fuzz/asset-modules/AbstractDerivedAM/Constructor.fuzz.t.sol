@@ -5,7 +5,6 @@
 pragma solidity ^0.8.0;
 
 import { AbstractDerivedAM_Fuzz_Test } from "./_AbstractDerivedAM.fuzz.t.sol";
-
 import { DerivedAMMock } from "../../../utils/mocks/asset-modules/DerivedAMMock.sol";
 
 /**

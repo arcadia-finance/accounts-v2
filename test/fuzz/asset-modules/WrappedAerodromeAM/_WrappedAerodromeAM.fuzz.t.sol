@@ -4,11 +4,10 @@
  */
 pragma solidity ^0.8.0;
 
-import { Fuzz_Test } from "../../Fuzz.t.sol";
 import { AerodromeFixture } from "../../../utils/fixtures/aerodrome/AerodromeFixture.f.sol";
-
 import { AerodromePoolAM } from "../../../../src/asset-modules/Aerodrome-Finance/AerodromePoolAM.sol";
 import { ERC20Mock } from "../../../utils/mocks/tokens/ERC20Mock.sol";
+import { Fuzz_Test } from "../../Fuzz.t.sol";
 import { Pool } from "../../../utils/mocks/Aerodrome/AeroPoolMock.sol";
 import { WrappedAerodromeAM } from "../../../../src/asset-modules/Aerodrome-Finance/WrappedAerodromeAM.sol";
 import { WrappedAerodromeAMExtension } from "../../../utils/extensions/WrappedAerodromeAMExtension.sol";
@@ -55,7 +54,7 @@ abstract contract WrappedAerodromeAM_Fuzz_Test is Fuzz_Test, AerodromeFixture {
         wrappedAerodromeAM.initialize();
         vm.stopPrank();
 
-        // Create a aeroPool where both assets have a a usd value equal to their amount.
+        // Create a aeroPool where both assets have a usd value equal to their amount.
         asset0 = new ERC20Mock("Asset 0", "ASSET0", 18);
         asset1 = new ERC20Mock("Asset 1", "ASSET1", 18);
         addAssetToArcadia(address(asset0), 1e18);
@@ -77,25 +76,23 @@ abstract contract WrappedAerodromeAM_Fuzz_Test is Fuzz_Test, AerodromeFixture {
         pure
         returns (WrappedAerodromeAM.PoolState memory, WrappedAerodromeAM.PositionState memory, uint256, uint256)
     {
-        // Given: more than 1 gwei is staked.
+        // Given: A non-zero amount of liquidity is wrapped.
         poolState.totalWrapped = uint128(bound(poolState.totalWrapped, 1, type(uint128).max));
 
-        // And: totalWrapped should be >= to amountWrappedForPosition (invariant).
+        // And: The position wraps at most the total wrapped amount.
         positionState.amountWrapped = uint128(bound(positionState.amountWrapped, 1, poolState.totalWrapped));
 
-        // And: deltaFeesPerLiquidity is smaller or equal as type(uint128).max (no overflow safeCastTo128).
+        // And: The accrued pool fees keep both fee accumulators within uint128.
         fee0 = bound(fee0, 0, uint256(type(uint128).max) * poolState.totalWrapped / 1e18);
         fee1 = bound(fee1, 0, uint256(type(uint128).max) * poolState.totalWrapped / 1e18);
 
-        // Calculate the new fee0PerLiquidity.
+        // And: The pool advanced its fee0 accumulator by the accrued fee0.
         uint256 deltaFee0PerLiquidity = fee0 * 1e18 / poolState.totalWrapped;
         uint128 currentFee0PerLiquidity;
         unchecked {
             currentFee0PerLiquidity = poolState.fee0PerLiquidity + uint128(deltaFee0PerLiquidity);
         }
-        // And: New fee0 does not overflow.
-        // -> fee0PerLiquidity of the position is smaller or equal to type(uint128).max (overflow).
-        // -> deltaFee0PerLiquidity * positionState.amountWrapped / 1e18 <= type(uint128).max;
+        // And: The fee0 newly earned by the position stays within uint128.
         unchecked {
             deltaFee0PerLiquidity = currentFee0PerLiquidity - positionState.fee0PerLiquidity;
         }
@@ -104,20 +101,17 @@ abstract contract WrappedAerodromeAM_Fuzz_Test is Fuzz_Test, AerodromeFixture {
         unchecked {
             positionState.fee0PerLiquidity = currentFee0PerLiquidity - uint128(deltaFee0PerLiquidity);
         }
-        // And: Previously earned fee0 for Account + new fee0 does not overflow.
-        // -> fee0 + deltaFee0 <= type(uint128).max;
+        // And: The fee0 balance of the position plus the newly earned fee0 stays within uint128.
         uint256 deltaFee0 = deltaFee0PerLiquidity * uint256(positionState.amountWrapped) / 1e18;
         positionState.fee0 = uint128(bound(positionState.fee0, 0, type(uint128).max - deltaFee0));
 
-        // Calculate the new fee1PerLiquidity.
+        // And: The pool advanced its fee1 accumulator by the accrued fee1.
         uint256 deltaFee1PerLiquidity = fee1 * 1e18 / poolState.totalWrapped;
         uint128 currentFee1PerLiquidity;
         unchecked {
             currentFee1PerLiquidity = poolState.fee1PerLiquidity + uint128(deltaFee1PerLiquidity);
         }
-        // And: New fee1 does not overflow.
-        // -> fee1PerLiquidity of the position is smaller or equal to type(uint128).max (overflow).
-        // -> deltaFee1PerLiquidity * positionState.amountWrapped / 1e18 <= type(uint128).max;
+        // And: The fee1 newly earned by the position stays within uint128.
         unchecked {
             deltaFee1PerLiquidity = currentFee1PerLiquidity - positionState.fee1PerLiquidity;
         }
@@ -126,8 +120,7 @@ abstract contract WrappedAerodromeAM_Fuzz_Test is Fuzz_Test, AerodromeFixture {
         unchecked {
             positionState.fee1PerLiquidity = currentFee1PerLiquidity - uint128(deltaFee1PerLiquidity);
         }
-        // And: Previously earned fee1 for Account + new fee1 does not overflow.
-        // -> fee1 + deltaFee1 <= type(uint128).max;
+        // And: The fee1 balance of the position plus the newly earned fee1 stays within uint128.
         uint256 deltaFee1 = deltaFee1PerLiquidity * positionState.amountWrapped / 1e18;
         positionState.fee1 = uint128(bound(positionState.fee1, 0, type(uint128).max - deltaFee1));
 

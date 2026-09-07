@@ -5,7 +5,6 @@
 pragma solidity ^0.8.0;
 
 import { UniswapV2AM_Fuzz_Test } from "./_UniswapV2AM.fuzz.t.sol";
-
 import { UniswapV2PairMalicious } from "../../../utils/mocks/UniswapV2/UniswapV2PairMalicious.sol";
 import { UniswapV2PairMock } from "../../../utils/mocks/UniswapV2/UniswapV2PairMock.sol";
 

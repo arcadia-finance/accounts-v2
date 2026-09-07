@@ -4,9 +4,8 @@
  */
 pragma solidity ^0.8.0;
 
-import { ERC20PrimaryAM_Fuzz_Test } from "./_ERC20PrimaryAM.fuzz.t.sol";
-
 import { Constants } from "../../../utils/Constants.sol";
+import { ERC20PrimaryAM_Fuzz_Test } from "./_ERC20PrimaryAM.fuzz.t.sol";
 
 /**
  * @notice Fuzz tests for the function "getValue" of contract "ERC20PrimaryAM".

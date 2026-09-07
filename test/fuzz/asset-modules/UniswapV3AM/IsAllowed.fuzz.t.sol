@@ -4,12 +4,11 @@
  */
 pragma solidity ^0.8.0;
 
-import { UniswapV3AM_Fuzz_Test } from "./_UniswapV3AM.fuzz.t.sol";
-
 import { ERC20 } from "../../../../lib/solmate/src/tokens/ERC20.sol";
 import {
     INonfungiblePositionManagerExtension
 } from "../../../utils/fixtures/uniswap-v3/extensions/interfaces/INonfungiblePositionManagerExtension.sol";
+import { UniswapV3AM_Fuzz_Test } from "./_UniswapV3AM.fuzz.t.sol";
 
 /**
  * @notice Fuzz tests for the function "isAllowed" of contract "UniswapV3AM".

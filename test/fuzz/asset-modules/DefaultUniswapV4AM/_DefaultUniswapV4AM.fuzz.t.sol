@@ -6,8 +6,8 @@ pragma solidity ^0.8.0;
 
 import { DefaultUniswapV4AMExtension } from "../../../../test/utils/extensions/DefaultUniswapV4AMExtension.sol";
 import { ERC20 } from "../../../../lib/solmate/src/tokens/ERC20.sol";
-import { Fuzz_Test } from "../../Fuzz.t.sol";
 import { FixedPointMathLib } from "../../../../lib/solmate/src/utils/FixedPointMathLib.sol";
+import { Fuzz_Test } from "../../Fuzz.t.sol";
 import { LiquidityAmounts } from "../../../../src/asset-modules/UniswapV3/libraries/LiquidityAmounts.sol";
 import {
     LiquidityAmountsExtension

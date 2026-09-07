@@ -4,10 +4,9 @@
  */
 pragma solidity ^0.8.0;
 
-import { FloorERC721AM_Fuzz_Test } from "./_FloorERC721AM.fuzz.t.sol";
-
 import { BitPackingLib } from "../../../../src/libraries/BitPackingLib.sol";
 import { FloorERC721AM } from "../../../utils/mocks/asset-modules/FloorERC721AM.sol";
+import { FloorERC721AM_Fuzz_Test } from "./_FloorERC721AM.fuzz.t.sol";
 import { PrimaryAM } from "../../../../src/asset-modules/abstracts/AbstractPrimaryAM.sol";
 import { RegistryErrors } from "../../../../src/libraries/Errors.sol";
 

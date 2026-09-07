@@ -5,8 +5,8 @@
 pragma solidity ^0.8.0;
 
 import { AssetValueAndRiskFactors } from "../../../../src/libraries/AssetValuationLib.sol";
-import { ERC20Mock } from "../../../utils/mocks/tokens/ERC20Mock.sol";
 import { DefaultUniswapV4AM_Fuzz_Test } from "./_DefaultUniswapV4AM.fuzz.t.sol";
+import { ERC20Mock } from "../../../utils/mocks/tokens/ERC20Mock.sol";
 import { FixedPoint128 } from "../../../../lib/v4-periphery/lib/v4-core/src/libraries/FixedPoint128.sol";
 import { FixedPointMathLib } from "../../../../lib/solmate/src/utils/FixedPointMathLib.sol";
 import { LiquidityAmounts } from "../../../../src/asset-modules/UniswapV3/libraries/LiquidityAmounts.sol";

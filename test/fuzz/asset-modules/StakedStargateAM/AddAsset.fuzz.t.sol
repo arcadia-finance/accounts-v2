@@ -4,8 +4,8 @@
  */
 pragma solidity ^0.8.0;
 
-import { StakedStargateAM_Fuzz_Test } from "./_StakedStargateAM.fuzz.t.sol";
 import { StakedStargateAM } from "../../../../src/asset-modules/Stargate-Finance/StakedStargateAM.sol";
+import { StakedStargateAM_Fuzz_Test } from "./_StakedStargateAM.fuzz.t.sol";
 
 /**
  * @notice Fuzz tests for the function "addAsset" of contract "StakedStargateAM".

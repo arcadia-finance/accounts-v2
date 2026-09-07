@@ -4,13 +4,11 @@
  */
 pragma solidity ^0.8.0;
 
-import { ERC20PrimaryAM_Fuzz_Test } from "./_ERC20PrimaryAM.fuzz.t.sol";
-
 import { ArcadiaOracle } from "../../../utils/mocks/oracles/ArcadiaOracle.sol";
 import { BitPackingLib } from "../../../../src/libraries/BitPackingLib.sol";
-
 import { Constants } from "../../../utils/Constants.sol";
 import { ERC20Mock } from "../../../utils/mocks/tokens/ERC20Mock.sol";
+import { ERC20PrimaryAM_Fuzz_Test } from "./_ERC20PrimaryAM.fuzz.t.sol";
 import { PrimaryAM, ERC20PrimaryAM } from "../../../../src/asset-modules/ERC20-Primaries/ERC20PrimaryAM.sol";
 import { RegistryErrors } from "../../../../src/libraries/Errors.sol";
 

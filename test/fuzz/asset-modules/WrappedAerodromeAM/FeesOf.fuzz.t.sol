@@ -4,14 +4,13 @@
  */
 pragma solidity ^0.8.0;
 
-import { WrappedAerodromeAM_Fuzz_Test } from "./_WrappedAerodromeAM.fuzz.t.sol";
 import { FixedPointMathLib } from "../../../../lib/solmate/src/utils/FixedPointMathLib.sol";
 import { WrappedAerodromeAM } from "../../../../src/asset-modules/Aerodrome-Finance/WrappedAerodromeAM.sol";
+import { WrappedAerodromeAM_Fuzz_Test } from "./_WrappedAerodromeAM.fuzz.t.sol";
 
 /**
  * @notice Fuzz tests for the function "feesOf" of contract "WrappedAerodromeAM".
  */
-// forge-lint: disable-next-item(unsafe-typecast)
 contract FeesOf_WrappedAerodromeAM_Fuzz_Test is WrappedAerodromeAM_Fuzz_Test {
     using FixedPointMathLib for uint256;
 
@@ -35,24 +34,24 @@ contract FeesOf_WrappedAerodromeAM_Fuzz_Test is WrappedAerodromeAM_Fuzz_Test {
         uint256 fee1,
         bool stable
     ) public {
-        // Given : Valid aeroPool
+        // Given: A pool with a valid wrapped state.
         aeroPool = createPoolAerodrome(address(asset0), address(asset1), stable);
-
-        // Given : Valid state
         (poolState, positionState, fee0, fee1) = givenValidAMState(poolState, positionState, fee0, fee1);
 
-        // And: State is persisted.
+        // And: That state is persisted and the pool holds claimable fees.
         setAMState(aeroPool, positionId, poolState, positionState);
         aeroPool.setClaimables(address(wrappedAerodromeAM), fee0, fee1);
 
-        // When : Calling feesOf()
+        // When: The fees of the position are read.
         (uint256 fee0_, uint256 fee1_) = wrappedAerodromeAM.feesOf(positionId);
 
-        // Then : It should return the correct value
+        // Then: The fee balance grows with the share of the position in the accrued fees.
         uint128 fee0PerLiquidity;
         uint128 fee1PerLiquidity;
         unchecked {
+            // forge-lint: disable-next-item(unsafe-typecast)
             fee0PerLiquidity = poolState.fee0PerLiquidity + uint128(fee0.mulDivDown(1e18, poolState.totalWrapped));
+            // forge-lint: disable-next-item(unsafe-typecast)
             fee1PerLiquidity = poolState.fee1PerLiquidity + uint128(fee1.mulDivDown(1e18, poolState.totalWrapped));
         }
         uint128 deltaFee0PerLiquidity;
@@ -63,7 +62,6 @@ contract FeesOf_WrappedAerodromeAM_Fuzz_Test is WrappedAerodromeAM_Fuzz_Test {
         }
         uint256 deltaFee0 = uint256(positionState.amountWrapped).mulDivDown(deltaFee0PerLiquidity, 1e18);
         uint256 deltaFee1 = uint256(positionState.amountWrapped).mulDivDown(deltaFee1PerLiquidity, 1e18);
-
         assertEq(fee0_, positionState.fee0 + deltaFee0);
         assertEq(fee1_, positionState.fee1 + deltaFee1);
     }

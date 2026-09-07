@@ -5,16 +5,15 @@
 pragma solidity ^0.8.0;
 
 import { Base_Test } from "../../../Base.t.sol";
-import { Fuzz_Test } from "../../Fuzz.t.sol";
-import { UniswapV3Fixture } from "../../../utils/fixtures/uniswap-v3/UniswapV3Fixture.f.sol";
-import { UniswapV3AMFixture } from "../../../utils/fixtures/arcadia-accounts/UniswapV3AMFixture.f.sol";
-
 import { FixedPointMathLib } from "../../../../lib/solmate/src/utils/FixedPointMathLib.sol";
+import { Fuzz_Test } from "../../Fuzz.t.sol";
 import {
     IUniswapV3PoolExtension
 } from "../../../utils/fixtures/uniswap-v3/extensions/interfaces/IUniswapV3PoolExtension.sol";
 import { NonfungiblePositionManagerMock } from "../../../utils/mocks/UniswapV3/NonfungiblePositionManager.sol";
 import { TickMath } from "../../../../src/asset-modules/UniswapV3/libraries/TickMath.sol";
+import { UniswapV3AMFixture } from "../../../utils/fixtures/arcadia-accounts/UniswapV3AMFixture.f.sol";
+import { UniswapV3Fixture } from "../../../utils/fixtures/uniswap-v3/UniswapV3Fixture.f.sol";
 
 /**
  * @notice Common logic needed by all "UniswapV3AM" fuzz tests.
