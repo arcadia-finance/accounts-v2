@@ -34,7 +34,7 @@ contract CalculateValueAndRiskFactors_WrappedAerodromeAM_Fuzz_Test is WrappedAer
         address creditor,
         uint256[3] memory underlyingAssetsAmounts
     ) public {
-        // Given amounts do not overflow.
+        // Given: amounts do not overflow.
         underlyingAssetsAmounts[0] = bound(underlyingAssetsAmounts[0], 0, type(uint64).max);
         underlyingAssetsAmounts[1] = bound(underlyingAssetsAmounts[1], 0, type(uint64).max);
         underlyingAssetsAmounts[2] = bound(underlyingAssetsAmounts[2], 0, type(uint64).max);
@@ -57,7 +57,7 @@ contract CalculateValueAndRiskFactors_WrappedAerodromeAM_Fuzz_Test is WrappedAer
         liquidationFactors[1] = uint16(bound(liquidationFactors[1], collateralFactors[1], AssetValuationLib.ONE_4));
         liquidationFactors[2] = uint16(bound(liquidationFactors[2], collateralFactors[2], AssetValuationLib.ONE_4));
 
-        // And riskFactor is set.
+        // And: riskFactor is set.
         vm.prank(address(registry));
         wrappedAerodromeAM.setRiskParameters(creditor, 0, riskFactor);
 
@@ -94,7 +94,7 @@ contract CalculateValueAndRiskFactors_WrappedAerodromeAM_Fuzz_Test is WrappedAer
         address creditor,
         uint256[3] memory underlyingAssetsAmounts
     ) public {
-        // And riskFactor is set.
+        // And: riskFactor is set.
         riskFactor = uint16(bound(riskFactor, 0, AssetValuationLib.ONE_4));
         vm.prank(address(registry));
         wrappedAerodromeAM.setRiskParameters(creditor, 0, riskFactor);

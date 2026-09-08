@@ -4,11 +4,11 @@
  */
 pragma solidity ^0.8.0;
 
+import { RegistryErrors } from "../../../../src/libraries/Errors.sol";
 import { UniswapV2AM } from "../../../utils/mocks/asset-modules/UniswapV2AM.sol";
 import { UniswapV2AM_Fuzz_Test } from "./_UniswapV2AM.fuzz.t.sol";
 import { UniswapV2PairMalicious } from "../../../utils/mocks/UniswapV2/UniswapV2PairMalicious.sol";
 import { UniswapV2PairMock } from "../../../utils/mocks/UniswapV2/UniswapV2PairMock.sol";
-import { RegistryErrors } from "../../../../src/libraries/Errors.sol";
 
 /**
  * @notice Fuzz tests for the function "addAsset" of contract "UniswapV2AM".

@@ -5,6 +5,7 @@
 pragma solidity ^0.8.0;
 
 import { AerodromeFixture } from "../aerodrome/AerodromeFixture.f.sol";
+import { ConcentratedLiquidityFixture } from "../concentrated-liquidity/ConcentratedLiquidityFixture.f.sol";
 import { ERC20 } from "../../../../lib/solmate/src/tokens/ERC20.sol";
 import { FixedPoint128 } from "../../../../src/asset-modules/UniswapV3/libraries/FixedPoint128.sol";
 import { FullMath } from "../../../../src/asset-modules/UniswapV3/libraries/FullMath.sol";
@@ -19,8 +20,8 @@ import { TickMath } from "../../../../src/asset-modules/UniswapV3/libraries/Tick
 import { Utils } from "../../Utils.sol";
 import { WETH9Fixture } from "../weth9/WETH9Fixture.f.sol";
 
-// forge-lint: disable-next-item(divide-before-multiply,encode-packed-collision,mixed-case-function)
-contract SlipstreamFixture is WETH9Fixture, AerodromeFixture {
+// forge-lint: disable-next-item(divide-before-multiply,encode-packed-collision,mixed-case-function,unsafe-typecast)
+contract SlipstreamFixture is ConcentratedLiquidityFixture, WETH9Fixture, AerodromeFixture {
     /*//////////////////////////////////////////////////////////////////////////
                                    CONTRACTS
     //////////////////////////////////////////////////////////////////////////*/

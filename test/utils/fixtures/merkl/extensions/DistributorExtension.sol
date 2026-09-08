@@ -8,6 +8,7 @@ import { Claim, Distributor } from "../../../../../lib/merkl-contracts/contracts
 
 contract DistributorExtension is Distributor {
     function setClaimed(address user, address token, uint208 amount) external {
+        // forge-lint: disable-next-item(unsafe-typecast)
         setClaimed(user, token, amount, uint48(block.timestamp), getMerkleRoot());
     }
 

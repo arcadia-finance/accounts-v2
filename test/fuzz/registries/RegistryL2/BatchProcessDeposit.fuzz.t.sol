@@ -182,7 +182,7 @@ contract BatchProcessDeposit_RegistryL2_Fuzz_Test is RegistryL2_Fuzz_Test {
         uint112 amount
     ) public {
         amount = uint112(bound(amount, 1, type(uint112).max));
-        vm.assume(newMaxExposure <= amount);
+        newMaxExposure = uint112(bound(newMaxExposure, 0, amount));
 
         vm.prank(users.riskManager);
         registry.setRiskParametersOfPrimaryAsset(

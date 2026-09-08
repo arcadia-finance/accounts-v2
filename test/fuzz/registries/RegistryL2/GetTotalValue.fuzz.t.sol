@@ -68,6 +68,7 @@ contract GetTotalValue_RegistryL2_Fuzz_Test is RegistryL2_Fuzz_Test {
         uint32 currentTime
     ) public {
         // Given: A random time.
+        currentTime = uint32(bound(currentTime, 0, type(uint32).max - 1));
         vm.warp(currentTime);
 
         // And: Sequencer is online.
@@ -75,7 +76,6 @@ contract GetTotalValue_RegistryL2_Fuzz_Test is RegistryL2_Fuzz_Test {
         sequencerUptimeOracle.setLatestRoundData(0, startedAt);
 
         // And: Grace period did not pass.
-        vm.assume(currentTime - startedAt < type(uint32).max);
         gracePeriod = uint32(bound(gracePeriod, currentTime - startedAt + 1, type(uint32).max));
         vm.prank(creditorUsd.riskManager());
         registry.setRiskParameters(address(creditorUsd), 0, gracePeriod, type(uint64).max);
@@ -116,14 +116,13 @@ contract GetTotalValue_RegistryL2_Fuzz_Test is RegistryL2_Fuzz_Test {
         uint256 amountToken2,
         uint8 token2Decimals
     ) public {
-        vm.assume(token2Decimals < Constants.TOKEN_ORACLE_DECIMALS);
-        vm.assume(rateToken1ToUsd <= uint256(type(int256).max));
-        vm.assume(rateToken1ToUsd > 0);
-        vm.assume(
-            amountToken2
-                > ((type(uint256).max / uint256(rates.token2ToUsd) / Constants.WAD)
-                        * 10
-                        ** Constants.TOKEN_ORACLE_DECIMALS) / 10 ** (Constants.TOKEN_ORACLE_DECIMALS - token2Decimals)
+        token2Decimals = uint8(bound(token2Decimals, 0, Constants.TOKEN_ORACLE_DECIMALS - 1));
+        rateToken1ToUsd = bound(rateToken1ToUsd, 1, uint256(type(int256).max));
+        amountToken2 = bound(
+            amountToken2,
+            ((type(uint256).max / uint256(rates.token2ToUsd) / Constants.WAD) * 10 ** Constants.TOKEN_ORACLE_DECIMALS)
+                / 10 ** (Constants.TOKEN_ORACLE_DECIMALS - token2Decimals) + 1,
+            type(uint256).max
         );
 
         ArcadiaOracle oracle = initMockedOracle(uint8(0), "LINK / USD", int256(0));
@@ -165,7 +164,7 @@ contract GetTotalValue_RegistryL2_Fuzz_Test is RegistryL2_Fuzz_Test {
     function testFuzz_Revert_getTotalValue_CalculateValueInNumeraireFromValueInUsdWithRateZero(uint256 amountToken2)
         public
     {
-        vm.assume(amountToken2 > 0);
+        amountToken2 = bound(amountToken2, 1, type(uint256).max);
 
         vm.startPrank(users.transmitter);
         mockOracles.token1ToUsd.transmit(int256(0));
@@ -255,19 +254,7 @@ contract GetTotalValue_RegistryL2_Fuzz_Test is RegistryL2_Fuzz_Test {
     ) public {
         rateToken1ToUsd = bound(rateToken1ToUsd, 1, type(uint256).max / 10 ** (36 - Constants.TOKEN_ORACLE_DECIMALS));
 
-        vm.assume(
-            amountToken2
-                <= type(uint256).max / uint256(rates.token2ToUsd) / Constants.WAD / 10
-                    ** (Constants.TOKEN_ORACLE_DECIMALS - Constants.TOKEN_ORACLE_DECIMALS)
-        );
-        vm.assume(
-            amountToken2
-                <= (((type(uint256).max / uint256(rates.token2ToUsd) / Constants.WAD)
-                            * 10
-                            ** Constants.TOKEN_ORACLE_DECIMALS)
-                        / 10
-                        ** Constants.TOKEN_ORACLE_DECIMALS) * 10 ** Constants.TOKEN_DECIMALS
-        );
+        amountToken2 = bound(amountToken2, 0, type(uint256).max / uint256(rates.token2ToUsd) / Constants.WAD);
 
         vm.startPrank(users.transmitter);
         mockOracles.token1ToUsd.transmit(int256(rateToken1ToUsd));

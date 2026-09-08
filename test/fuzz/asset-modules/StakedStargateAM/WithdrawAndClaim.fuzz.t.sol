@@ -4,8 +4,8 @@
  */
 pragma solidity ^0.8.0;
 
-import { StakedStargateAM_Fuzz_Test } from "./_StakedStargateAM.fuzz.t.sol";
 import { ERC20Mock } from "../../../utils/mocks/tokens/ERC20Mock.sol";
+import { StakedStargateAM_Fuzz_Test } from "./_StakedStargateAM.fuzz.t.sol";
 
 /**
  * @notice Fuzz tests for the function "_withdrawAndClaim" of contract "StakedStargateAM".

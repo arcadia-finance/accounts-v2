@@ -29,6 +29,7 @@ library FullMath {
 
             // Handle non-overflow cases, 256 by 256 division
             if (prod1 == 0) {
+                // forge-lint: disable-next-line(custom-errors)
                 require(denominator > 0);
                 assembly {
                     result := div(prod0, denominator)
@@ -38,6 +39,7 @@ library FullMath {
 
             // Make sure the result is less than 2**256.
             // Also prevents denominator == 0
+            // forge-lint: disable-next-line(custom-errors)
             require(denominator > prod1);
 
             ///////////////////////////////////////////////
@@ -112,6 +114,7 @@ library FullMath {
     function mulDivRoundingUp(uint256 a, uint256 b, uint256 denominator) internal pure returns (uint256 result) {
         result = mulDiv(a, b, denominator);
         if (mulmod(a, b, denominator) > 0) {
+            // forge-lint: disable-next-line(custom-errors)
             require(result < type(uint256).max);
             result++;
         }

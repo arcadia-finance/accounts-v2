@@ -52,7 +52,8 @@ contract GetValuesInUsdRecursive_RegistryL2_Fuzz_Test is RegistryL2_Fuzz_Test {
         address asset,
         uint96 assetId,
         uint256 assetAmount,
-        uint128 usdValue,
+        uint64 assetUnit,
+        uint256 usdValue,
         uint128 minUsdValue,
         uint112 maxExposure,
         uint16 collateralFactor,
@@ -60,11 +61,18 @@ contract GetValuesInUsdRecursive_RegistryL2_Fuzz_Test is RegistryL2_Fuzz_Test {
     ) public {
         collateralFactor = uint16(bound(collateralFactor, 0, AssetValuationLib.ONE_4));
         liquidationFactor = uint16(bound(liquidationFactor, collateralFactor, AssetValuationLib.ONE_4));
-        usdValue = uint128(bound(usdValue, 0, type(uint128).max - 1));
-        minUsdValue = uint128(bound(minUsdValue, usdValue + 1, type(uint128).max));
 
         registry.setAssetModule(asset, address(primaryAM));
-        primaryAM.setUsdValue(usdValue);
+
+        // And: The asset price does not overflow and its value stays below "minUsdValue".
+        assetUnit = uint64(bound(assetUnit, 1, type(uint64).max));
+        usdValue = bound(usdValue, 0, type(uint256).max / 1e18);
+        assetAmount = bound(
+            assetAmount, 0, usdValue == 0 ? type(uint256).max : (type(uint128).max - 1) * uint256(assetUnit) / usdValue
+        );
+        uint256 assetValue = assetAmount * usdValue / assetUnit;
+        minUsdValue = uint128(bound(minUsdValue, assetValue + 1, type(uint128).max));
+        setPrimaryAMOracle(asset, assetId, assetUnit, usdValue);
 
         vm.startPrank(users.riskManager);
         registry.setRiskParametersOfPrimaryAsset(
@@ -83,7 +91,7 @@ contract GetValuesInUsdRecursive_RegistryL2_Fuzz_Test is RegistryL2_Fuzz_Test {
         AssetValueAndRiskFactors[] memory valuesAndRiskFactors =
             registry.getValuesInUsdRecursive(address(creditorUsd), assetAddresses, assetIds, assetAmounts);
 
-        assertEq(valuesAndRiskFactors[0].assetValue, usdValue);
+        assertEq(valuesAndRiskFactors[0].assetValue, assetValue);
         assertEq(valuesAndRiskFactors[0].collateralFactor, collateralFactor);
         assertEq(valuesAndRiskFactors[0].liquidationFactor, liquidationFactor);
     }

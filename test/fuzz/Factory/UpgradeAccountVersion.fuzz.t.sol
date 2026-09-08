@@ -50,7 +50,7 @@ contract UpgradeAccountVersion_Factory_Fuzz_Test is Factory_Fuzz_Test {
     function testFuzz_Revert_upgradeAccountVersion_VersionNotAllowed(uint256 version, bytes32[] calldata proofs)
         public
     {
-        vm.assume(version > factory.latestAccountVersion());
+        version = bound(version, factory.latestAccountVersion() + 1, type(uint256).max);
 
         vm.startPrank(users.accountOwner);
         vm.expectRevert(FactoryErrors.InvalidUpgrade.selector);

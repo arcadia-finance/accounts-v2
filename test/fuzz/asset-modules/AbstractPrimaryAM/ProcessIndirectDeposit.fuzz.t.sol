@@ -29,8 +29,17 @@ contract ProcessIndirectDeposit_AbstractPrimaryAM_Fuzz_Test is AbstractPrimaryAM
         uint256 exposureUpperAssetToAsset,
         int256 deltaExposureUpperAssetToAsset
     ) public {
-        // Given "caller" is not the Registry.
+        // Given: "caller" is not the Registry.
         vm.assume(unprivilegedAddress_ != address(registry));
+
+        // And: The value of the exposure does not overflow.
+        assetState.assetUnit = uint64(bound(assetState.assetUnit, 1, type(uint64).max));
+        assetState.rateInUsd = bound(assetState.rateInUsd, 0, type(uint256).max / 1e18);
+        exposureUpperAssetToAsset = bound(
+            exposureUpperAssetToAsset,
+            0,
+            assetState.rateInUsd == 0 ? type(uint256).max : type(uint256).max / assetState.rateInUsd
+        );
 
         // And: State is persisted.
         setPrimaryAMAssetState(assetState);
@@ -63,6 +72,15 @@ contract ProcessIndirectDeposit_AbstractPrimaryAM_Fuzz_Test is AbstractPrimaryAM
         // And: "exposureAsset" is bigger or equal as "exposureAssetMax" (test-case).
         assetState.exposureAssetMax = uint112(bound(assetState.exposureAssetMax, 0, expectedExposure));
 
+        // And: The value of the exposure does not overflow.
+        assetState.assetUnit = uint64(bound(assetState.assetUnit, 1, type(uint64).max));
+        assetState.rateInUsd = bound(assetState.rateInUsd, 0, type(uint256).max / 1e18);
+        exposureUpperAssetToAsset = bound(
+            exposureUpperAssetToAsset,
+            0,
+            assetState.rateInUsd == 0 ? type(uint256).max : type(uint256).max / assetState.rateInUsd
+        );
+
         // And: State is persisted.
         setPrimaryAMAssetState(assetState);
 
@@ -92,6 +110,17 @@ contract ProcessIndirectDeposit_AbstractPrimaryAM_Fuzz_Test is AbstractPrimaryAM
         }
         assetState.exposureAssetMax = uint112(bound(assetState.exposureAssetMax, 0, expectedExposure));
 
+        // And: The value of the exposure does not overflow.
+        assetState.assetUnit = uint64(bound(assetState.assetUnit, 1, type(uint64).max));
+        assetState.rateInUsd = bound(assetState.rateInUsd, 0, type(uint256).max / 1e18);
+        exposureUpperAssetToAsset = bound(
+            exposureUpperAssetToAsset,
+            0,
+            assetState.rateInUsd == 0 ? type(uint256).max : type(uint256).max / assetState.rateInUsd
+        );
+
+        // And: Negating the delta does not overflow.
+        deltaExposureUpperAssetToAsset = bound(deltaExposureUpperAssetToAsset, 0, uint256(type(int256).max));
         // And: State is persisted.
         setPrimaryAMAssetState(assetState);
 
@@ -122,6 +151,15 @@ contract ProcessIndirectDeposit_AbstractPrimaryAM_Fuzz_Test is AbstractPrimaryAM
         assetState.exposureAssetMax =
             uint112(bound(assetState.exposureAssetMax, expectedExposure + 1, type(uint112).max));
 
+        // And: The value of the exposure does not overflow.
+        assetState.assetUnit = uint64(bound(assetState.assetUnit, 1, type(uint64).max));
+        assetState.rateInUsd = bound(assetState.rateInUsd, 0, type(uint256).max / 1e18);
+        exposureUpperAssetToAsset = bound(
+            exposureUpperAssetToAsset,
+            0,
+            assetState.rateInUsd == 0 ? type(uint256).max : type(uint256).max / assetState.rateInUsd
+        );
+
         // And: State is persisted.
         setPrimaryAMAssetState(assetState);
 
@@ -137,7 +175,7 @@ contract ProcessIndirectDeposit_AbstractPrimaryAM_Fuzz_Test is AbstractPrimaryAM
 
         // Then: Correct output variables are returned.
         assertEq(recursiveCalls, 1);
-        assertEq(usdExposureUpperAssetToAsset, assetState.usdExposureUpperAssetToAsset);
+        assertEq(usdExposureUpperAssetToAsset, exposureUpperAssetToAsset * assetState.rateInUsd / assetState.assetUnit);
 
         // And: assetExposure is updated.
         bytes32 assetKey = bytes32(abi.encodePacked(assetState.assetId, assetState.asset));
@@ -159,6 +197,14 @@ contract ProcessIndirectDeposit_AbstractPrimaryAM_Fuzz_Test is AbstractPrimaryAM
         assetState.exposureAssetMax =
             uint112(bound(assetState.exposureAssetMax, expectedExposure + 1, type(uint112).max));
 
+        // And: The value of the exposure does not overflow.
+        assetState.assetUnit = uint64(bound(assetState.assetUnit, 1, type(uint64).max));
+        assetState.rateInUsd = bound(assetState.rateInUsd, 0, type(uint256).max / 1e18);
+        exposureUpperAssetToAsset = bound(
+            exposureUpperAssetToAsset,
+            0,
+            assetState.rateInUsd == 0 ? type(uint256).max : type(uint256).max / assetState.rateInUsd
+        );
         // And: State is persisted.
         setPrimaryAMAssetState(assetState);
 
@@ -174,7 +220,7 @@ contract ProcessIndirectDeposit_AbstractPrimaryAM_Fuzz_Test is AbstractPrimaryAM
 
         // Then: Correct output variables are returned.
         assertEq(recursiveCalls, 1);
-        assertEq(usdExposureUpperAssetToAsset, assetState.usdExposureUpperAssetToAsset);
+        assertEq(usdExposureUpperAssetToAsset, exposureUpperAssetToAsset * assetState.rateInUsd / assetState.assetUnit);
 
         // Then: assetExposure is updated.
         bytes32 assetKey = bytes32(abi.encodePacked(assetState.assetId, assetState.asset));
@@ -194,6 +240,14 @@ contract ProcessIndirectDeposit_AbstractPrimaryAM_Fuzz_Test is AbstractPrimaryAM
         // And: "exposureAsset" is strictly smaller than "exposureAssetMax" (test-case).
         assetState.exposureAssetMax = uint112(bound(assetState.exposureAssetMax, 1, type(uint112).max));
 
+        // And: The value of the exposure does not overflow.
+        assetState.assetUnit = uint64(bound(assetState.assetUnit, 1, type(uint64).max));
+        assetState.rateInUsd = bound(assetState.rateInUsd, 0, type(uint256).max / 1e18);
+        exposureUpperAssetToAsset = bound(
+            exposureUpperAssetToAsset,
+            0,
+            assetState.rateInUsd == 0 ? type(uint256).max : type(uint256).max / assetState.rateInUsd
+        );
         // And: State is persisted.
         setPrimaryAMAssetState(assetState);
 
@@ -209,7 +263,7 @@ contract ProcessIndirectDeposit_AbstractPrimaryAM_Fuzz_Test is AbstractPrimaryAM
 
         // Then: Correct output variables are returned.
         assertEq(recursiveCalls, 1);
-        assertEq(usdExposureUpperAssetToAsset, assetState.usdExposureUpperAssetToAsset);
+        assertEq(usdExposureUpperAssetToAsset, exposureUpperAssetToAsset * assetState.rateInUsd / assetState.assetUnit);
 
         // Then: assetExposure is updated.
         bytes32 assetKey = bytes32(abi.encodePacked(assetState.assetId, assetState.asset));

@@ -7,5 +7,6 @@ pragma solidity ^0.8.34;
 /// @dev Used in SqrtPriceMath.sol
 library FixedPoint96 {
     uint8 internal constant RESOLUTION = 96;
+    // forge-lint: disable-next-item(too-many-digits)
     uint256 internal constant Q96 = 0x1000000000000000000000000;
 }

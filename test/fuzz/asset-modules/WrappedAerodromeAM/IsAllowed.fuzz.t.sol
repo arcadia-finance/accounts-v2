@@ -23,38 +23,38 @@ contract IsAllowed_WrappedAerodromeAM_Fuzz_Test is WrappedAerodromeAM_Fuzz_Test 
     /////////////////////////////////////////////////////////////// */
 
     function testFuzz_Success_isAllowed_False_BadAsset(uint256 positionId, address randomAddress) public view {
-        // Given : randomAddress is not the stakingAM.
+        // Given: The random address is not the Asset Module.
         vm.assume(randomAddress != address(wrappedAerodromeAM));
 
-        // When : Calling isAllowed() with the input address not equal to the Stargate AM
+        // When: The isAllowed check runs for the random address.
         bool allowed = wrappedAerodromeAM.isAllowed(randomAddress, positionId);
 
-        // Then : It should return false
+        // Then: It returns false.
         assertFalse(allowed);
     }
 
     function testFuzz_Success_isAllowed_False_BadId(uint256 positionId, uint256 lastPositionId) public {
-        // Given: positionId is bigger as lastPositionId.
+        // Given: The position id is bigger than the last minted position id.
         lastPositionId = bound(lastPositionId, 0, type(uint256).max - 1);
         positionId = bound(positionId, lastPositionId + 1, type(uint256).max);
         wrappedAerodromeAM.setIdCounter(lastPositionId);
 
-        // When : Calling isAllowed()
+        // When: The isAllowed check runs for the Asset Module and that position id.
         bool allowed = wrappedAerodromeAM.isAllowed(address(wrappedAerodromeAM), positionId);
 
-        // Then : It should return true
+        // Then: It returns false.
         assertFalse(allowed);
     }
 
     function testFuzz_Success_isAllowed_True(uint256 positionId, uint256 lastPositionId) public {
-        // Given: positionId is smaller or equal as lastPositionId.
+        // Given: The position id is smaller than or equal to the last minted position id.
         positionId = bound(positionId, 0, lastPositionId);
         wrappedAerodromeAM.setIdCounter(lastPositionId);
 
-        // When : Calling isAllowed()
+        // When: The isAllowed check runs for the Asset Module and that position id.
         bool allowed = wrappedAerodromeAM.isAllowed(address(wrappedAerodromeAM), positionId);
 
-        // Then : It should return true
+        // Then: It returns true.
         assertTrue(allowed);
     }
 }

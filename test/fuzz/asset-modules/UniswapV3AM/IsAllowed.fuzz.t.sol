@@ -4,16 +4,16 @@
  */
 pragma solidity ^0.8.0;
 
-import { UniswapV3AM_Fuzz_Test } from "./_UniswapV3AM.fuzz.t.sol";
-
 import { ERC20 } from "../../../../lib/solmate/src/tokens/ERC20.sol";
 import {
     INonfungiblePositionManagerExtension
 } from "../../../utils/fixtures/uniswap-v3/extensions/interfaces/INonfungiblePositionManagerExtension.sol";
+import { UniswapV3AM_Fuzz_Test } from "./_UniswapV3AM.fuzz.t.sol";
 
 /**
  * @notice Fuzz tests for the function "isAllowed" of contract "UniswapV3AM".
  */
+// forge-lint: disable-next-item(unsafe-typecast)
 contract IsAllowed_UniswapV3AM_Fuzz_Test is UniswapV3AM_Fuzz_Test {
     /* ///////////////////////////////////////////////////////////////
                               SETUP
@@ -82,8 +82,8 @@ contract IsAllowed_UniswapV3AM_Fuzz_Test is UniswapV3AM_Fuzz_Test {
         public
     {
         vm.assume(lp != address(0));
-        vm.assume(maxExposureA > 0);
-        vm.assume(maxExposureB > 0);
+        maxExposureA = uint128(bound(maxExposureA, 1, type(uint128).max));
+        maxExposureB = uint128(bound(maxExposureB, 1, type(uint128).max));
 
         // Create a LP-position of two underlying assets: token1 and token2.
         ERC20 tokenA = ERC20(address(mockERC20.token1));
@@ -133,8 +133,8 @@ contract IsAllowed_UniswapV3AM_Fuzz_Test is UniswapV3AM_Fuzz_Test {
 
     function testFuzz_Success_isAllowed_Positive(address lp, uint128 maxExposureA, uint128 maxExposureB) public {
         vm.assume(lp != address(0));
-        vm.assume(maxExposureA > 0);
-        vm.assume(maxExposureB > 0);
+        maxExposureA = uint128(bound(maxExposureA, 1, type(uint128).max));
+        maxExposureB = uint128(bound(maxExposureB, 1, type(uint128).max));
 
         // Create a LP-position of two underlying assets: token1 and token2.
         ERC20 tokenA = ERC20(address(mockERC20.token1));

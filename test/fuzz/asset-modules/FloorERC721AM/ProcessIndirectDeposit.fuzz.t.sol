@@ -41,7 +41,7 @@ contract ProcessIndirectDeposit_FloorERC721AM_Fuzz_Test is FloorERC721AM_Fuzz_Te
     }
 
     function testFuzz_Revert_processIndirectDeposit_WrongID(uint256 assetId) public {
-        vm.assume(assetId > 1); //Not in range
+        assetId = bound(assetId, 1 + 1, type(uint256).max);
         vm.prank(users.owner);
         floorERC721AM.addAsset(address(mockERC721.nft2), 0, 1, oraclesNft2ToUsd);
         vm.prank(users.riskManager);
@@ -77,10 +77,12 @@ contract ProcessIndirectDeposit_FloorERC721AM_Fuzz_Test is FloorERC721AM_Fuzz_Te
         int256 deltaExposureUpperAssetToAsset,
         uint112 maxExposure
     ) public {
-        vm.assume(deltaExposureUpperAssetToAsset > 0);
-        vm.assume(uint256(deltaExposureUpperAssetToAsset) < maxExposure);
+        deltaExposureUpperAssetToAsset = bound(
+            deltaExposureUpperAssetToAsset, 1, int256(uint256(type(uint112).max)) - 1
+        );
+        maxExposure = uint112(bound(maxExposure, uint256(deltaExposureUpperAssetToAsset) + 1, type(uint112).max));
         // To avoid overflow when calculating "usdExposureUpperAssetToAsset"
-        vm.assume(exposureUpperAssetToAsset < type(uint112).max);
+        exposureUpperAssetToAsset = bound(exposureUpperAssetToAsset, 0, type(uint112).max - 1);
 
         vm.prank(users.owner);
         floorERC721AM.addAsset(address(mockERC721.nft2), 0, type(uint256).max, oraclesNft2ToUsd);
@@ -89,7 +91,11 @@ contract ProcessIndirectDeposit_FloorERC721AM_Fuzz_Test is FloorERC721AM_Fuzz_Te
 
         (uint256 actualValueInUsd,,) = floorERC721AM.getValue(address(creditorUsd), address(mockERC721.nft2), 0, 1);
 
-        vm.assume(actualValueInUsd * exposureUpperAssetToAsset < type(uint256).max);
+        exposureUpperAssetToAsset = bound(
+            exposureUpperAssetToAsset,
+            0,
+            actualValueInUsd == 0 ? type(uint256).max : type(uint256).max / actualValueInUsd
+        );
 
         vm.prank(address(registry));
         (uint256 recursiveCalls, uint256 usdExposureUpperAssetToAsset) = floorERC721AM.processIndirectDeposit(

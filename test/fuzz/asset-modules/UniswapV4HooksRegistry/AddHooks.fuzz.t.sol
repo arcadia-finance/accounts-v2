@@ -5,12 +5,13 @@
 pragma solidity ^0.8.0;
 
 import { RegistryErrors } from "../../../../src/libraries/Errors.sol";
-import { UniswapV4HooksRegistry_Fuzz_Test } from "./_UniswapV4HooksRegistry.fuzz.t.sol";
 import { UniswapV4HooksRegistry } from "../../../../src/asset-modules/UniswapV4/UniswapV4HooksRegistry.sol";
+import { UniswapV4HooksRegistry_Fuzz_Test } from "./_UniswapV4HooksRegistry.fuzz.t.sol";
 
 /**
  * @notice Fuzz tests for the function "AddHooks" of contract "UniswapV4HooksRegistry".
  */
+// forge-lint: disable-next-item(unsafe-typecast)
 contract AddHooks_UniswapV4HooksRegistry_Fuzz_Test is UniswapV4HooksRegistry_Fuzz_Test {
     /* ///////////////////////////////////////////////////////////////
                               SETUP

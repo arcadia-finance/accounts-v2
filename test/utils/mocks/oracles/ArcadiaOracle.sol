@@ -65,6 +65,7 @@ contract ArcadiaOracle is Owned {
     /**
      * @dev Throws if called by any account other than the transmitter.
      */
+    // forge-lint: disable-next-item(modifier-used-only-once)
     modifier onlyTransmitter() {
         require(offchainConnectors[msg.sender].role == Role.Transmitter, "Oracle: caller is not the valid transmitter");
         require(offchainConnectors[msg.sender].isActive, "Oracle: transmitter is not active");

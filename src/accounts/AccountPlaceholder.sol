@@ -76,6 +76,7 @@ contract AccountPlaceholder is AccountStorageV1, IAccount {
      * @dev Starts the cool-down period during which ownership cannot be transferred.
      * This prevents the old Owner from frontrunning a transferFrom().
      */
+    // forge-lint: disable-next-item(modifier-used-only-once)
     modifier updateActionTimestamp() {
         // forge-lint: disable-next-item(unsafe-typecast)
         lastActionTimestamp = uint32(block.timestamp);

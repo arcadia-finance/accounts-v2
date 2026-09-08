@@ -4,10 +4,9 @@
  */
 pragma solidity ^0.8.0;
 
-import { Fuzz_Test } from "../../Fuzz.t.sol";
-
-import { ERC4626Mock } from "../../../utils/mocks/tokens/ERC4626Mock.sol";
 import { ERC4626AMExtension } from "../../../utils/extensions/ERC4626AMExtension.sol";
+import { ERC4626Mock } from "../../../utils/mocks/tokens/ERC4626Mock.sol";
+import { Fuzz_Test } from "../../Fuzz.t.sol";
 
 /**
  * @notice Common logic needed by all "StandardERC4626AM" fuzz tests.

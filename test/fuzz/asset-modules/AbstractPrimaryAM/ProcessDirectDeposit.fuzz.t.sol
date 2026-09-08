@@ -28,8 +28,12 @@ contract ProcessDirectDeposit_AbstractPrimaryAM_Fuzz_Test is AbstractPrimaryAM_F
         address unprivilegedAddress_,
         uint256 amount
     ) public {
-        // Given "caller" is not the Registry.
+        // Given: "caller" is not the Registry.
         vm.assume(unprivilegedAddress_ != address(registry));
+
+        // And: The value of the exposure does not overflow.
+        assetState.assetUnit = uint64(bound(assetState.assetUnit, 1, type(uint64).max));
+        assetState.rateInUsd = bound(assetState.rateInUsd, 0, type(uint256).max / 1e18);
 
         // And: State is persisted.
         setPrimaryAMAssetState(assetState);
@@ -52,6 +56,10 @@ contract ProcessDirectDeposit_AbstractPrimaryAM_Fuzz_Test is AbstractPrimaryAM_F
         // And: "exposureAsset" is bigger or equal as "exposureAssetMax" (test-case).
         assetState.exposureAssetMax = uint112(bound(assetState.exposureAssetMax, 0, expectedExposure));
 
+        // And: The value of the exposure does not overflow.
+        assetState.assetUnit = uint64(bound(assetState.assetUnit, 1, type(uint64).max));
+        assetState.rateInUsd = bound(assetState.rateInUsd, 0, type(uint256).max / 1e18);
+
         // And: State is persisted.
         setPrimaryAMAssetState(assetState);
 
@@ -70,6 +78,10 @@ contract ProcessDirectDeposit_AbstractPrimaryAM_Fuzz_Test is AbstractPrimaryAM_F
         uint256 expectedExposure = assetState.exposureAssetLast + amount;
         assetState.exposureAssetMax =
             uint112(bound(assetState.exposureAssetMax, expectedExposure + 1, type(uint112).max));
+
+        // And: The value of the exposure does not overflow.
+        assetState.assetUnit = uint64(bound(assetState.assetUnit, 1, type(uint64).max));
+        assetState.rateInUsd = bound(assetState.rateInUsd, 0, type(uint256).max / 1e18);
 
         // And: State is persisted.
         setPrimaryAMAssetState(assetState);

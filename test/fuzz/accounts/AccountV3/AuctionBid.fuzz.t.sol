@@ -81,7 +81,7 @@ contract AuctionBid_AccountV3_Fuzz_Test is AccountV3_Fuzz_Test {
     }
 
     function testFuzz_Revert_AuctionBuy_UnknownAssetType(address bidder, uint96 assetType) public {
-        vm.assume(assetType > 3);
+        assetType = uint96(bound(assetType, 3 + 1, type(uint96).max));
 
         vm.startPrank(users.owner);
         AssetModuleMock assetModule = new AssetModuleMock(users.owner, address(registry), assetType);

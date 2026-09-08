@@ -74,12 +74,11 @@ contract DecreaseLiquidity_WrappedAerodromeAM_Fuzz_Test is WrappedAerodromeAM_Fu
         vm.assume(owner != aeroPool.poolFees());
 
         // And: Valid state.
+        poolState.totalWrapped = uint128(bound(poolState.totalWrapped, 1, type(uint128).max - 1));
+        positionState.amountWrapped = uint128(bound(positionState.amountWrapped, 1, poolState.totalWrapped));
         (poolState, positionState, fee0, fee1) = givenValidAMState(poolState, positionState, fee0, fee1);
 
-        // And : Owner has a non-zero balance.
-        vm.assume(positionState.amountWrapped > 0);
-        // And : Owner has a balance smaller as type(uint128).max.
-        vm.assume(positionState.amountWrapped < type(uint128).max);
+        // And : Owner has a non-zero balance, smaller as type(uint128).max.
 
         // And: amount withdrawn is bigger than the balance.
         amount = uint128(bound(amount, positionState.amountWrapped + 1, type(uint128).max));
@@ -118,9 +117,6 @@ contract DecreaseLiquidity_WrappedAerodromeAM_Fuzz_Test is WrappedAerodromeAM_Fu
 
         // And: Valid state.
         (poolState, positionState, fee0, fee1) = givenValidAMState(poolState, positionState, fee0, fee1);
-
-        // And : Owner has a non-zero balance.
-        vm.assume(positionState.amountWrapped > 0);
 
         // And: State is persisted.
         setAMState(aeroPool, positionId, poolState, positionState);
@@ -213,10 +209,9 @@ contract DecreaseLiquidity_WrappedAerodromeAM_Fuzz_Test is WrappedAerodromeAM_Fu
         vm.assume(owner != aeroPool.poolFees());
 
         // And: Valid state.
+        poolState.totalWrapped = uint128(bound(poolState.totalWrapped, 2, type(uint128).max));
+        positionState.amountWrapped = uint128(bound(positionState.amountWrapped, 2, poolState.totalWrapped));
         (poolState, positionState, fee0, fee1) = givenValidAMState(poolState, positionState, fee0, fee1);
-
-        // And : Owner has a balance bigger as 1.
-        vm.assume(positionState.amountWrapped > 1);
 
         // And : amount withdrawn is smaller as the staked balance.
         amount = uint128(bound(amount, 1, positionState.amountWrapped - 1));

@@ -67,9 +67,6 @@ contract startLiquidation_AccountV3_Fuzz_Test is AccountV3_Fuzz_Test {
         // "exposure" is strictly smaller than "maxExposure".
         depositAmountToken1 = uint112(bound(depositAmountToken1, 1, type(uint112).max - 1));
 
-        // Given: openDebt > 0
-        openDebt = bound(openDebt, 1, type(uint112).max - minimumMargin);
-
         address[] memory assetAddresses = new address[](1);
         assetAddresses[0] = address(mockERC20.token1);
 
@@ -83,7 +80,6 @@ contract startLiquidation_AccountV3_Fuzz_Test is AccountV3_Fuzz_Test {
         vm.prank(address(factory));
         accountExtension2.initialize(users.accountOwner, address(registry), address(creditorToken1));
         accountExtension2.setMinimumMargin(minimumMargin);
-        creditorToken1.setOpenPosition(address(accountExtension2), openDebt);
         stdstore.target(address(factory))
             .sig(factory.isAccount.selector)
             .with_key(address(accountExtension2))
@@ -93,8 +89,13 @@ contract startLiquidation_AccountV3_Fuzz_Test is AccountV3_Fuzz_Test {
             accountExtension2.numeraire(), accountExtension2.creditor(), assetAddresses, assetIds, assetAmounts
         );
 
-        // Given : Liquidation value is greater than or equal to used margin
-        vm.assume(openDebt + minimumMargin <= assetValuationLib.calculateLiquidationValue(assetAndRiskValues));
+        // Given : openDebt > 0 and the liquidation value is greater than or equal to used margin.
+        uint256 liquidationValue = assetValuationLib.calculateLiquidationValue(assetAndRiskValues);
+        vm.assume(liquidationValue > minimumMargin);
+        uint256 maxOpenDebt = type(uint112).max - minimumMargin;
+        if (liquidationValue - minimumMargin < maxOpenDebt) maxOpenDebt = liquidationValue - minimumMargin;
+        openDebt = bound(openDebt, 1, maxOpenDebt);
+        creditorToken1.setOpenPosition(address(accountExtension2), openDebt);
 
         // Mint and approve token1 tokens
         vm.startPrank(users.tokenCreator);
@@ -149,9 +150,6 @@ contract startLiquidation_AccountV3_Fuzz_Test is AccountV3_Fuzz_Test {
         // "exposure" is strictly smaller than "maxExposure".
         depositAmountToken1 = uint112(bound(depositAmountToken1, 1, type(uint112).max - 1));
 
-        // Given: openDebt > 0
-        openDebt = bound(openDebt, 1, type(uint112).max - minimumMargin);
-
         AssetValueAndRiskFactors[] memory assetAndRiskValues;
         {
             address[] memory assetAddresses = new address[](1);
@@ -167,7 +165,6 @@ contract startLiquidation_AccountV3_Fuzz_Test is AccountV3_Fuzz_Test {
             vm.prank(address(factory));
             accountExtension2.initialize(users.accountOwner, address(registry), address(creditorToken1));
             accountExtension2.setMinimumMargin(minimumMargin);
-            creditorToken1.setOpenPosition(address(accountExtension2), openDebt);
             stdstore.target(address(factory))
                 .sig(factory.isAccount.selector)
                 .with_key(address(accountExtension2))
@@ -177,8 +174,15 @@ contract startLiquidation_AccountV3_Fuzz_Test is AccountV3_Fuzz_Test {
                 accountExtension2.numeraire(), accountExtension2.creditor(), assetAddresses, assetIds, assetAmounts
             );
 
-            // Given : Liquidation value is smaller than used margin
-            vm.assume(openDebt + minimumMargin > assetValuationLib.calculateLiquidationValue(assetAndRiskValues));
+            // Given : openDebt > 0 and the liquidation value is smaller than used margin.
+            uint256 liquidationValue = assetValuationLib.calculateLiquidationValue(assetAndRiskValues);
+            vm.assume(liquidationValue < type(uint112).max);
+            openDebt = bound(
+                openDebt,
+                liquidationValue > minimumMargin ? liquidationValue - minimumMargin + 1 : 1,
+                type(uint112).max - minimumMargin
+            );
+            creditorToken1.setOpenPosition(address(accountExtension2), openDebt);
 
             // Mint and approve stable1 tokens
             vm.prank(users.tokenCreator);

@@ -11,6 +11,7 @@ contract ERC721Mock is ERC721 {
     string baseURI;
     address owner;
 
+    // forge-lint: disable-next-item(modifier-used-only-once)
     modifier onlyOwner() {
         require(msg.sender == owner, "You are not the owner");
         _;

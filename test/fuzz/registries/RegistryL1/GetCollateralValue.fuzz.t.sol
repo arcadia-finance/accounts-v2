@@ -59,14 +59,23 @@ contract GetCollateralValue_RegistryL1_Fuzz_Test is RegistryL1_Fuzz_Test {
         vm.prank(creditorUsd.riskManager());
         registry_.setRiskParameters(address(creditorUsd), 0, type(uint64).max);
 
-        vm.assume(collateralFactor_ <= AssetValuationLib.ONE_4);
-        vm.assume(rateToken1ToUsd > 0);
+        collateralFactor_ = uint16(bound(collateralFactor_, 0, AssetValuationLib.ONE_4));
+        rateToken1ToUsd = int64(bound(rateToken1ToUsd, 1, type(int64).max));
 
         vm.prank(users.transmitter);
         mockOracles.token1ToUsd.transmit(rateToken1ToUsd);
 
+        // And: The usd value of the asset is non-zero.
+        amountToken1 = uint64(
+            bound(
+                amountToken1,
+                (10 ** (Constants.TOKEN_ORACLE_DECIMALS + Constants.TOKEN_DECIMALS) / Constants.WAD - 1)
+                    / uint256(int256(rateToken1ToUsd)) + 1,
+                type(uint64).max
+            )
+        );
+
         uint256 token1ValueInUsd = convertAssetToUsd(Constants.TOKEN_DECIMALS, amountToken1, oracleToken1ToUsdArr);
-        vm.assume(token1ValueInUsd > 0);
 
         vm.prank(users.riskManager);
         registry_.setRiskParametersOfPrimaryAsset(

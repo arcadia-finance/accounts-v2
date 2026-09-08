@@ -42,6 +42,7 @@ contract GetUnderlyingAssetsAmounts_StakedSlipstreamAM_Fuzz_Test is StakedSlipst
         uint256 rewardGrowthGlobalX128Last,
         uint256 rewardGrowthGlobalX128Current
     ) public {
+        (priceToken0, priceToken1) = givenValidPrices(priceToken0, priceToken1);
         // Given: Ticks are within allowed ranges.
         position = givenValidPosition(position, 1);
 
@@ -55,7 +56,7 @@ contract GetUnderlyingAssetsAmounts_StakedSlipstreamAM_Fuzz_Test is StakedSlipst
         // Function will overFlow, not realistic.
         priceToken0 = bound(priceToken0, 0, type(uint256).max / 1e28);
         // Cast to uint160 will overflow, not realistic.
-        if (priceToken1 < 2 ** 128) priceToken0 = bound(priceToken0, 0, priceToken1 * 2 ** 128);
+        if (priceToken1 < 2 ** 128) priceToken0 = bound(priceToken0, 0, priceToken1 * 2 ** 128 - 1);
 
         // And : gauge is deployed and added to registry.
         {
@@ -127,6 +128,7 @@ contract GetUnderlyingAssetsAmounts_StakedSlipstreamAM_Fuzz_Test is StakedSlipst
         uint256 rewardGrowthGlobalX128Last,
         uint256 rewardGrowthGlobalX128Current
     ) public {
+        (priceToken0, priceToken1) = givenValidPrices(priceToken0, priceToken1);
         // Given: Ticks are within allowed ranges.
         position = givenValidPosition(position, 1);
 
@@ -140,7 +142,7 @@ contract GetUnderlyingAssetsAmounts_StakedSlipstreamAM_Fuzz_Test is StakedSlipst
         // Function will overFlow, not realistic.
         priceToken0 = bound(priceToken0, 0, type(uint256).max / 1e28);
         // Cast to uint160 will overflow, not realistic.
-        if (priceToken1 < 2 ** 128) priceToken0 = bound(priceToken0, 0, priceToken1 * 2 ** 128);
+        if (priceToken1 < 2 ** 128) priceToken0 = bound(priceToken0, 0, priceToken1 * 2 ** 128 - 1);
 
         // And : gauge is deployed and added to registry.
         {

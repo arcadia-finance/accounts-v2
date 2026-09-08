@@ -12,6 +12,7 @@ import { AccountV4_Fuzz_Test } from "./_AccountV4.fuzz.t.sol";
 /**
  * @notice Fuzz tests for the function "deposit" of contract "AccountV4".
  */
+// forge-lint: disable-next-item(unsafe-typecast)
 contract Deposit_AccountV4_Fuzz_Test is AccountV4_Fuzz_Test {
     /* ///////////////////////////////////////////////////////////////
                               SETUP
@@ -59,7 +60,7 @@ contract Deposit_AccountV4_Fuzz_Test is AccountV4_Fuzz_Test {
 
     function testFuzz_Revert_deposit_UnknownAssetType(uint96 assetType) public {
         // Given : assetType is > 3
-        vm.assume(assetType > 3);
+        assetType = uint96(bound(assetType, 4, type(uint96).max));
 
         address[] memory assetAddresses = new address[](1);
         assetAddresses[0] = address(mockERC20.token1);

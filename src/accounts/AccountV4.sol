@@ -85,8 +85,10 @@ contract AccountV4 is AccountStorageV1, IAccount {
     /**
      * @dev Throws if called by any address other than an Asset Manager or the owner.
      */
+    // forge-lint: disable-next-item(modifier-used-only-once)
     modifier onlyAssetManager() {
         // A custom error would need to read out owner + isAssetManager storage
+        // forge-lint: disable-next-line(custom-errors)
         require(msg.sender == owner || isAssetManager[owner][msg.sender], "A: Only Asset Manager");
         _;
     }

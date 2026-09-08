@@ -86,7 +86,7 @@ contract ProcessIndirectWithdrawal_AbstractDerivedAM_Fuzz_Test is AbstractDerive
         int256 deltaExposureUpperAssetToAsset
     ) public {
         // Given: "usdExposureAsset" is 0 (test-case).
-        underlyingPMState.usdValue = 0;
+        underlyingPMState.rateInUsd = 0;
 
         // And: Withdrawal does not revert.
         (protocolState, assetState, underlyingPMState, exposureUpperAssetToAsset, deltaExposureUpperAssetToAsset) =
@@ -120,14 +120,15 @@ contract ProcessIndirectWithdrawal_AbstractDerivedAM_Fuzz_Test is AbstractDerive
         uint256 exposureUpperAssetToAsset,
         int256 deltaExposureUpperAssetToAsset
     ) public {
-        // Given: "usdExposureToUnderlyingAsset" is not zero (test-case).
-        underlyingPMState.usdValue = bound(underlyingPMState.usdValue, 1, type(uint112).max);
-
-        // And: Withdrawal does not revert.
+        // Given: Withdrawal does not revert.
         (protocolState, assetState, underlyingPMState, exposureUpperAssetToAsset, deltaExposureUpperAssetToAsset) =
             givenNonRevertingWithdrawal(
                 protocolState, assetState, underlyingPMState, exposureUpperAssetToAsset, deltaExposureUpperAssetToAsset
             );
+
+        // And: "usdExposureToUnderlyingAsset" is not zero (test-case).
+        uint256 usdValue = usdExposureToUnderlyingAsset(assetState, underlyingPMState);
+        vm.assume(usdValue > 0);
 
         // And: exposureAsset is not zero (test-case).
         uint256 exposureAsset;
@@ -155,8 +156,7 @@ contract ProcessIndirectWithdrawal_AbstractDerivedAM_Fuzz_Test is AbstractDerive
         );
 
         // And: Correct "usdExposureUpperAssetToAsset" is returned.
-        uint256 usdExposureUpperAssetToAssetExpected =
-            underlyingPMState.usdValue * exposureUpperAssetToAsset / exposureAsset;
+        uint256 usdExposureUpperAssetToAssetExpected = usdValue * exposureUpperAssetToAsset / exposureAsset;
         assertEq(usdExposureUpperAssetToAsset, usdExposureUpperAssetToAssetExpected);
     }
 }

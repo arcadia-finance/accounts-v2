@@ -4,8 +4,8 @@
  */
 pragma solidity ^0.8.0;
 
-import { FloorERC1155AM_Fuzz_Test } from "./_FloorERC1155AM.fuzz.t.sol";
 import { Constants } from "../../../utils/Constants.sol";
+import { FloorERC1155AM_Fuzz_Test } from "./_FloorERC1155AM.fuzz.t.sol";
 
 /**
  * @notice Fuzz tests for the function "getValue" of contract "FloorERC1155AM".

@@ -33,7 +33,7 @@ contract GetUnderlyingAssets_DefaultUniswapV4AM_Fuzz_Test is DefaultUniswapV4AM_
         (tickLower, tickUpper) = givenValidTicks(tickLower, tickUpper);
 
         // And : Liquidity is not-zero.
-        vm.assume(liquidity > 0);
+        liquidity = uint128(bound(liquidity, 1, type(uint128).max));
         bytes32 positionKey =
             keccak256(abi.encodePacked(address(positionManagerV4), tickLower, tickUpper, bytes32(uint256(tokenId))));
         poolManager.setPositionLiquidity(stablePoolKey.toId(), positionKey, liquidity);
@@ -66,7 +66,7 @@ contract GetUnderlyingAssets_DefaultUniswapV4AM_Fuzz_Test is DefaultUniswapV4AM_
         (tickLower, tickUpper) = givenValidTicks(tickLower, tickUpper);
 
         // And : Liquidity is not-zero.
-        vm.assume(liquidity > 0);
+        liquidity = uint128(bound(liquidity, 1, type(uint128).max));
         bytes32 positionKey =
             keccak256(abi.encodePacked(address(positionManagerV4), tickLower, tickUpper, bytes32(uint256(tokenId))));
         poolManager.setPositionLiquidity(stablePoolKey.toId(), positionKey, liquidity);

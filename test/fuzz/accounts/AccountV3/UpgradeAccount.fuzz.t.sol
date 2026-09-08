@@ -146,7 +146,14 @@ contract UpgradeAccount_AccountV3_Fuzz_Test is AccountV3_Fuzz_Test {
         canReceiveERC721(newImplementation)
     {
         vm.assume(!isPrecompile(newImplementation));
+        // And: The new implementation does not overwrite a contract the upgrade path needs.
+        vm.assume(newImplementation != address(0));
+        vm.assume(newImplementation != address(vm));
         vm.assume(newImplementation != address(account));
+        vm.assume(newImplementation != address(accountV3Logic));
+        vm.assume(newImplementation != address(factory));
+        vm.assume(newImplementation != address(registry));
+        vm.assume(newImplementation != address(sequencerUptimeOracle));
 
         // Given: Creditor is set.
         vm.prank(users.accountOwner);

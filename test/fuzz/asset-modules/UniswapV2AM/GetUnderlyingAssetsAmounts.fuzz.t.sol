@@ -4,12 +4,10 @@
  */
 pragma solidity ^0.8.0;
 
-import { UniswapV2AM_Fuzz_Test } from "./_UniswapV2AM.fuzz.t.sol";
-
-import { StdStorage, stdStorage } from "../../../../lib/forge-std/src/Test.sol";
-
-import { Constants } from "../../../utils/Constants.sol";
 import { AssetValueAndRiskFactors } from "../../../../src/libraries/AssetValuationLib.sol";
+import { Constants } from "../../../utils/Constants.sol";
+import { StdStorage, stdStorage } from "../../../../lib/forge-std/src/Test.sol";
+import { UniswapV2AM_Fuzz_Test } from "./_UniswapV2AM.fuzz.t.sol";
 
 /**
  * @notice Fuzz tests for the function "_getUnderlyingAssetsAmounts()" of contract "UniswapV2AM".
@@ -56,11 +54,11 @@ contract GetUnderlyingAssetsAmounts_UniswapV2AM_Fuzz_Test is UniswapV2AM_Fuzz_Te
         assetAmount = bound(assetAmount, 0, type(uint256).max / reserve0);
         assetAmount = bound(assetAmount, 0, type(uint256).max / reserve1);
 
-        // And state is persisted/
+        // And: state is persisted/
         pairToken1Token2.setReserves(reserve0, reserve1);
         stdstore.target(address(pairToken1Token2)).sig(pairToken1Token2.totalSupply.selector).checked_write(totalSupply);
 
-        // And the pool is balanced.
+        // And: the pool is balanced.
         uint256 priceToken0 = reserve1;
         uint256 priceToken1 = reserve0;
         vm.startPrank(users.transmitter);

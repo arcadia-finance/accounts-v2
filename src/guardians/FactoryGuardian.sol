@@ -40,6 +40,7 @@ abstract contract FactoryGuardian is BaseGuardian {
     /**
      * @dev Throws if the createAccount functionality is paused.
      */
+    // forge-lint: disable-next-item(modifier-used-only-once)
     modifier whenCreateNotPaused() {
         if (createPaused) revert GuardianErrors.FunctionIsPaused();
         _;

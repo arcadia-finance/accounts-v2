@@ -10,6 +10,7 @@ import { RegistryL2_Fuzz_Test } from "./_RegistryL2.fuzz.t.sol";
 /**
  * @notice Fuzz tests for the function "batchGetAssetTypes" of contract "RegistryL2".
  */
+// forge-lint: disable-next-item(unsafe-typecast)
 contract BatchGetAssetTypes_RegistryL2_Fuzz_Test is RegistryL2_Fuzz_Test {
     /* ///////////////////////////////////////////////////////////////
                               SETUP
@@ -35,7 +36,7 @@ contract BatchGetAssetTypes_RegistryL2_Fuzz_Test is RegistryL2_Fuzz_Test {
     }
 
     function testFuzz_Success_batchGetAssetTypes(uint96 assetType, address asset, address assetModule) public {
-        vm.assume(assetType > 0);
+        assetType = uint96(bound(assetType, 1, type(uint96).max));
         vm.assume(!registry.inRegistry(asset));
 
         registry.setAssetInformation(asset, assetType, assetModule);

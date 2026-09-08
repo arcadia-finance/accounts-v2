@@ -43,10 +43,7 @@ contract Burn_AbstractStakingAM_Fuzz_Test is AbstractStakingAM_Fuzz_Test {
             vm.assume(account_ != asset);
 
             // Given: Valid state
-            (assetState, positionState) = givenValidStakingAMState(assetState, positionState);
-
-            // And : Account has a non-zero balance.
-            vm.assume(positionState.amountStaked > 0);
+            (assetState, positionState) = givenValidStakingAMState(assetState, positionState, 1, type(uint128).max);
 
             // And: State is persisted.
             setStakingAMState(assetState, positionState, asset, positionId);
@@ -123,12 +120,9 @@ contract Burn_AbstractStakingAM_Fuzz_Test is AbstractStakingAM_Fuzz_Test {
             vm.assume(account_ != asset);
 
             // Given: Valid state
-            (assetState, positionState) = givenValidStakingAMState(assetState, positionState);
+            (assetState, positionState) = givenValidStakingAMState(assetState, positionState, 1, type(uint128).max);
 
-            // And : Account has a non-zero balance.
-            vm.assume(positionState.amountStaked > 0);
-
-            // And reward is zero.
+            // And: reward is zero.
             positionState.lastRewardPosition = 0;
             positionState.lastRewardPerTokenPosition = assetState.lastRewardPerTokenGlobal;
             assetState.currentRewardGlobal = 0;

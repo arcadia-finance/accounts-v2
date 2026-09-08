@@ -49,6 +49,7 @@ contract UniswapV4HooksRegistry is AssetModule {
                                 EVENTS
     ////////////////////////////////////////////////////////////// */
 
+    // forge-lint: disable-next-item(event-fields)
     event AssetModuleAdded(address assetModule);
     event HooksAdded(address indexed hooks, address indexed assetModule);
 
@@ -68,6 +69,7 @@ contract UniswapV4HooksRegistry is AssetModule {
      * @param creditor The contract address of the Creditor.
      * @dev Only the Risk Manager of a Creditor can call functions with this modifier.
      */
+    // forge-lint: disable-next-item(modifier-used-only-once)
     modifier onlyRiskManager(address creditor) {
         if (msg.sender != ICreditor(creditor).riskManager()) revert RegistryErrors.Unauthorized();
         _;

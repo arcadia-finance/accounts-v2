@@ -11,6 +11,7 @@ import { RegistryL1 } from "../../../../src/registries/RegistryL1.sol";
 /**
  * @notice Fuzz tests for the function "addAsset" of contract "RegistryL1".
  */
+// forge-lint: disable-next-item(unsafe-typecast)
 contract AddAsset_RegistryL1_Fuzz_Test is RegistryL1_Fuzz_Test {
     /* ///////////////////////////////////////////////////////////////
                               SETUP
@@ -53,7 +54,7 @@ contract AddAsset_RegistryL1_Fuzz_Test is RegistryL1_Fuzz_Test {
 
     function testFuzz_Revert_addAsset_OverwriteAsset2(uint96 assetType) public {
         // Given: assetType is not zero.
-        vm.assume(assetType > 0);
+        assetType = uint96(bound(assetType, 1, type(uint96).max));
 
         vm.startPrank(address(floorERC721AM));
         // When: floorERC721AM calls addAsset
@@ -65,10 +66,10 @@ contract AddAsset_RegistryL1_Fuzz_Test is RegistryL1_Fuzz_Test {
 
     function testFuzz_Success_addAsset(uint96 assetType, address newAsset) public {
         // Given: assetType is not zero.
-        vm.assume(assetType > 0);
+        assetType = uint96(bound(assetType, 1, type(uint96).max));
 
         // And: asset is not yet added.
-        vm.assume(registry_.inRegistry(newAsset) == false);
+        vm.assume(!registry_.inRegistry(newAsset));
 
         // When: erc20AM calls addAsset with input of address(eth)
         vm.startPrank(address(erc20AM));

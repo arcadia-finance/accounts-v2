@@ -29,8 +29,17 @@ contract ProcessIndirectWithdrawal_AbstractPrimaryAM_Fuzz_Test is AbstractPrimar
         uint256 exposureUpperAssetToAsset,
         int256 deltaExposureUpperAssetToAsset
     ) public {
-        // Given "caller" is not the Registry.
+        // Given: "caller" is not the Registry.
         vm.assume(unprivilegedAddress_ != address(registry));
+
+        // And: The value of the exposure does not overflow.
+        assetState.assetUnit = uint64(bound(assetState.assetUnit, 1, type(uint64).max));
+        assetState.rateInUsd = bound(assetState.rateInUsd, 0, type(uint256).max / 1e18);
+        exposureUpperAssetToAsset = bound(
+            exposureUpperAssetToAsset,
+            0,
+            assetState.rateInUsd == 0 ? type(uint256).max : type(uint256).max / assetState.rateInUsd
+        );
 
         // And: State is persisted.
         setPrimaryAMAssetState(assetState);
@@ -65,6 +74,15 @@ contract ProcessIndirectWithdrawal_AbstractPrimaryAM_Fuzz_Test is AbstractPrimar
             type(uint256).max - assetState.exposureAssetLast
         );
 
+        // And: The value of the exposure does not overflow.
+        assetState.assetUnit = uint64(bound(assetState.assetUnit, 1, type(uint64).max));
+        assetState.rateInUsd = bound(assetState.rateInUsd, 0, type(uint256).max / 1e18);
+        exposureUpperAssetToAsset = bound(
+            exposureUpperAssetToAsset,
+            0,
+            assetState.rateInUsd == 0 ? type(uint256).max : type(uint256).max / assetState.rateInUsd
+        );
+
         // And: State is persisted.
         setPrimaryAMAssetState(assetState);
 
@@ -94,6 +112,15 @@ contract ProcessIndirectWithdrawal_AbstractPrimaryAM_Fuzz_Test is AbstractPrimar
         uint256 expectedExposure = assetState.exposureAssetLast + deltaExposureUpperAssetToAsset;
         assetState.exposureAssetMax = uint112(bound(assetState.exposureAssetMax, expectedExposure, type(uint112).max));
 
+        // And: The value of the exposure does not overflow.
+        assetState.assetUnit = uint64(bound(assetState.assetUnit, 1, type(uint64).max));
+        assetState.rateInUsd = bound(assetState.rateInUsd, 0, type(uint256).max / 1e18);
+        exposureUpperAssetToAsset = bound(
+            exposureUpperAssetToAsset,
+            0,
+            assetState.rateInUsd == 0 ? type(uint256).max : type(uint256).max / assetState.rateInUsd
+        );
+
         // And: State is persisted.
         setPrimaryAMAssetState(assetState);
 
@@ -108,7 +135,7 @@ contract ProcessIndirectWithdrawal_AbstractPrimaryAM_Fuzz_Test is AbstractPrimar
         );
 
         // Then: Correct output variables are returned.
-        assertEq(usdExposureUpperAssetToAsset, assetState.usdExposureUpperAssetToAsset);
+        assertEq(usdExposureUpperAssetToAsset, exposureUpperAssetToAsset * assetState.rateInUsd / assetState.assetUnit);
 
         // And: assetExposure is updated.
         bytes32 assetKey = bytes32(abi.encodePacked(assetState.assetId, assetState.asset));
@@ -125,6 +152,14 @@ contract ProcessIndirectWithdrawal_AbstractPrimaryAM_Fuzz_Test is AbstractPrimar
         deltaExposureUpperAssetToAsset = bound(deltaExposureUpperAssetToAsset, 0, assetState.exposureAssetLast);
         uint256 expectedExposure = assetState.exposureAssetLast - deltaExposureUpperAssetToAsset;
 
+        // And: The value of the exposure does not overflow.
+        assetState.assetUnit = uint64(bound(assetState.assetUnit, 1, type(uint64).max));
+        assetState.rateInUsd = bound(assetState.rateInUsd, 0, type(uint256).max / 1e18);
+        exposureUpperAssetToAsset = bound(
+            exposureUpperAssetToAsset,
+            0,
+            assetState.rateInUsd == 0 ? type(uint256).max : type(uint256).max / assetState.rateInUsd
+        );
         // And: State is persisted.
         setPrimaryAMAssetState(assetState);
 
@@ -139,7 +174,7 @@ contract ProcessIndirectWithdrawal_AbstractPrimaryAM_Fuzz_Test is AbstractPrimar
         );
 
         // Then: Correct output variables are returned.
-        assertEq(usdExposureUpperAssetToAsset, assetState.usdExposureUpperAssetToAsset);
+        assertEq(usdExposureUpperAssetToAsset, exposureUpperAssetToAsset * assetState.rateInUsd / assetState.assetUnit);
 
         // And: assetExposure is updated.
         bytes32 assetKey = bytes32(abi.encodePacked(assetState.assetId, assetState.asset));
@@ -155,6 +190,14 @@ contract ProcessIndirectWithdrawal_AbstractPrimaryAM_Fuzz_Test is AbstractPrimar
         // Given: deltaExposure is bigger or equal as assetState.exposureAssetLast.
         deltaExposureUpperAssetToAsset = bound(deltaExposureUpperAssetToAsset, assetState.exposureAssetLast, INT256_MIN);
 
+        // And: The value of the exposure does not overflow.
+        assetState.assetUnit = uint64(bound(assetState.assetUnit, 1, type(uint64).max));
+        assetState.rateInUsd = bound(assetState.rateInUsd, 0, type(uint256).max / 1e18);
+        exposureUpperAssetToAsset = bound(
+            exposureUpperAssetToAsset,
+            0,
+            assetState.rateInUsd == 0 ? type(uint256).max : type(uint256).max / assetState.rateInUsd
+        );
         // And: State is persisted.
         setPrimaryAMAssetState(assetState);
 
@@ -169,7 +212,7 @@ contract ProcessIndirectWithdrawal_AbstractPrimaryAM_Fuzz_Test is AbstractPrimar
         );
 
         // Then: Correct output variables are returned.
-        assertEq(usdExposureUpperAssetToAsset, assetState.usdExposureUpperAssetToAsset);
+        assertEq(usdExposureUpperAssetToAsset, exposureUpperAssetToAsset * assetState.rateInUsd / assetState.assetUnit);
 
         // And: assetExposure is updated.
         bytes32 assetKey = bytes32(abi.encodePacked(assetState.assetId, assetState.asset));

@@ -42,8 +42,9 @@ fs_permissions = [{ access = "read", path = "./out"}, { access = "write", path =
 ignored_error_codes = [2394, 2424, 3860, 4591, 5574, 8429]
 # Test-only submodules: not used in src/, safe to suppress all warnings.
 ignored_warnings_from = [
-    "lib/openzeppelin-contracts-v4.9/",
+    "lib/forge-std-v1.13/",
     "lib/openzeppelin-contracts-upgradeable-v4.9/",
+    "lib/openzeppelin-contracts-v4.9/",
     "lib/slipstream/",
 ]
 
@@ -59,20 +60,37 @@ tab_width = 4
 exclude_lints = [
     "asm-keccak256",
     "calls-loop",
+    "costly-loop",
+    "inline-assembly",
+    "internal-function-used-once",
+    "literal-instead-of-constant",
+    "low-level-calls",
     "missing-events-access-control",
+    "missing-inheritance",
     "missing-zero-check",
+    "multi-contract-file",
     "non-reentrant-not-first",
+    "pragma-inconsistent",
     "reentrancy-events",
     "require-revert-in-loop",
     "uninitialized-local",
     "unsafe-cheatcode",
+    "unused-error",
     "unused-return",
     "unwrapped-modifier-logic",
 ]
 ignore = [
-    "**/merkl/**/*",
     "**/RemoveMerklOperator.fuzz.t.sol",
     "**/SetMerklOperators.fuzz.t.sol",
+    "**/merkl/**/*",
+    "**/test/CompilePragma7Dot6.t.sol",
+    "**/test/utils/extensions/CLQuoterV2Extension.sol",
+    "**/test/utils/extensions/QuoterV2Extension.sol",
+    "**/test/utils/fixtures/slipstream/extensions/CLPoolExtension.sol",
+    "**/test/utils/fixtures/uniswap-v3/extensions/NonfungiblePositionManagerExtension.sol",
+    "**/test/utils/fixtures/uniswap-v3/extensions/UniswapV3FactoryExtension.sol",
+    "**/test/utils/fixtures/uniswap-v3/extensions/UniswapV3PoolDeployerExtension.sol",
+    "**/test/utils/fixtures/uniswap-v3/extensions/UniswapV3PoolExtension.sol",
 ]
 
 [profile.dev]

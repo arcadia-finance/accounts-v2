@@ -33,7 +33,7 @@ contract CalculateValueAndRiskFactors_DefaultUniswapV4AM_Fuzz_Test is DefaultUni
         address creditor,
         uint256[2] memory underlyingAssetsAmounts
     ) public {
-        // Given amounts do not overflow.
+        // Given: amounts do not overflow.
         underlyingAssetsAmounts[0] = bound(underlyingAssetsAmounts[0], 0, type(uint64).max);
         underlyingAssetsAmounts[1] = bound(underlyingAssetsAmounts[1], 0, type(uint64).max);
         assetRates[0] = bound(assetRates[0], 0, type(uint64).max);
@@ -50,7 +50,7 @@ contract CalculateValueAndRiskFactors_DefaultUniswapV4AM_Fuzz_Test is DefaultUni
         liquidationFactors[0] = uint16(bound(liquidationFactors[0], collateralFactors[0], AssetValuationLib.ONE_4));
         liquidationFactors[1] = uint16(bound(liquidationFactors[1], collateralFactors[1], AssetValuationLib.ONE_4));
 
-        // And riskFactor is set.
+        // And: riskFactor is set.
         vm.prank(address(v4HooksRegistry));
         uniswapV4AM.setRiskParameters(creditor, 0, riskFactor);
 

@@ -9,9 +9,12 @@ import { Clones } from "../../../../lib/openzeppelin-contracts-v4.9/contracts/pr
 
 // forge-lint: disable-next-item(screaming-snake-case-immutable)
 contract PoolFactory {
+    // forge-lint: disable-next-item(event-fields)
     event SetFeeManager(address feeManager);
+    // forge-lint: disable-next-item(event-fields)
     event SetPauser(address pauser);
     event SetPauseState(bool state);
+    // forge-lint: disable-next-item(event-fields)
     event SetVoter(address voter);
     event PoolCreated(address indexed token0, address indexed token1, bool indexed stable, address pool, uint256);
     event SetCustomFee(address indexed pool, uint256 fee);

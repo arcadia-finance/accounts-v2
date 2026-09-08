@@ -24,6 +24,7 @@ library PoolAddress {
         view
         returns (address pool)
     {
+        // forge-lint: disable-next-line(custom-errors)
         require(token0 < token1);
         pool = predictDeterministicAddress({
             master: ICLFactory(factory).poolImplementation(),
@@ -43,8 +44,10 @@ library PoolAddress {
         // solhint-disable-next-line no-inline-assembly
         assembly {
             let ptr := mload(0x40)
+            // forge-lint: disable-next-line(too-many-digits)
             mstore(ptr, 0x3d602d80600a3d3981f3363d3d373d3d3d363d73000000000000000000000000)
             mstore(add(ptr, 0x14), shl(0x60, master))
+            // forge-lint: disable-next-line(too-many-digits)
             mstore(add(ptr, 0x28), 0x5af43d82803e903d91602b57fd5bf3ff00000000000000000000000000000000)
             mstore(add(ptr, 0x38), shl(0x60, deployer))
             mstore(add(ptr, 0x4c), salt)

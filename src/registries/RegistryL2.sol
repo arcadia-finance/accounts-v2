@@ -88,8 +88,10 @@ contract RegistryL2 is IRegistry, RegistryGuardian {
     ////////////////////////////////////////////////////////////// */
 
     event AssetAdded(address indexed assetAddress, address indexed assetModule);
+    // forge-lint: disable-next-item(event-fields)
     event AssetModuleAdded(address assetModule);
     event OracleAdded(uint256 indexed oracleId, address indexed oracleModule);
+    // forge-lint: disable-next-item(event-fields)
     event OracleModuleAdded(address oracleModule);
 
     /* //////////////////////////////////////////////////////////////
@@ -115,6 +117,7 @@ contract RegistryL2 is IRegistry, RegistryGuardian {
     /**
      * @dev Only Oracle Modules can call functions with this modifier.
      */
+    // forge-lint: disable-next-item(modifier-used-only-once)
     modifier onlyOracleModule() {
         if (!isOracleModule[msg.sender]) revert RegistryErrors.OnlyOracleModule();
         _;
@@ -134,6 +137,7 @@ contract RegistryL2 is IRegistry, RegistryGuardian {
      * @dev Throws if the sequencer is down,
      * or the Creditor specific grace period after sequencer is back up did not pass.
      */
+    // forge-lint: disable-next-item(modifier-used-only-once)
     modifier sequencerNotDown(address creditor) {
         (, bool sequencerDown) = _isSequencerDown(creditor);
         if (sequencerDown) revert RegistryErrors.SequencerDown();

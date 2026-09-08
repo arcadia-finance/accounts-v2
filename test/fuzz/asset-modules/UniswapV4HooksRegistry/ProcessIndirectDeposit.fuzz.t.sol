@@ -38,6 +38,7 @@ contract ProcessIndirectDeposit_UniswapV4HooksRegistry_Fuzz_Test is UniswapV4Hoo
         uint256 priceToken1,
         uint256 exposureUpperAssetToAsset
     ) public {
+        (priceToken0, priceToken1) = givenValidPrices(priceToken0, priceToken1);
         vm.assume(unprivilegedAddress != address(registry));
 
         // Given : Valid state
@@ -60,9 +61,9 @@ contract ProcessIndirectDeposit_UniswapV4HooksRegistry_Fuzz_Test is UniswapV4Hoo
         uint256 exposureUpperAssetToAsset,
         int256 amount
     ) public {
+        (priceToken0, priceToken1) = givenValidPrices(priceToken0, priceToken1);
         // Given : Amount not equal to 0 or 1
-        vm.assume(amount != 0);
-        vm.assume(amount != 1);
+        vm.assume(amount != 0 && amount != 1);
 
         // And : Valid state
         (uint256 tokenId,,,) = givenValidPosition(liquidity, tickLower, tickUpper, priceToken0, priceToken1, 0);
@@ -88,17 +89,16 @@ contract ProcessIndirectDeposit_UniswapV4HooksRegistry_Fuzz_Test is UniswapV4Hoo
         uint112 maxExposure0,
         uint112 maxExposure1
     ) public {
+        (priceToken0, priceToken1) = givenValidPrices(priceToken0, priceToken1);
         // Given: Valid state
         (uint256 tokenId, uint256 amount0, uint256 amount1,) =
             givenValidPosition(liquidity, tickLower, tickUpper, priceToken0, priceToken1, 0);
 
         // And:  exposure to underlying tokens stays below maxExposures.
-        vm.assume(amount0 + initialExposure0 < maxExposure0);
-        vm.assume(amount1 + initialExposure1 < maxExposure1);
-
-        // And: Usd value of underlying assets does not overflow.
-        vm.assume(amount0 + initialExposure0 <= type(uint256).max / priceToken0 / 10 ** (18 - 0)); // divided by 10 ** (18 - DecimalsOracle).
-        vm.assume(amount1 + initialExposure1 <= type(uint256).max / priceToken1 / 10 ** (18 - 0)); // divided by 10 ** (18 - DecimalsOracle).
+        (initialExposure0, maxExposure0) =
+            givenValidExposures(amount0, initialExposure0, maxExposure0, priceToken0, type(uint256).max);
+        (initialExposure1, maxExposure1) =
+            givenValidExposures(amount1, initialExposure1, maxExposure1, priceToken1, type(uint256).max);
 
         // And: Add underlying tokens and its oracles to Arcadia.
         addAssetToArcadia(address(token0), int256(uint256(priceToken0)), initialExposure0, maxExposure0);
@@ -157,17 +157,16 @@ contract ProcessIndirectDeposit_UniswapV4HooksRegistry_Fuzz_Test is UniswapV4Hoo
         uint112 maxExposure0,
         uint112 maxExposure1
     ) public {
+        (priceToken0, priceToken1) = givenValidPrices(priceToken0, priceToken1);
         // Given : Valid state
         (uint256 tokenId, uint256 amount0, uint256 amount1,) =
             givenValidPosition(liquidity, tickLower, tickUpper, priceToken0, priceToken1, 0);
 
         // Check that exposure to underlying tokens stays below maxExposures.
-        vm.assume(amount0 + initialExposure0 < maxExposure0);
-        vm.assume(amount1 + initialExposure1 < maxExposure1);
-
-        // And: Usd value of underlying assets does not overflow.
-        vm.assume(amount0 + initialExposure0 <= type(uint256).max / priceToken0 / 10 ** (18 - 0)); // divided by 10 ** (18 - DecimalsOracle).
-        vm.assume(amount1 + initialExposure1 <= type(uint256).max / priceToken1 / 10 ** (18 - 0)); // divided by 10 ** (18 - DecimalsOracle).
+        (initialExposure0, maxExposure0) =
+            givenValidExposures(amount0, initialExposure0, maxExposure0, priceToken0, type(uint256).max);
+        (initialExposure1, maxExposure1) =
+            givenValidExposures(amount1, initialExposure1, maxExposure1, priceToken1, type(uint256).max);
 
         // Add underlying tokens and its oracles to Arcadia.
         addAssetToArcadia(address(token0), int256(uint256(priceToken0)), initialExposure0, maxExposure0);
@@ -228,17 +227,16 @@ contract ProcessIndirectDeposit_UniswapV4HooksRegistry_Fuzz_Test is UniswapV4Hoo
         uint112 maxExposure0,
         uint112 maxExposure1
     ) public {
+        (priceToken0, priceToken1) = givenValidPrices(priceToken0, priceToken1);
         // Given : Valid state
         (uint256 tokenId, uint256 amount0, uint256 amount1,) =
             givenValidPosition(liquidity, tickLower, tickUpper, priceToken0, priceToken1, 0);
 
         // Check that exposure to underlying tokens stays below maxExposures.
-        vm.assume(amount0 + initialExposure0 < maxExposure0);
-        vm.assume(amount1 + initialExposure1 < maxExposure1);
-
-        // And: Usd exposure of underlying assets does not overflow.
-        vm.assume(amount0 + initialExposure0 <= type(uint256).max / priceToken0 / 10 ** (18 - 0)); // divided by 10 ** (18 - DecimalsOracle).
-        vm.assume(amount1 + initialExposure1 <= type(uint256).max / priceToken1 / 10 ** (18 - 0)); // divided by 10 ** (18 - DecimalsOracle).
+        (initialExposure0, maxExposure0) =
+            givenValidExposures(amount0, initialExposure0, maxExposure0, priceToken0, type(uint256).max);
+        (initialExposure1, maxExposure1) =
+            givenValidExposures(amount1, initialExposure1, maxExposure1, priceToken1, type(uint256).max);
 
         // Add underlying tokens and its oracles to Arcadia.
         addAssetToArcadia(address(token0), int256(uint256(priceToken0)), initialExposure0, maxExposure0);

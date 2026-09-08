@@ -10,6 +10,7 @@ import { UniswapV4HooksRegistry_Fuzz_Test } from "./_UniswapV4HooksRegistry.fuzz
 /**
  * @notice Fuzz tests for the function "isAllowed" of contract "UniswapV4HooksRegistry".
  */
+// forge-lint: disable-next-item(unsafe-typecast)
 contract IsAllowed_UniswapV4HooksRegistry_Fuzz_Test is UniswapV4HooksRegistry_Fuzz_Test {
     /* ///////////////////////////////////////////////////////////////
                               SETUP
@@ -90,7 +91,7 @@ contract IsAllowed_UniswapV4HooksRegistry_Fuzz_Test is UniswapV4HooksRegistry_Fu
         );
 
         // And: Liquidity is not-zero
-        vm.assume(liquidity > 0);
+        liquidity = uint128(bound(liquidity, 1, type(uint128).max));
         bytes32 positionKey =
             keccak256(abi.encodePacked(address(positionManagerV4), tickLower, tickUpper, bytes32(uint256(tokenId))));
         poolManager.setPositionLiquidity(stablePoolKey.toId(), positionKey, liquidity);
@@ -127,7 +128,7 @@ contract IsAllowed_UniswapV4HooksRegistry_Fuzz_Test is UniswapV4HooksRegistry_Fu
         );
 
         // And : Liquidity is not-zero
-        vm.assume(liquidity > 0);
+        liquidity = uint128(bound(liquidity, 1, type(uint128).max));
         bytes32 positionKey =
             keccak256(abi.encodePacked(address(positionManagerV4), tickLower, tickUpper, bytes32(uint256(tokenId))));
         poolManager.setPositionLiquidity(stablePoolKey.toId(), positionKey, liquidity);
@@ -173,7 +174,7 @@ contract IsAllowed_UniswapV4HooksRegistry_Fuzz_Test is UniswapV4HooksRegistry_Fu
         (tickLower, tickUpper) = givenValidTicks(tickLower, tickUpper);
 
         // And : Liquidity is not-zero
-        vm.assume(liquidity > 0);
+        liquidity = uint128(bound(liquidity, 1, type(uint128).max));
         bytes32 positionKey =
             keccak256(abi.encodePacked(address(positionManagerV4), tickLower, tickUpper, bytes32(uint256(tokenId))));
         poolManager.setPositionLiquidity(stablePoolKey.toId(), positionKey, liquidity);

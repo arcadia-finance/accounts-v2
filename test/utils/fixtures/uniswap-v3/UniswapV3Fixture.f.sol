@@ -4,6 +4,7 @@
  */
 pragma solidity ^0.8.0;
 
+import { ConcentratedLiquidityFixture } from "../concentrated-liquidity/ConcentratedLiquidityFixture.f.sol";
 import { Constants } from "../../../utils/Constants.sol";
 import { ERC20 } from "../../../../lib/solmate/src/tokens/ERC20.sol";
 import { FixedPoint128 } from "../../../../src/asset-modules/UniswapV3/libraries/FixedPoint128.sol";
@@ -17,7 +18,8 @@ import { TickMath } from "../../../../src/asset-modules/UniswapV3/libraries/Tick
 import { Utils } from "../../../utils/Utils.sol";
 import { WETH9Fixture } from "../weth9/WETH9Fixture.f.sol";
 
-contract UniswapV3Fixture is WETH9Fixture {
+// forge-lint: disable-next-item(unsafe-typecast)
+contract UniswapV3Fixture is ConcentratedLiquidityFixture, WETH9Fixture {
     /*//////////////////////////////////////////////////////////////////////////
                                    CONTRACTS
     //////////////////////////////////////////////////////////////////////////*/
@@ -183,11 +185,6 @@ contract UniswapV3Fixture is WETH9Fixture {
                 deadline: type(uint256).max
             })
         );
-    }
-
-    function isWithinAllowedRange(int24 tick) internal pure returns (bool) {
-        // forge-lint: disable-next-line(unsafe-typecast)
-        return (tick < 0 ? uint256(-int256(tick)) : uint256(int256(tick))) <= uint256(uint24(TickMath.MAX_TICK));
     }
 
     function getAmountsV3(uint256 id) internal view returns (uint256 amount0, uint256 amount1) {

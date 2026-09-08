@@ -86,9 +86,6 @@ contract Burn_WrappedAerodromeAM_Fuzz_Test is WrappedAerodromeAM_Fuzz_Test {
         // And: Valid state.
         (poolState, positionState, fee0, fee1) = givenValidAMState(poolState, positionState, fee0, fee1);
 
-        // And : Owner has a non-zero balance.
-        vm.assume(positionState.amountWrapped > 0);
-
         // And: State is persisted.
         setAMState(aeroPool, positionId, poolState, positionState);
         aeroPool.setClaimables(address(wrappedAerodromeAM), fee0, fee1);

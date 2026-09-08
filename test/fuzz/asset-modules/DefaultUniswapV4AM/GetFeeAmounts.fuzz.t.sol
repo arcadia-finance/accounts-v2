@@ -7,7 +7,9 @@ pragma solidity ^0.8.0;
 import { DefaultUniswapV4AM_Fuzz_Test } from "./_DefaultUniswapV4AM.fuzz.t.sol";
 import { FixedPoint128 } from "../../../../lib/v4-periphery/lib/v4-core/src/libraries/FixedPoint128.sol";
 import { FixedPointMathLib } from "../../../../lib/solmate/src/utils/FixedPointMathLib.sol";
+import { FullMath } from "../../../../src/asset-modules/UniswapV3/libraries/FullMath.sol";
 import { PositionInfo, PositionInfoLibrary } from "../../../../lib/v4-periphery/src/libraries/PositionInfoLibrary.sol";
+import { TickMath } from "../../../../lib/v4-periphery/lib/v4-core/src/libraries/TickMath.sol";
 
 /**
  * @notice Fuzz tests for the function "_getFeeAmounts" of contract "DefaultUniswapV4AM".
@@ -35,7 +37,7 @@ contract GetFeeAmounts_DefaultUniswapV4AM_Fuzz_Test is DefaultUniswapV4AM_Fuzz_T
         int24 tickUpper
     ) public {
         // Given : Liquidity is > 0
-        vm.assume(liquidity > 0);
+        liquidity = uint128(bound(liquidity, 1, type(uint128).max));
 
         // And : Positive fee
         feeData.desiredFee0 = bound(feeData.desiredFee0, 1, type(uint128).max);
@@ -58,8 +60,8 @@ contract GetFeeAmounts_DefaultUniswapV4AM_Fuzz_Test is DefaultUniswapV4AM_Fuzz_T
         {
             // And : Current tick should be < lower tick
             (, int24 currentTick,,) = stateView.getSlot0(stablePoolKey.toId());
-            tickLower = int24(bound(tickLower, currentTick + 1, MAX_TICK - 1));
-            tickUpper = int24(bound(tickUpper, tickLower + 1, MAX_TICK));
+            tickLower = int24(bound(tickLower, currentTick + 1, TickMath.MAX_TICK - 1));
+            tickUpper = int24(bound(tickUpper, tickLower + 1, TickMath.MAX_TICK));
 
             // And : Position is set
             bytes32 positionKey = keccak256(
@@ -101,7 +103,7 @@ contract GetFeeAmounts_DefaultUniswapV4AM_Fuzz_Test is DefaultUniswapV4AM_Fuzz_T
         int24 tickUpper
     ) public {
         // Given : Liquidity is > 0
-        vm.assume(liquidity > 0);
+        liquidity = uint128(bound(liquidity, 1, type(uint128).max));
 
         // And : Positive fee
         feeData.desiredFee0 = bound(feeData.desiredFee0, 1, type(uint128).max);
@@ -124,8 +126,8 @@ contract GetFeeAmounts_DefaultUniswapV4AM_Fuzz_Test is DefaultUniswapV4AM_Fuzz_T
         {
             // And : Current tick should be > upper tick
             (, int24 currentTick,,) = stateView.getSlot0(stablePoolKey.toId());
-            tickUpper = int24(bound(tickUpper, MIN_TICK + 2, currentTick - 1));
-            tickLower = int24(bound(tickLower, MIN_TICK, tickUpper - 1));
+            tickUpper = int24(bound(tickUpper, TickMath.MIN_TICK + 2, currentTick - 1));
+            tickLower = int24(bound(tickLower, TickMath.MIN_TICK, tickUpper - 1));
 
             // And : Position is set
             bytes32 positionKey = keccak256(
@@ -167,7 +169,7 @@ contract GetFeeAmounts_DefaultUniswapV4AM_Fuzz_Test is DefaultUniswapV4AM_Fuzz_T
         int24 tickUpper
     ) public {
         // Given : Liquidity is > 0
-        vm.assume(liquidity > 0);
+        liquidity = uint128(bound(liquidity, 1, type(uint128).max));
 
         // And : Positive fee
         feeData.desiredFee0 = bound(feeData.desiredFee0, 1, type(uint128).max);
@@ -186,8 +188,8 @@ contract GetFeeAmounts_DefaultUniswapV4AM_Fuzz_Test is DefaultUniswapV4AM_Fuzz_T
         {
             // And : Position should be in range
             (, int24 currentTick,,) = stateView.getSlot0(stablePoolKey.toId());
-            tickLower = int24(bound(tickLower, MIN_TICK, currentTick - 1));
-            tickUpper = int24(bound(tickUpper, currentTick + 1, MAX_TICK));
+            tickLower = int24(bound(tickLower, TickMath.MIN_TICK, currentTick - 1));
+            tickUpper = int24(bound(tickUpper, currentTick + 1, TickMath.MAX_TICK));
 
             // And : Position is set
             bytes32 positionKey = keccak256(
@@ -223,11 +225,7 @@ contract GetFeeAmounts_DefaultUniswapV4AM_Fuzz_Test is DefaultUniswapV4AM_Fuzz_T
         uint128 liquidity
     ) public {
         // Given : Liquidity is > 0
-        vm.assume(liquidity > 0);
-
-        // And : Positive fee
-        feeData.desiredFee0 = bound(feeData.desiredFee0, 1, type(uint128).max - 1);
-        feeData.desiredFee1 = bound(feeData.desiredFee1, 1, type(uint128).max - 1);
+        liquidity = uint128(bound(liquidity, 1, type(uint128).max));
 
         // And : Positive freeGrowthInsideLast
         feeGrowthInside0LastX128 = bound(feeGrowthInside0LastX128, 1, type(uint96).max);
@@ -235,17 +233,29 @@ contract GetFeeAmounts_DefaultUniswapV4AM_Fuzz_Test is DefaultUniswapV4AM_Fuzz_T
         feeGrowthInside1LastX128 = bound(feeGrowthInside1LastX128, 1, type(uint96).max);
         feeGrowthInside1LastX128 *= FixedPoint128.Q128;
 
+        // And : Positive fee, for which feeGrowthGlobal does not overflow.
+        {
+            uint256 maxFee =
+                FullMath.mulDiv(type(uint256).max - feeGrowthInside0LastX128 - 1, liquidity, FixedPoint128.Q128);
+            if (maxFee > type(uint128).max - 1) maxFee = type(uint128).max - 1;
+            feeData.desiredFee0 = bound(feeData.desiredFee0, 1, maxFee);
+        }
+        {
+            uint256 maxFee =
+                FullMath.mulDiv(type(uint256).max - feeGrowthInside1LastX128 - 1, liquidity, FixedPoint128.Q128);
+            if (maxFee > type(uint128).max - 1) maxFee = type(uint128).max - 1;
+            feeData.desiredFee1 = bound(feeData.desiredFee1, 1, maxFee);
+        }
+
         // And : Calculate expected feeGrowth difference in order to obtain desired fee
         // (fee * Q128) / liquidity = diff in Q128.
         // As fee amount is calculated based on deducting feeGrowthOutside from feeGrowthGlobal,
         // no need to test with fuzzed feeGrowthOutside values as no risk of potential rounding errors (we're not testing UniV4 contracts).
         uint256 feeGrowthDiff0X128 = feeData.desiredFee0.mulDivDown(FixedPoint128.Q128, liquidity);
-        vm.assume(feeGrowthDiff0X128 < type(uint256).max - feeGrowthInside0LastX128);
 
         feeData.feeGrowthGlobal0X128 = feeGrowthDiff0X128 + feeGrowthInside0LastX128;
 
         uint256 feeGrowthDiff1X128 = feeData.desiredFee1.mulDivDown(FixedPoint128.Q128, liquidity);
-        vm.assume(feeGrowthDiff1X128 < type(uint256).max - feeGrowthInside1LastX128);
 
         feeData.feeGrowthGlobal1X128 = feeGrowthDiff1X128 + feeGrowthInside1LastX128;
 
@@ -253,8 +263,8 @@ contract GetFeeAmounts_DefaultUniswapV4AM_Fuzz_Test is DefaultUniswapV4AM_Fuzz_T
         {
             // And : Position should be in range
             (, int24 currentTick,,) = stateView.getSlot0(stablePoolKey.toId());
-            tickLower = int24(bound(tickLower, MIN_TICK, currentTick - 1));
-            tickUpper = int24(bound(tickUpper, currentTick + 1, MAX_TICK));
+            tickLower = int24(bound(tickLower, TickMath.MIN_TICK, currentTick - 1));
+            tickUpper = int24(bound(tickUpper, currentTick + 1, TickMath.MAX_TICK));
 
             // And : Position is set
             positionKey = keccak256(

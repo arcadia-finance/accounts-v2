@@ -58,7 +58,7 @@ contract ClaimReward_AbstractStakingAM_Fuzz_Test is AbstractStakingAM_Fuzz_Test 
         address asset = addAsset(assetDecimals);
 
         // Given: Valid state
-        (assetState, positionState) = givenValidStakingAMState(assetState, positionState);
+        (assetState, positionState) = givenValidStakingAMState(assetState, positionState, 0, type(uint128).max);
 
         // And: State is persisted.
         setStakingAMState(assetState, positionState, asset, positionId);
@@ -66,7 +66,7 @@ contract ClaimReward_AbstractStakingAM_Fuzz_Test is AbstractStakingAM_Fuzz_Test 
         // Given : The claim function on the external staking contract is not implemented, thus we fund the stakingAM with reward tokens that should be transferred.
         uint256 currentRewardPosition = stakingAM.rewardOf(positionId);
 
-        // And reward is non-zero.
+        // And: reward is non-zero.
         vm.assume(currentRewardPosition > 0);
         deal(address(stakingAM.REWARD_TOKEN()), address(stakingAM), currentRewardPosition, true);
 
@@ -127,9 +127,9 @@ contract ClaimReward_AbstractStakingAM_Fuzz_Test is AbstractStakingAM_Fuzz_Test 
         address asset = addAsset(assetDecimals);
 
         // Given: Valid state
-        (assetState, positionState) = givenValidStakingAMState(assetState, positionState);
+        (assetState, positionState) = givenValidStakingAMState(assetState, positionState, 0, type(uint128).max);
 
-        // And reward is zero.
+        // And: reward is zero.
         positionState.lastRewardPosition = 0;
         positionState.lastRewardPerTokenPosition = assetState.lastRewardPerTokenGlobal;
         assetState.currentRewardGlobal = 0;

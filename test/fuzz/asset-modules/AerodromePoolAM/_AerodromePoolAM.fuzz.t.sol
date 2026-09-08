@@ -169,13 +169,12 @@ abstract contract AerodromePoolAM_Fuzz_Test is Fuzz_Test, AerodromeFixture {
         uint256 decimalDifference = d0BiggerD1 ? 10 ** (testVars.decimals0 - testVars.decimals1) : 1;
         // And: k does not overflow (-> r <= sqrt(sqrt(type(uint256).max * 10 ** (4 * decimals - 36) / 2)))
         //                           -> r < 10 ** decimals * 15511800964 (approximated)
-        testVars.reserve0 = bound(testVars.reserve0, decimalDifference, 15_511_800_964 * 10 ** testVars.decimals0);
+        testVars.reserve0 = bound(
+            testVars.reserve0, MINIMUM_LIQUIDITY * decimalDifference + 1, 15_511_800_964 * 10 ** testVars.decimals0
+        );
         // And : Reserves should be deposited in same proportion for first mint.
         testVars.reserve0 = testVars.reserve0 / decimalDifference * decimalDifference;
         testVars.reserve1 = convertToDecimals(testVars.reserve0, testVars.decimals0, testVars.decimals1);
-
-        // Root (reserve0 * reserve1) should be greater than minimum liquidty
-        vm.assume(testVars.reserve0 * testVars.reserve1 > MINIMUM_LIQUIDITY ** 2);
 
         uint256 k = getK(testVars.reserve0, testVars.reserve1, 10 ** testVars.decimals0, 10 ** testVars.decimals1);
 

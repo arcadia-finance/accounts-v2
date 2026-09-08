@@ -39,7 +39,7 @@ contract GetUsedMargin_AccountV3_Fuzz_Test is AccountV3_Fuzz_Test {
 
     function testFuzz_Success_getUsedMargin_CreditorIsSet(uint256 openDebt, uint96 minimumMargin) public {
         // No overflow of Used Margin.
-        vm.assume(openDebt <= type(uint256).max - minimumMargin);
+        openDebt = bound(openDebt, 0, type(uint256).max - minimumMargin);
 
         // Test-case: creditor set.
 

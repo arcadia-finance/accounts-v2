@@ -7,6 +7,7 @@ pragma solidity ^0.8.0;
 import { Fuzz_Test, Constants } from "../../Fuzz.t.sol";
 
 import { ArcadiaOracle } from "../../../utils/mocks/oracles/ArcadiaOracle.sol";
+import { BitPackingLib } from "../../../../src/libraries/BitPackingLib.sol";
 import { DerivedAMMock } from "../../../utils/mocks/asset-modules/DerivedAMMock.sol";
 import { OracleModuleMock } from "../../../utils/mocks/oracle-modules/OracleModuleMock.sol";
 import { PrimaryAMMock } from "../../../utils/mocks/asset-modules/PrimaryAMMock.sol";
@@ -30,6 +31,8 @@ abstract contract RegistryL2_Fuzz_Test is Fuzz_Test {
 
     OracleModuleMock internal oracleModule;
 
+    uint256 internal constant PRIMARY_AM_ORACLE_ID = 999;
+
     /* ///////////////////////////////////////////////////////////////
                               SETUP
     /////////////////////////////////////////////////////////////// */
@@ -39,6 +42,7 @@ abstract contract RegistryL2_Fuzz_Test is Fuzz_Test {
 
         vm.startPrank(users.owner);
         primaryAM = new PrimaryAMMock(users.owner, address(registry), 0);
+        oracleModule = new OracleModuleMock(users.owner, address(registry));
         registry.addAssetModule(address(primaryAM));
 
         derivedAM = new DerivedAMMock(users.owner, address(registry), 0);
@@ -56,6 +60,16 @@ abstract contract RegistryL2_Fuzz_Test is Fuzz_Test {
         oracleModule.setOracle(oracleId, baseAsset, quoteAsset, active);
         registry.setOracleToOracleModule(oracleId, address(oracleModule));
         oracleModule.setRate(oracleId, rate);
+    }
+
+    // forge-lint: disable-next-item(mixed-case-function,unsafe-typecast)
+    function setPrimaryAMOracle(address asset, uint256 assetId, uint64 assetUnit, uint256 usdValue) public {
+        addMockedOracle(PRIMARY_AM_ORACLE_ID, usdValue, bytes16("A"), bytes16("USD"), true);
+        uint80[] memory oracleIds = new uint80[](1);
+        oracleIds[0] = uint80(PRIMARY_AM_ORACLE_ID);
+        bool[] memory baseToQuoteAsset = new bool[](1);
+        baseToQuoteAsset[0] = true;
+        primaryAM.setAssetInformation(asset, assetId, assetUnit, BitPackingLib.pack(baseToQuoteAsset, oracleIds));
     }
 
     function convertAssetToUsd(uint256 assetDecimals, uint256 amount, uint80[] memory oracleArr)

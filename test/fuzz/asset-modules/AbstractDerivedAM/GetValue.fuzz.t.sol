@@ -9,7 +9,7 @@ import { AbstractDerivedAM_Fuzz_Test } from "./_AbstractDerivedAM.fuzz.t.sol";
 /**
  * @notice Fuzz tests for the function "getValue" of contract "AbstractDerivedAM".
  */
-// forge-lint: disable-next-item(mixed-case-variable)
+// forge-lint: disable-next-item(divide-before-multiply,mixed-case-variable,unsafe-typecast)
 contract GetValue_AbstractDerivedAM_Fuzz_Test is AbstractDerivedAM_Fuzz_Test {
     /* ///////////////////////////////////////////////////////////////
                               SETUP
@@ -60,9 +60,12 @@ contract GetValue_AbstractDerivedAM_Fuzz_Test is AbstractDerivedAM_Fuzz_Test {
         assetState.underlyingAssetId = bound(assetState.underlyingAssetId, 0, type(uint96).max);
 
         // And: valueInUsd does not overflow.
-        if (assetState.exposureAssetToUnderlyingAsset > 0) {
-            underlyingPMState.usdValue =
-                bound(underlyingPMState.usdValue, 0, type(uint256).max / assetState.exposureAssetToUnderlyingAsset);
+        underlyingPMState.assetUnit = uint64(bound(underlyingPMState.assetUnit, 1, type(uint64).max));
+        underlyingPMState.rateInUsd = bound(underlyingPMState.rateInUsd, 0, type(uint256).max / 1e18);
+        uint256 rateUnderlyingAssetToUsd = 1e18 * underlyingPMState.rateInUsd / underlyingPMState.assetUnit;
+        if (rateUnderlyingAssetToUsd > 0) {
+            assetState.exposureAssetToUnderlyingAsset =
+                bound(assetState.exposureAssetToUnderlyingAsset, 0, type(uint256).max / rateUnderlyingAssetToUsd);
         }
 
         // And: State is persisted.
@@ -86,7 +89,7 @@ contract GetValue_AbstractDerivedAM_Fuzz_Test is AbstractDerivedAM_Fuzz_Test {
             derivedAM.getValue(assetState.creditor, assetState.asset, assetState.assetId, amount);
 
         // And: Transaction returns correct "valueInUsd".
-        uint256 expectedValueInUsd = underlyingPMState.usdValue * assetState.exposureAssetToUnderlyingAsset / 1e18;
+        uint256 expectedValueInUsd = rateUnderlyingAssetToUsd * assetState.exposureAssetToUnderlyingAsset / 1e18;
         assertEq(actualValueInUsd, expectedValueInUsd);
     }
 }

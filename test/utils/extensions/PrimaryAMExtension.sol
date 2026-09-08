@@ -9,6 +9,12 @@ import { PrimaryAM } from "../../../src/asset-modules/abstracts/AbstractPrimaryA
 abstract contract PrimaryAMExtension is PrimaryAM {
     constructor(address owner_, address registry_, uint256 assetType_) PrimaryAM(owner_, registry_, assetType_) { }
 
+    function setAssetInformation(address asset, uint256 assetId, uint64 assetUnit, bytes32 oracles) public {
+        bytes32 assetKey = _getKeyFromAsset(asset, assetId);
+        assetToInformation[assetKey].assetUnit = assetUnit;
+        assetToInformation[assetKey].oracleSequence = oracles;
+    }
+
     function setExposure(
         address creditor,
         address asset,

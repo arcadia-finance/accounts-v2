@@ -47,6 +47,7 @@ contract GetValuesInUsd_RegistryL2_Fuzz_Test is RegistryL2_Fuzz_Test {
         address asset,
         uint96 assetId,
         uint256 assetAmount,
+        uint64 assetUnit,
         uint256 usdValue,
         uint112 maxExposure,
         uint16 collateralFactor,
@@ -72,24 +73,31 @@ contract GetValuesInUsd_RegistryL2_Fuzz_Test is RegistryL2_Fuzz_Test {
         liquidationFactor = uint16(bound(liquidationFactor, collateralFactor, AssetValuationLib.ONE_4));
 
         registry.setAssetModule(asset, address(primaryAM));
-        primaryAM.setUsdValue(usdValue);
+
+        // And: The asset price does not overflow.
+        assetUnit = uint64(bound(assetUnit, 1, type(uint64).max));
+        usdValue = bound(usdValue, 0, type(uint256).max / 1e18);
+        assetAmount = bound(assetAmount, 0, usdValue == 0 ? type(uint256).max : type(uint256).max / usdValue);
+        setPrimaryAMOracle(asset, assetId, assetUnit, usdValue);
 
         vm.prank(users.riskManager);
         registry.setRiskParametersOfPrimaryAsset(
             address(creditorUsd), asset, assetId, maxExposure, collateralFactor, liquidationFactor
         );
 
-        address[] memory assetAddresses = new address[](1);
-        assetAddresses[0] = asset;
-        uint256[] memory assetIds = new uint256[](1);
-        assetIds[0] = assetId;
-        uint256[] memory assetAmounts = new uint256[](1);
-        assetAmounts[0] = assetAmount;
+        AssetValueAndRiskFactors[] memory valuesAndRiskFactors;
+        {
+            address[] memory assetAddresses = new address[](1);
+            assetAddresses[0] = asset;
+            uint256[] memory assetIds = new uint256[](1);
+            assetIds[0] = assetId;
+            uint256[] memory assetAmounts = new uint256[](1);
+            assetAmounts[0] = assetAmount;
 
-        AssetValueAndRiskFactors[] memory valuesAndRiskFactors =
-            registry.getValuesInUsd(address(creditorUsd), assetAddresses, assetIds, assetAmounts);
+            valuesAndRiskFactors = registry.getValuesInUsd(address(creditorUsd), assetAddresses, assetIds, assetAmounts);
+        }
 
-        assertEq(valuesAndRiskFactors[0].assetValue, usdValue);
+        assertEq(valuesAndRiskFactors[0].assetValue, assetAmount * usdValue / assetUnit);
         assertEq(valuesAndRiskFactors[0].collateralFactor, collateralFactor);
         assertEq(valuesAndRiskFactors[0].liquidationFactor, liquidationFactor);
     }
@@ -98,7 +106,8 @@ contract GetValuesInUsd_RegistryL2_Fuzz_Test is RegistryL2_Fuzz_Test {
         address asset,
         uint96 assetId,
         uint256 assetAmount,
-        uint128 usdValue,
+        uint64 assetUnit,
+        uint256 usdValue,
         uint128 minUsdValue,
         uint112 maxExposure,
         uint16 collateralFactor,
@@ -106,11 +115,18 @@ contract GetValuesInUsd_RegistryL2_Fuzz_Test is RegistryL2_Fuzz_Test {
     ) public {
         collateralFactor = uint16(bound(collateralFactor, 0, AssetValuationLib.ONE_4));
         liquidationFactor = uint16(bound(liquidationFactor, collateralFactor, AssetValuationLib.ONE_4));
-        usdValue = uint128(bound(usdValue, 0, type(uint128).max - 1));
-        minUsdValue = uint128(bound(minUsdValue, usdValue + 1, type(uint128).max));
 
         registry.setAssetModule(asset, address(primaryAM));
-        primaryAM.setUsdValue(usdValue);
+
+        // And: The asset price does not overflow and its value stays below "minUsdValue".
+        assetUnit = uint64(bound(assetUnit, 1, type(uint64).max));
+        usdValue = bound(usdValue, 0, type(uint256).max / 1e18);
+        assetAmount = bound(
+            assetAmount, 0, usdValue == 0 ? type(uint256).max : (type(uint128).max - 1) * uint256(assetUnit) / usdValue
+        );
+        uint256 assetValue = assetAmount * usdValue / assetUnit;
+        minUsdValue = uint128(bound(minUsdValue, assetValue + 1, type(uint128).max));
+        setPrimaryAMOracle(asset, assetId, assetUnit, usdValue);
 
         vm.startPrank(users.riskManager);
         registry.setRiskParametersOfPrimaryAsset(

@@ -19,7 +19,7 @@ import { Utils } from "../../utils/Utils.sol";
 /**
  * @notice Fuzz tests for the function "createAccount" of contract "Factory".
  */
-// forge-lint: disable-next-item(weak-prng)
+// forge-lint: disable-next-item(unsafe-typecast,weak-prng)
 contract CreateAccount_Factory_Fuzz_Test is Factory_Fuzz_Test {
     /* ///////////////////////////////////////////////////////////////
                               SETUP
@@ -62,8 +62,8 @@ contract CreateAccount_Factory_Fuzz_Test is Factory_Fuzz_Test {
         AccountVariableVersion account_ = new AccountVariableVersion(0, address(factory));
 
         vm.assume(versionsToBlock.length < 10 && versionsToBlock.length > 0);
-        vm.assume(uint256(versionsToMake) + 1 < type(uint8).max);
-        vm.assume(accountVersion <= versionsToMake + 1);
+        versionsToMake = uint8(bound(versionsToMake, 0, type(uint8).max - 2));
+        accountVersion = uint8(bound(accountVersion, 0, versionsToMake + 1));
         uint256 nextVersion = factory.latestAccountVersion() + 1;
         for (uint256 i; i < versionsToMake; ++i) {
             // Create account logic with the right version
@@ -97,7 +97,7 @@ contract CreateAccount_Factory_Fuzz_Test is Factory_Fuzz_Test {
 
     function testFuzz_Revert_createAccount_RevertingProxy(address sender, uint32 salt) public {
         // We assume that salt > 0 as we already deployed an Account with all inputs to 0
-        vm.assume(salt > 0);
+        salt = uint32(bound(salt, 1, type(uint32).max));
         vm.assume(sender != address(0));
 
         // Get bytecode of Reverting Proxy, need to compile it first.
@@ -122,7 +122,7 @@ contract CreateAccount_Factory_Fuzz_Test is Factory_Fuzz_Test {
 
     function testFuzz_Revert_createAccount_ContractCollision(address sender, uint32 salt) public {
         // We assume that salt > 0 as we already deployed an Account with all inputs to 0
-        vm.assume(salt > 0);
+        salt = uint32(bound(salt, 1, type(uint32).max));
         vm.assume(sender != address(0));
 
         vm.broadcast(sender);
@@ -157,7 +157,7 @@ contract CreateAccount_Factory_Fuzz_Test is Factory_Fuzz_Test {
 
     function testFuzz_Success_createAccount_DeployAccountWithNoCreditor(address sender, uint32 salt) public {
         // We assume that salt > 0 as we already deployed an Account with all inputs to 0
-        vm.assume(salt > 0);
+        salt = uint32(bound(salt, 1, type(uint32).max));
         vm.assume(sender != address(0));
 
         uint256 amountBefore = factory.allAccountsLength();
@@ -184,7 +184,7 @@ contract CreateAccount_Factory_Fuzz_Test is Factory_Fuzz_Test {
 
     function testFuzz_Success_createAccount_DeployAccountWithCreditor(address sender, uint32 salt) public {
         // We assume that salt > 0 as we already deployed an Account with all inputs to 0
-        vm.assume(salt > 0);
+        salt = uint32(bound(salt, 1, type(uint32).max));
         vm.assume(sender != address(0));
 
         uint256 amountBefore = factory.allAccountsLength();
@@ -212,7 +212,7 @@ contract CreateAccount_Factory_Fuzz_Test is Factory_Fuzz_Test {
 
     function testFuzz_Success_createAccount_DeployNewProxyWithLogicOwner(uint32 salt, address sender) public {
         // We assume that salt > 0 as we already deployed an Account with all inputs to 0
-        vm.assume(salt > 0);
+        salt = uint32(bound(salt, 1, type(uint32).max));
         vm.assume(sender != address(0));
 
         uint256 amountBefore = factory.allAccountsLength();
@@ -233,7 +233,7 @@ contract CreateAccount_Factory_Fuzz_Test is Factory_Fuzz_Test {
         address sender1
     ) public {
         // We assume that salt > 0 as we already deployed an Account with all inputs to 0
-        vm.assume(salt > 0);
+        salt = uint32(bound(salt, 1, type(uint32).max));
         // forge-lint: disable-next-line(unsafe-typecast)
         vm.assume(uint32(uint160(sender0)) != uint32(uint160(sender1)));
         vm.assume(sender0 != address(0));

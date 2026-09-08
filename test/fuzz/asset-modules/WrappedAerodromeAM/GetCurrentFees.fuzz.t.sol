@@ -34,14 +34,23 @@ contract GetCurrentFees_WrappedAerodromeAM_Fuzz_Test is WrappedAerodromeAM_Fuzz_
         uint256 balanceOf;
     }
 
-    function givenValidPoolFeeState(PoolFeeState memory poolFeeState) public pure returns (PoolFeeState memory) {
+    function givenValidPoolFeeState(PoolFeeState memory poolFeeState, uint256 maxBalanceOf)
+        public
+        pure
+        returns (PoolFeeState memory)
+    {
         poolFeeState.supplyIndex0 = bound(poolFeeState.supplyIndex0, 0, poolFeeState.index0);
         poolFeeState.supplyIndex1 = bound(poolFeeState.supplyIndex1, 0, poolFeeState.index1);
         uint256 delta0 = poolFeeState.index0 - poolFeeState.supplyIndex0;
         uint256 delta1 = poolFeeState.index1 - poolFeeState.supplyIndex1;
 
-        if (delta0 > 0) poolFeeState.balanceOf = bound(poolFeeState.balanceOf, 0, type(uint256).max / delta0);
-        if (delta1 > 0) poolFeeState.balanceOf = bound(poolFeeState.balanceOf, 0, type(uint256).max / delta1);
+        poolFeeState.balanceOf = bound(poolFeeState.balanceOf, 1, maxBalanceOf);
+        if (delta0 > 0 && type(uint256).max / delta0 < maxBalanceOf) {
+            poolFeeState.balanceOf = bound(poolFeeState.balanceOf, 1, type(uint256).max / delta0);
+        }
+        if (delta1 > 0 && type(uint256).max / delta1 < maxBalanceOf) {
+            poolFeeState.balanceOf = bound(poolFeeState.balanceOf, 1, type(uint256).max / delta1);
+        }
         uint256 share0 = poolFeeState.balanceOf * delta0 / 1e18;
         uint256 share1 = poolFeeState.balanceOf * delta1 / 1e18;
 
@@ -77,11 +86,10 @@ contract GetCurrentFees_WrappedAerodromeAM_Fuzz_Test is WrappedAerodromeAM_Fuzz_
         aeroPool = createPoolAerodrome(address(asset0), address(asset1), stable);
 
         // And : Valid aeroPool fees.
-        poolFeeState = givenValidPoolFeeState(poolFeeState);
+        poolFeeState = givenValidPoolFeeState(poolFeeState, type(uint256).max);
 
         // And : totalWrapped is bigger than 0.
         // And : totalWrapped is smaller or equal than balanceOf (invariant).
-        vm.assume(poolFeeState.balanceOf > 0);
         poolState.totalWrapped = uint128(bound(poolState.totalWrapped, 1, poolFeeState.balanceOf));
 
         // And : State is persisted.
@@ -115,13 +123,11 @@ contract GetCurrentFees_WrappedAerodromeAM_Fuzz_Test is WrappedAerodromeAM_Fuzz_
         // Given : Valid aeroPool.
         aeroPool = createPoolAerodrome(address(asset0), address(asset1), stable);
 
-        // And : Valid aeroPool fees.
-        poolFeeState = givenValidPoolFeeState(poolFeeState);
+        // And : Valid aeroPool fees, balanceOf fits in the uint128 totalWrapped.
+        poolFeeState = givenValidPoolFeeState(poolFeeState, type(uint128).max);
 
         // And : totalWrapped is bigger than 0.
         // And : totalWrapped is equal to balanceOf.
-        vm.assume(poolFeeState.balanceOf > 0);
-        poolFeeState.balanceOf = bound(poolFeeState.balanceOf, 1, type(uint128).max);
         poolState.totalWrapped = uint128(poolFeeState.balanceOf);
 
         // And : State is persisted.
@@ -156,7 +162,7 @@ contract GetCurrentFees_WrappedAerodromeAM_Fuzz_Test is WrappedAerodromeAM_Fuzz_
         aeroPool = createPoolAerodrome(address(asset0), address(asset1), stable);
 
         // And : Valid aeroPool fees.
-        poolFeeState = givenValidPoolFeeState(poolFeeState);
+        poolFeeState = givenValidPoolFeeState(poolFeeState, type(uint256).max);
 
         // And : totalWrapped is 0.
         poolState.totalWrapped = 0;

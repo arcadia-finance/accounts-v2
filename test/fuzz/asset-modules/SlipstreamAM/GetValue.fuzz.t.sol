@@ -33,13 +33,9 @@ contract GetValue_SlipstreamAM_Fuzz_Test is SlipstreamAM_Fuzz_Test {
                               TESTS
     //////////////////////////////////////////////////////////////*/
 
-    // ToDo: getValue with fuzzed tokensOwed and pending Fees.
-
     function testFuzz_Success_getValue_valueInUsd(TestVariables memory vars) public {
         // Check that ticks are within allowed ranges.
-        vm.assume(vars.tickLower < vars.tickUpper);
-        vm.assume(isWithinAllowedRange(vars.tickLower));
-        vm.assume(isWithinAllowedRange(vars.tickUpper));
+        (vars.tickLower, vars.tickUpper) = givenValidTicks(vars.tickLower, vars.tickUpper);
 
         // Deploy and sort tokens.
         vars.decimals0 = bound(vars.decimals0, 6, 18);
@@ -55,22 +51,20 @@ contract GetValue_SlipstreamAM_Fuzz_Test is SlipstreamAM_Fuzz_Test {
         }
 
         // Avoid divide by 0 in next line.
-        vm.assume(vars.priceToken1 > 0);
-        // Cast to uint160 will overflow, not realistic.
-        vm.assume(vars.priceToken0 / vars.priceToken1 < 2 ** 128);
+        vars.priceToken1 = uint64(bound(vars.priceToken1, 1, type(uint64).max));
         // Check that sqrtPriceX96 is within allowed Slipstream ranges.
+        uint256 minPriceToken0 = (vars.priceToken1 * 10 ** (18 - vars.decimals1) - 1) / 10 ** 28 + 1;
+        vars.priceToken0 =
+            uint64(bound(vars.priceToken0, (minPriceToken0 - 1) / 10 ** (18 - vars.decimals0) + 1, type(uint64).max));
         uint160 sqrtPriceX96 = slipstreamAM.getSqrtPriceX96(
             vars.priceToken0 * 10 ** (18 - vars.decimals0), vars.priceToken1 * 10 ** (18 - vars.decimals1)
         );
-
-        vm.assume(sqrtPriceX96 >= 4_295_128_739);
-        vm.assume(sqrtPriceX96 <= 1_461_446_703_485_210_103_287_273_052_203_988_822_378_723_970_342);
 
         // Create Slipstream pool initiated at tickCurrent with cardinality 300.
         ICLPoolExtension pool = createPoolCL(address(token0), address(token1), 1, sqrtPriceX96, 300);
 
         // Check that Liquidity is within allowed ranges.
-        vm.assume(vars.liquidity <= pool.maxLiquidityPerTick());
+        vars.liquidity = uint80(bound(vars.liquidity, 0, pool.maxLiquidityPerTick()));
         // Mint liquidity position.
         (uint256 tokenId,,) =
             addLiquidityCL(pool, vars.liquidity, users.liquidityProvider, vars.tickLower, vars.tickUpper, false);

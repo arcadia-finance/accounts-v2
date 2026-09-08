@@ -66,6 +66,7 @@ contract GetLiquidationValue_RegistryL2_Fuzz_Test is RegistryL2_Fuzz_Test {
         uint32 currentTime
     ) public {
         // Given: A random time.
+        currentTime = uint32(bound(currentTime, 0, type(uint32).max - 1));
         vm.warp(currentTime);
 
         // And: Sequencer is online.
@@ -73,7 +74,6 @@ contract GetLiquidationValue_RegistryL2_Fuzz_Test is RegistryL2_Fuzz_Test {
         sequencerUptimeOracle.setLatestRoundData(0, startedAt);
 
         // And: Grace period did not pass.
-        vm.assume(currentTime - startedAt < type(uint32).max);
         gracePeriod = uint32(bound(gracePeriod, currentTime - startedAt + 1, type(uint32).max));
         vm.prank(creditorUsd.riskManager());
         registry.setRiskParameters(address(creditorUsd), 0, gracePeriod, type(uint64).max);
@@ -131,14 +131,23 @@ contract GetLiquidationValue_RegistryL2_Fuzz_Test is RegistryL2_Fuzz_Test {
         vm.prank(creditorUsd.riskManager());
         registry.setRiskParameters(address(creditorUsd), 0, gracePeriod, type(uint64).max);
 
-        vm.assume(liquidationFactor_ <= AssetValuationLib.ONE_4);
-        vm.assume(rateToken1ToUsd > 0);
+        liquidationFactor_ = uint16(bound(liquidationFactor_, 0, AssetValuationLib.ONE_4));
+        rateToken1ToUsd = int64(bound(rateToken1ToUsd, 1, type(int64).max));
 
         vm.prank(users.transmitter);
         mockOracles.token1ToUsd.transmit(rateToken1ToUsd);
 
+        // And: The usd value of the asset is non-zero.
+        amountToken1 = uint64(
+            bound(
+                amountToken1,
+                (10 ** (Constants.TOKEN_ORACLE_DECIMALS + Constants.TOKEN_DECIMALS) / Constants.WAD - 1)
+                    / uint256(int256(rateToken1ToUsd)) + 1,
+                type(uint64).max
+            )
+        );
+
         uint256 token1ValueInUsd = convertAssetToUsd(Constants.TOKEN_DECIMALS, amountToken1, oracleToken1ToUsdArr);
-        vm.assume(token1ValueInUsd > 0);
 
         vm.prank(users.riskManager);
         registry.setRiskParametersOfPrimaryAsset(

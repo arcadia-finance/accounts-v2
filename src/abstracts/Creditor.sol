@@ -29,6 +29,7 @@ abstract contract Creditor is ICreditor {
                                 EVENTS
     ////////////////////////////////////////////////////////////// */
 
+    // forge-lint: disable-next-item(event-fields)
     event RiskManagerUpdated(address riskManager);
     event ValidAccountVersionsUpdated(uint256 indexed accountVersion, bool valid);
 

@@ -49,6 +49,7 @@ contract IsSequencerDown_RegistryL2_Fuzz_Test is RegistryL2_Fuzz_Test {
         uint32 currentTime
     ) public {
         // Given: A random time.
+        currentTime = uint32(bound(currentTime, 0, type(uint32).max - 1));
         vm.warp(currentTime);
 
         // And: Sequencer is online.
@@ -56,7 +57,6 @@ contract IsSequencerDown_RegistryL2_Fuzz_Test is RegistryL2_Fuzz_Test {
         sequencerUptimeOracle.setLatestRoundData(0, startedAt);
 
         // And: Grace period did not pass.
-        vm.assume(currentTime - startedAt < type(uint32).max);
         gracePeriod = uint32(bound(gracePeriod, currentTime - startedAt + 1, type(uint32).max));
         vm.prank(creditorUsd.riskManager());
         registry.setRiskParameters(address(creditorUsd), 0, gracePeriod, type(uint64).max);

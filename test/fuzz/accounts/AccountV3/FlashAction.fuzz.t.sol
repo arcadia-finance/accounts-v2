@@ -125,7 +125,7 @@ contract FlashAction_AccountV3_Fuzz_Test is AccountV3_Fuzz_Test, Permit2Fixture 
     }
 
     function testFuzz_Revert_flashAction_tooManyAssets(uint8 arrLength, bytes calldata signature) public {
-        vm.assume(arrLength > accountExtension.ASSET_LIMIT() && arrLength < 50);
+        arrLength = uint8(bound(arrLength, accountExtension.ASSET_LIMIT() + 1, 49));
 
         address[] memory assetAddresses = new address[](arrLength);
         uint256[] memory assetIds = new uint256[](arrLength);
@@ -177,7 +177,7 @@ contract FlashAction_AccountV3_Fuzz_Test is AccountV3_Fuzz_Test, Permit2Fixture 
         uint32 minimumMargin,
         bytes calldata signature
     ) public {
-        vm.assume(debtAmount > 0);
+        debtAmount = uint128(bound(debtAmount, 1, type(uint128).max));
 
         // Init account
         vm.startPrank(users.accountOwner);
@@ -198,10 +198,6 @@ contract FlashAction_AccountV3_Fuzz_Test is AccountV3_Fuzz_Test, Permit2Fixture 
         uint256 token1AmountForAction = 1000 * 10 ** Constants.TOKEN_DECIMALS;
         uint256 token2AmountForAction = 1000 * 10 ** Constants.TOKEN_DECIMALS;
         uint256 token1ToToken2Ratio = rates.token1ToUsd / rates.token2ToUsd;
-
-        vm.assume(
-            token1AmountForAction + ((uint256(debtAmount) + minimumMargin) * token1ToToken2Ratio) < type(uint256).max
-        );
 
         creditorStable1.setOpenPosition(address(accountNotInitialised), debtAmount);
 
@@ -564,8 +560,7 @@ contract FlashAction_AccountV3_Fuzz_Test is AccountV3_Fuzz_Test, Permit2Fixture 
         uint128 debtAmount,
         bytes calldata signature
     ) public {
-        vm.assume(time > 2 days);
-        vm.assume(time > 2 days);
+        time = uint32(bound(time, 2 days + 1, type(uint32).max));
         accountNotInitialised.setMinimumMargin(minimumMargin);
         accountNotInitialised.setLocked(1);
         accountNotInitialised.setOwner(users.accountOwner);
@@ -586,10 +581,6 @@ contract FlashAction_AccountV3_Fuzz_Test is AccountV3_Fuzz_Test, Permit2Fixture 
         uint256 token2AmountForAction = 1000 * 10 ** Constants.TOKEN_DECIMALS;
         uint256 stable1AmountForAction = 500 * 10 ** Constants.STABLE_DECIMALS;
         uint256 token1ToToken2Ratio = rates.token1ToUsd / rates.token2ToUsd;
-
-        vm.assume(
-            token1AmountForAction + ((uint256(debtAmount) + minimumMargin) * token1ToToken2Ratio) < type(uint256).max
-        );
 
         // We increase the price of token 2 in order to avoid to end up with unhealthy state of account
         vm.startPrank(users.transmitter);
@@ -771,7 +762,7 @@ contract FlashAction_AccountV3_Fuzz_Test is AccountV3_Fuzz_Test, Permit2Fixture 
         uint32 time,
         bytes calldata signature
     ) public {
-        vm.assume(time > 2 days);
+        time = uint32(bound(time, 2 days + 1, type(uint32).max));
         vm.assume(users.accountOwner != assetManager);
         vm.startPrank(users.accountOwner);
         accountNotInitialised.setMinimumMargin(minimumMargin);
@@ -794,10 +785,6 @@ contract FlashAction_AccountV3_Fuzz_Test is AccountV3_Fuzz_Test, Permit2Fixture 
         uint256 token1AmountForAction = 1000 * 10 ** Constants.TOKEN_DECIMALS;
         uint256 token2AmountForAction = 1000 * 10 ** Constants.TOKEN_DECIMALS;
         uint256 token1ToToken2Ratio = rates.token1ToUsd / rates.token2ToUsd;
-
-        vm.assume(
-            token1AmountForAction + ((uint256(debtAmount) + minimumMargin) * token1ToToken2Ratio) < type(uint256).max
-        );
 
         bytes memory callData;
         {
