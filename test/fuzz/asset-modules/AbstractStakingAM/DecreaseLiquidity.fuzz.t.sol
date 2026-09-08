@@ -69,7 +69,7 @@ contract DecreaseLiquidity_AbstractStakingAM_Fuzz_Test is AbstractStakingAM_Fuzz
         vm.assume(account_ != address(stakingAM));
         vm.assume(account_ != address(rewardToken));
         // Given : Valid state
-        (assetState, positionState) = givenValidStakingAMState(assetState, positionState, 1, type(uint128).max);
+        (assetState, positionState) = givenValidStakingAMState(assetState, positionState, 1, type(uint128).max - 1);
 
         // And: State is persisted.
         setStakingAMState(assetState, positionState, asset, positionId);

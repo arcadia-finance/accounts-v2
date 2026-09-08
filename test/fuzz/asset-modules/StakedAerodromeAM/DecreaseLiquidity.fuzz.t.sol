@@ -80,7 +80,7 @@ contract DecreaseLiquidity_StakedAerodromeAM_Fuzz_Test is StakedAerodromeAM_Fuzz
         stakedAerodromeAM.addAsset(address(aeroGauge));
 
         // Given : Valid state
-        (assetState, positionState) = givenValidStakingAMState(assetState, positionState, 1, type(uint128).max);
+        (assetState, positionState) = givenValidStakingAMState(assetState, positionState, 1, type(uint128).max - 1);
 
         // And: State is persisted.
         setStakedAerodromeAMState(assetState, positionState, address(aeroPool), positionId);

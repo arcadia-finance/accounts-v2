@@ -40,7 +40,7 @@ contract GetPrincipalAmounts_StakedSlipstreamAM_Fuzz_Test is StakedSlipstreamAM_
         // Function will overFlow, not realistic.
         priceToken0 = bound(priceToken0, 0, type(uint256).max / 1e28);
         // Cast to uint160 will overflow, not realistic.
-        if (priceToken1 < 2 ** 128) priceToken0 = bound(priceToken0, 0, priceToken1 * 2 ** 128);
+        if (priceToken1 < 2 ** 128) priceToken0 = bound(priceToken0, 0, priceToken1 * 2 ** 128 - 1);
 
         uint160 sqrtPriceX96 = stakedSlipstreamAM.getSqrtPriceX96(priceToken0, priceToken1);
         (uint256 expectedAmount0, uint256 expectedAmount1) = LiquidityAmounts.getAmountsForLiquidity(

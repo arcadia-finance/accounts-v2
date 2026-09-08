@@ -58,7 +58,7 @@ contract GetSqrtPriceX96_DefaultUniswapV4AM_Fuzz_Test is DefaultUniswapV4AM_Fuzz
         // And : priceToken0 is max 1.158e+49, otherwise function would overflow, not realistic.
         priceToken0 = bound(priceToken0, 0, type(uint256).max / 1e28);
         // And : Cast to uint160 will overflow, not realistic.
-        if (priceToken1 < 2 ** 128) priceToken0 = bound(priceToken0, 0, priceToken1 * 2 ** 128);
+        if (priceToken1 < 2 ** 128) priceToken0 = bound(priceToken0, 0, priceToken1 * 2 ** 128 - 1);
 
         uint256 priceXd28 = priceToken0 * 1e28 / priceToken1;
         uint256 sqrtPriceXd14 = FixedPointMathLib.sqrt(priceXd28);
