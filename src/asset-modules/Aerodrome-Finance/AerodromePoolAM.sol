@@ -7,6 +7,7 @@ pragma solidity ^0.8.34;
 import { AssetValuationLib, AssetValueAndRiskFactors } from "../../libraries/AssetValuationLib.sol";
 import { DerivedAM, FixedPointMathLib, IRegistry } from "../abstracts/AbstractDerivedAM.sol";
 import { ERC20 } from "../../../lib/solmate/src/tokens/ERC20.sol";
+import { FixedPointMathLib as SoladyFixedPointMathLib } from "../../../lib/solady/src/utils/FixedPointMathLib.sol";
 import { FullMath } from "../../../src/asset-modules/UniswapV3/libraries/FullMath.sol";
 import { IAeroFactory } from "./interfaces/IAeroFactory.sol";
 import { IAeroPool } from "./interfaces/IAeroPool.sol";
@@ -209,15 +210,16 @@ contract AerodromePoolAM is DerivedAM {
      * @return trustedReserve0 The trusted reserve of token0.
      * @return trustedReserve1 The trusted reserve of token1.
      * @dev The trusted reserves (r0' and r1') must satisfy two conditions:
-     *  1) The pool is in equilibrium with external markets.
-     *     r0' * P0usd = r1' * P1usd
+     *  1) The pool is in equilibrium with external markets, its marginal price equals the ratio of the trusted prices.
+     *     -dr1/dr0 = P0usd / P1usd
      *     With P0usd and P1usd the trusted usd prices of both Underlying Assets.
      *  2) The invariant, k, of the pool is equal for both the trusted and untrusted reserves.
      *     k(r0', r1') = k(r0, r1)
      *     The invariant is defined as: k(r0, r1) = r0 * r1
      * From these two conditions, the trusted reserves can be calculated as follows:
-     *  3) Condition 1) can be rewritten as:
-     *     r1' = r0' * P0usd / P1usd
+     *  3) For k = r0 * r1, the marginal price is -dr1/dr0 = r1 / r0, so condition 1) can be rewritten as:
+     *     r0' * P0usd = r1' * P1usd
+     *     => r1' = r0' * P0usd / P1usd
      *  4) We plug 3) into 2) and solve for r0':
      *     r0' = √[P1usd * k / P0usd]
      *  5) Calculate r1' from r1':
@@ -252,9 +254,10 @@ contract AerodromePoolAM is DerivedAM {
      * @return trustedReserve0 The trusted reserve of token0.
      * @return trustedReserve1 The trusted reserve of token1.
      * @dev The trusted reserves (r0' and r1') must satisfy two conditions:
-     *  1) The pool is in equilibrium with external markets.
-     *     r0' * P0usd = r1' * P1usd
-     *     With P0usd and P1usd the trusted usd prices of both Underlying Assets.
+     *  1) The pool is in equilibrium with external markets, its marginal price equals the ratio of the trusted prices.
+     *     -dy/dx = (3x²y + y³) / (x³ + 3xy²) = p0 / p1
+     *     With p0 = P0usd / 10^(18 - D0) and p1 = P1usd / 10^(18 - D1),
+     *     and P0usd and P1usd the trusted usd prices of both Underlying Assets.
      *  2) The invariant, k, of the pool is equal for both the trusted and untrusted reserves.
      *     k(r0', r1') = k(r0, r1)
      *     Stable aerodrome pools use a correction for the underlying token amounts to bring them to 18 decimals:
@@ -262,15 +265,20 @@ contract AerodromePoolAM is DerivedAM {
      *     y = r1 * 10^(18 - D1).
      *     The invariant is defined as: k = x³y + y³x
      * From these two conditions, the trusted reserves can be calculated as follows:
-     *  3) We plug the definition of x and y into 1) and rewrite it as:
-     *     y = x * [P0usd / 10^(18 - D0)] / [P1usd / 10^(18 - D1)]
-     *     => y = x * p0 / p1
-     *     With p0 = P0usd / 10^(18 - D0) and p1 = P1usd / 10^(18 - D1)
+     *  3) We write 1) with t = y / x and q = p0 / p1 and rewrite it as:
+     *     q = (3t + t³) / (1 + 3t²) = [(1 + t)³ - (1 - t)³] / [(1 + t)³ + (1 - t)³]
+     *     => t = (c - 1) / (c + 1)
+     *     With c = ∛[(1 + q) / (1 - q)] = ∛[(p1 + p0) / (p1 - p0)] = ∛ratio, for p0 < p1.
+     *     The invariant is symmetric in x and y, so for p0 > p1 both tokens are swapped:
+     *     t is calculated with p0 and p1 interchanged, and x and y are interchanged in 5).
+     *     At parity (p0 = p1) the pool is balanced: t = 1.
      *  4) We plug 3) into 2) and solve for x:
-     *     x = ∜[k(r0, r1) * p1³ / (p0 * p1² + p0³)]
+     *     k = x⁴ * (t + t³)
+     *     => x = ∜[k(r0, r1) / d]
+     *     With d = t + t³ = t * (1 + t²)
      *  5) Calculate r0' and r1' from x:
      *     r0' = x / 10^(18 - D0)
-     *     r1' = r0' * P0usd / P1usd
+     *     r1' = x * t / 10^(18 - D1)
      */
     function _getTrustedReservesStable(address pool, AssetValueAndRiskFactors[] memory rateUnderlyingAssetsToUsd)
         internal
@@ -299,31 +307,49 @@ contract AerodromePoolAM is DerivedAM {
             k = a * b; // 36 decimals.
         }
 
-        // Calculate x:
-        // x = ∜[k(r0, r1) * p1³ / (p0 * p1² + p0³)]
-        // => x = √{p1 * √[(k * p1 / p0) / (p0² + p1²)]}
-        // => x = √{p1 * √[c / d]}
+        // Calculate t:
+        // t = (c - 1) / (c + 1)
+        // => c = ∛ratio
+        // => ratio = (p1 + p0) / (p1 - p0)
+        // With x the reserve of the token with the lowest corrected price.
+        uint256 t; // 18 decimals.
+        bool swapped;
         {
-            // USD rates also have to be corrected as shown in 3).
+            // USD rates also have to be corrected as shown in 1).
             // forge-lint: disable-next-item(divide-before-multiply)
             uint256 p0 = rateUnderlyingAssetsToUsd[0].assetValue / unitCorrection0; // 18 decimals.
             uint256 p1 = rateUnderlyingAssetsToUsd[1].assetValue / unitCorrection1; // 18 decimals.
-            uint256 c = FullMath.mulDiv(k, p1, p0); // 36 decimals.
-            // forge-lint: disable-next-item(divide-before-multiply)
-            uint256 d = p0 * p0 + p1 * p1; // 36 decimals.
-            // Sqrt halves the number of decimals.
-            // forge-lint: disable-next-item(divide-before-multiply)
-            uint256 x = FixedPointMathLib.sqrt(p1 * FixedPointMathLib.sqrt(FullMath.mulDiv(1e36, c, d))); // 18 decimals.
+            if (p0 > p1) (p0, p1, swapped) = (p1, p0, true);
 
-            // Bring reserve0 from 18 decimals precision to the actual token decimals.
-            // r0' = x / 10^(18 - D0).
-            trustedReserve0 = x / unitCorrection0;
+            if (p0 == p1) {
+                t = 1e18;
+            } else {
+                uint256 ratio = FullMath.mulDiv(p1 + p0, 1e18, p1 - p0); // 18 decimals.
+                // Cube root divides the number of decimals by three.
+                uint256 c = ratio <= type(uint256).max / 1e36
+                    ? SoladyFixedPointMathLib.cbrt(ratio * 1e36)
+                    : SoladyFixedPointMathLib.cbrt(ratio) * 1e12; // 18 decimals.
+                t = FullMath.mulDiv(c - 1e18, 1e18, c + 1e18);
+            }
         }
 
-        // r1' = r0' * P0usd / P1usd
-        trustedReserve1 = FullMath.mulDiv(
-            trustedReserve0, rateUnderlyingAssetsToUsd[0].assetValue, rateUnderlyingAssetsToUsd[1].assetValue
-        );
+        // Calculate x:
+        // x = ∜[k(r0, r1) / d]
+        // => x = √{√[k / d]}
+        // => d = t * (1 + t²)
+        {
+            // Round d up, so that x is never overestimated.
+            uint256 d = t.mulDivUp(1e36 + t * t, 1e36); // 18 decimals.
+            // Sqrt halves the number of decimals.
+            uint256 x = FixedPointMathLib.sqrt(FixedPointMathLib.sqrt(FullMath.mulDiv(k, 1e18, d)) * 1e18); // 18 decimals.
+
+            // Bring the reserves from 18 decimals precision to the actual token decimals.
+            // r0' = x / 10^(18 - D0).
+            // r1' = x * t / 10^(18 - D1).
+            uint256 y = x.mulDivDown(t, 1e18); // 18 decimals.
+            (trustedReserve0, trustedReserve1) =
+                swapped ? (y / unitCorrection0, x / unitCorrection1) : (x / unitCorrection0, y / unitCorrection1);
+        }
     }
 
     /*///////////////////////////////////////////////////////////////

@@ -181,35 +181,19 @@ abstract contract AerodromePoolAM_Fuzz_Test is Fuzz_Test, AerodromeFixture {
         // k should be greater than minimum liquidity
         vm.assume(k / 1e18 > MINIMUM_K);
 
-        // And: d does not overflow.
+        // And: ratio does not overflow.
         testVars.priceToken0 = bound(testVars.priceToken0, 1, 2 ** 127 - 1);
         testVars.priceToken1 = bound(testVars.priceToken1, 1, 2 ** 127 - 1);
-        uint256 p0 = testVars.priceToken0;
-        uint256 p1 = testVars.priceToken1;
-        uint256 d = p0 * p0 + p1 * p1;
 
-        // And: c does not overflow
-        vm.assume(k / p0 <= type(uint256).max / p1);
-        uint256 c = FullMath.mulDiv(k, p1, p0);
-
-        // And: x does not overflow.
-        vm.assume(c / d <= type(uint256).max / 1e36);
-
-        uint256 trustedReserve0 = FixedPointMathLib.sqrt(p1 * FixedPointMathLib.sqrt(FullMath.mulDiv(1e36, c, d)));
-        trustedReserve0 = trustedReserve0 / 10 ** (18 - testVars.decimals0);
-        uint256 trustedReserve1 = FullMath.mulDiv(
-            trustedReserve0,
-            10 ** (18 - testVars.decimals0) * testVars.priceToken0,
-            10 ** (18 - testVars.decimals1) * testVars.priceToken1
-        );
-        if (trustedReserve0 > 0) {
-            testVars.assetAmount = bound(testVars.assetAmount, 0, type(uint256).max / trustedReserve0);
-        }
-        if (trustedReserve1 > 0) {
-            testVars.assetAmount = bound(testVars.assetAmount, 0, type(uint256).max / trustedReserve1);
-        }
+        // And: t does not round to zero and x does not overflow.
+        // With q = pLow / pHigh: q / 4 <= t <= q and t <= d, so d >= q / 8 for q >= 16 / 1e18.
+        uint256 q = getRatio(testVars.priceToken0, testVars.priceToken1);
+        vm.assume(q >= 16);
+        vm.assume(k / (q / 8) <= type(uint256).max / 1e18);
 
         // And : assetAmount is maximum equal to aeroPool totalSupply.
+        // Trusted reserves are smaller than 1.9e28 and totalSupply is smaller than 1.6e28,
+        // so underlyingAssetsAmounts does not overflow.
         uint256 totalSupply = FixedPointMathLib.sqrt(testVars.reserve0 * testVars.reserve1);
         testVars.assetAmount = bound(testVars.assetAmount, 0, totalSupply);
 
@@ -240,6 +224,20 @@ abstract contract AerodromePoolAM_Fuzz_Test is Fuzz_Test, AerodromeFixture {
         uint256 _a = _x * _y / 1e18;
         uint256 _b = (_x * _x + _y * _y) / 1e18;
         k = _a * _b;
+    }
+
+    // Ratio of the lowest over the highest value, 18 decimals.
+    function getRatio(uint256 p0, uint256 p1) internal pure returns (uint256 q) {
+        q = p0 < p1 ? p0 * 1e18 / p1 : p1 * 1e18 / p0;
+    }
+
+    // Marginal price of a stable pool, -dy/dx = (3x²y + y³) / (x³ + 3xy²), with x and y in 18 decimals.
+    function getMarginalPrice(uint256 x, uint256 y) internal pure returns (uint256 marginalPrice) {
+        uint256 x2 = FullMath.mulDiv(x, x, 1e18);
+        uint256 y2 = FullMath.mulDiv(y, y, 1e18);
+        uint256 numerator = FullMath.mulDiv(3 * x2, y, 1e18) + FullMath.mulDiv(y2, y, 1e18);
+        uint256 denominator = FullMath.mulDiv(x2, x, 1e18) + FullMath.mulDiv(3 * x, y2, 1e18);
+        marginalPrice = FullMath.mulDiv(numerator, 1e18, denominator);
     }
 
     function _k(uint256 reserve0, uint256 reserve1, uint256 decimals0, uint256 decimals1)
