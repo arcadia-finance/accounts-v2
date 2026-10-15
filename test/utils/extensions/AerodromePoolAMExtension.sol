@@ -37,6 +37,14 @@ contract AerodromePoolAMExtension is AerodromePoolAM {
             _getUnderlyingAssetsAmounts(creditor, assetKey, exposureAsset, underlyingAssetKeys);
     }
 
+    function getTrustedReservesStable(address pool, AssetValueAndRiskFactors[] memory rateUnderlyingAssetsToUsd)
+        public
+        view
+        returns (uint256 trustedReserve0, uint256 trustedReserve1)
+    {
+        (trustedReserve0, trustedReserve1) = _getTrustedReservesStable(pool, rateUnderlyingAssetsToUsd);
+    }
+
     function getUnderlyingAssets(bytes32 assetKey) public view returns (bytes32[] memory underlyingAssets) {
         return _getUnderlyingAssets(assetKey);
     }
