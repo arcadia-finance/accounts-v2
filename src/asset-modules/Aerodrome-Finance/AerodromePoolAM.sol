@@ -325,10 +325,7 @@ contract AerodromePoolAM is DerivedAM {
                 t = 1e18;
             } else {
                 uint256 ratio = FullMath.mulDiv(p1 + p0, 1e18, p1 - p0); // 18 decimals.
-                // Cube root divides the number of decimals by three.
-                uint256 c = ratio <= type(uint256).max / 1e36
-                    ? SoladyFixedPointMathLib.cbrt(ratio * 1e36)
-                    : SoladyFixedPointMathLib.cbrt(ratio) * 1e12; // 18 decimals.
+                uint256 c = SoladyFixedPointMathLib.cbrtWad(ratio); // 18 decimals.
                 t = FullMath.mulDiv(c - 1e18, 1e18, c + 1e18);
             }
         }
