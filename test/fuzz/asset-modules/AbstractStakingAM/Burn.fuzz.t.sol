@@ -23,12 +23,42 @@ contract Burn_AbstractStakingAM_Fuzz_Test is AbstractStakingAM_Fuzz_Test {
                               TESTS
     //////////////////////////////////////////////////////////////*/
 
+    function testFuzz_Revert_burn_ZeroAmount(uint256 positionId) public {
+        // When : Burning a position with nothing staked.
+        // Then : It reverts.
+        vm.expectRevert(StakingAM.ZeroAmount.selector);
+        stakingAM.burn(positionId);
+    }
+
+    function testFuzz_Revert_burn_NotOwner(
+        uint256 positionId,
+        uint128 amountStaked,
+        address owner,
+        address randomAddress
+    ) public {
+        // Given : The position has a non-zero amount staked.
+        amountStaked = uint128(bound(amountStaked, 1, type(uint128).max));
+        stakingAM.setAmountStakedForPosition(positionId, amountStaked);
+
+        // And : randomAddress is not the owner of the position.
+        vm.assume(owner != randomAddress);
+        stakingAM.setOwnerOfPositionId(owner, positionId);
+
+        // When : randomAddress burns the position.
+        // Then : It reverts.
+        vm.startPrank(randomAddress);
+        vm.expectRevert(StakingAM.NotOwner.selector);
+        stakingAM.burn(positionId);
+        vm.stopPrank();
+    }
+
     function testFuzz_Success_burn_NonZeroReward(
         uint8 assetDecimals,
         uint96 positionId,
         address account_,
         StakingAMStateForAsset memory assetState,
-        StakingAM.PositionState memory positionState
+        StakingAM.PositionState memory positionState,
+        StakingAMStateForSurplus memory surplusState
     ) public canReceiveERC721(account_) {
         // Given : account_ != zero address
         vm.assume(account_ != address(0));
@@ -43,10 +73,11 @@ contract Burn_AbstractStakingAM_Fuzz_Test is AbstractStakingAM_Fuzz_Test {
             vm.assume(account_ != asset);
 
             // Given: Valid state
-            (assetState, positionState) = givenValidStakingAMState(assetState, positionState, 1, type(uint128).max);
+            (assetState, positionState) =
+                givenValidStakingAMState(assetState, positionState, surplusState, 1, type(uint128).max);
 
             // And: State is persisted.
-            setStakingAMState(assetState, positionState, asset, positionId);
+            setStakingAMState(assetState, positionState, surplusState, asset, positionId);
 
             // Given : Position is minted to the Account
             stakingAM.mintIdTo(account_, positionId);
@@ -56,7 +87,7 @@ contract Burn_AbstractStakingAM_Fuzz_Test is AbstractStakingAM_Fuzz_Test {
             deal(asset, address(stakingAM), positionState.amountStaked, true);
             currentRewardAccount = stakingAM.rewardOf(positionId);
             vm.assume(currentRewardAccount > 0);
-            deal(address(rewardToken), address(stakingAM), currentRewardAccount, true);
+            deal(address(rewardToken), address(stakingAM), surplusState.lastRewardBalance + currentRewardAccount, true);
         }
 
         // When : Account withdraws from stakingAM
@@ -91,14 +122,11 @@ contract Burn_AbstractStakingAM_Fuzz_Test is AbstractStakingAM_Fuzz_Test {
         // And: Asset state should be updated correctly.
         StakingAM.AssetState memory newAssetState;
         (newAssetState.lastRewardPerTokenGlobal, newAssetState.totalStaked,) = stakingAM.assetState(asset);
-        uint256 deltaReward = assetState.currentRewardGlobal;
-        uint128 currentRewardPerToken;
-        unchecked {
-            currentRewardPerToken =
-                assetState.lastRewardPerTokenGlobal + uint128(deltaReward * 1e18 / assetState.totalStaked);
-        }
-        assertEq(newAssetState.lastRewardPerTokenGlobal, currentRewardPerToken);
+        assertEq(newAssetState.lastRewardPerTokenGlobal, currentRewardPerTokenGlobal(assetState));
         assertEq(newAssetState.totalStaked, assetState.totalStaked - positionState.amountStaked);
+
+        // And: The reward token balance is cached.
+        assertEq(stakingAM.getLastRewardBalance(), rewardToken.balanceOf(address(stakingAM)));
     }
 
     function testFuzz_Success_burn_ZeroReward(
@@ -106,7 +134,8 @@ contract Burn_AbstractStakingAM_Fuzz_Test is AbstractStakingAM_Fuzz_Test {
         uint96 positionId,
         address account_,
         StakingAMStateForAsset memory assetState,
-        StakingAM.PositionState memory positionState
+        StakingAM.PositionState memory positionState,
+        StakingAMStateForSurplus memory surplusState
     ) public canReceiveERC721(account_) {
         // Given : account_ != zero address
         vm.assume(account_ != address(0));
@@ -120,7 +149,8 @@ contract Burn_AbstractStakingAM_Fuzz_Test is AbstractStakingAM_Fuzz_Test {
             vm.assume(account_ != asset);
 
             // Given: Valid state
-            (assetState, positionState) = givenValidStakingAMState(assetState, positionState, 1, type(uint128).max);
+            (assetState, positionState) =
+                givenValidStakingAMState(assetState, positionState, surplusState, 1, type(uint128).max);
 
             // And: reward is zero.
             positionState.lastRewardPosition = 0;
@@ -128,7 +158,7 @@ contract Burn_AbstractStakingAM_Fuzz_Test is AbstractStakingAM_Fuzz_Test {
             assetState.currentRewardGlobal = 0;
 
             // And: State is persisted.
-            setStakingAMState(assetState, positionState, asset, positionId);
+            setStakingAMState(assetState, positionState, surplusState, asset, positionId);
 
             // Given : Position is minted to the Account
             stakingAM.mintIdTo(account_, positionId);
@@ -169,5 +199,8 @@ contract Burn_AbstractStakingAM_Fuzz_Test is AbstractStakingAM_Fuzz_Test {
         (newAssetState.lastRewardPerTokenGlobal, newAssetState.totalStaked,) = stakingAM.assetState(asset);
         assertEq(newAssetState.lastRewardPerTokenGlobal, assetState.lastRewardPerTokenGlobal);
         assertEq(newAssetState.totalStaked, assetState.totalStaked - positionState.amountStaked);
+
+        // And: The reward token balance is cached.
+        assertEq(stakingAM.getLastRewardBalance(), rewardToken.balanceOf(address(stakingAM)));
     }
 }

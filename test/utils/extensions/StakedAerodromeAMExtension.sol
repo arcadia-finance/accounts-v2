@@ -8,20 +8,24 @@ import { AssetValueAndRiskFactors } from "../../../src/libraries/AssetValuationL
 import { StakedAerodromeAM } from "../../../src/asset-modules/Aerodrome-Finance/StakedAerodromeAM.sol";
 
 contract StakedAerodromeAMExtension is StakedAerodromeAM {
-    constructor(address owner_, address registry, address aerodromeVoter, address rewardToken)
-        StakedAerodromeAM(owner_, registry, aerodromeVoter, rewardToken)
-    { }
+    constructor(
+        address owner_,
+        address registry,
+        address aerodromeVoter,
+        address rewardToken,
+        address surplusRecipient_
+    ) StakedAerodromeAM(owner_, registry, aerodromeVoter, rewardToken, surplusRecipient_) { }
 
     function stakeAndClaim(address asset, uint256 amount) public {
-        _stakeAndClaim(asset, amount);
+        _stakeAndClaim(0, asset, amount);
     }
 
     function withdrawAndClaim(address asset, uint256 amount) public {
-        _withdrawAndClaim(asset, amount);
+        _withdrawAndClaim(0, asset, amount);
     }
 
     function claimReward(address asset) public {
-        _claimReward(asset);
+        _claimReward(0, asset);
     }
 
     function mintIdTo(address to, uint256 tokenId) public {
@@ -29,7 +33,7 @@ contract StakedAerodromeAMExtension is StakedAerodromeAM {
     }
 
     function getCurrentReward(address asset) public view returns (uint256 currentReward) {
-        currentReward = _getCurrentReward(asset);
+        currentReward = _getCurrentReward(0, asset);
     }
 
     function setAllowed(address asset, bool allowed) public {
@@ -38,6 +42,14 @@ contract StakedAerodromeAMExtension is StakedAerodromeAM {
 
     function setAssetInPosition(address asset, uint96 tokenId) public {
         positionState[tokenId].asset = asset;
+    }
+
+    function setLastRewardBalance(uint256 lastRewardBalance_) public {
+        lastRewardBalance = lastRewardBalance_;
+    }
+
+    function setBookedSurplus(uint256 bookedSurplus_) public {
+        bookedSurplus = bookedSurplus_;
     }
 
     function setTotalStaked(address asset, uint128 totalStaked_) public {

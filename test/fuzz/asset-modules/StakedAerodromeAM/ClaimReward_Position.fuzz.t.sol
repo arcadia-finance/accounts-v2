@@ -6,14 +6,11 @@ pragma solidity ^0.8.0;
 
 import { StakedAerodromeAM_Fuzz_Test, StakingAM } from "./_StakedAerodromeAM.fuzz.t.sol";
 
-import { FixedPointMathLib } from "../../../../lib/solmate/src/utils/FixedPointMathLib.sol";
-
 /**
  * @notice Fuzz tests for the "ClaimReward" function (position rewards) of contract "StakedAerodromeAM".
  */
 // forge-lint: disable-next-item(unsafe-typecast)
 contract ClaimReward_Position_StakedAerodromeAM_Fuzz_Test is StakedAerodromeAM_Fuzz_Test {
-    using FixedPointMathLib for uint256;
     /*///////////////////////////////////////////////////////////////
                             SET-UP FUNCTION
     ///////////////////////////////////////////////////////////////*/
@@ -29,15 +26,13 @@ contract ClaimReward_Position_StakedAerodromeAM_Fuzz_Test is StakedAerodromeAM_F
     function testFuzz_Revert_claimReward_Position_NotOwner(address owner, address randomAddress, uint96 positionId)
         public
     {
-        // Given: randomAddress is not the owner.
+        // Given: The position is owned by another address than the caller.
         vm.assume(owner != randomAddress);
-
-        // Given : Owner of positionId is not randomAddress
         stakedAerodromeAM.setOwnerOfPositionId(owner, positionId);
-
-        // When : randomAddress calls claimReward for positionId
-        // Then : It should revert as randomAddress is not owner of the positionId
         vm.startPrank(randomAddress);
+
+        // When: randomAddress claims the reward of the position.
+        // Then: It reverts.
         vm.expectRevert(StakingAM.NotOwner.selector);
         stakedAerodromeAM.claimReward(positionId);
         vm.stopPrank();
@@ -47,50 +42,44 @@ contract ClaimReward_Position_StakedAerodromeAM_Fuzz_Test is StakedAerodromeAM_F
         address account_,
         uint96 positionId,
         StakingAMStateForAsset memory assetState,
-        StakingAM.PositionState memory positionState
+        StakingAM.PositionState memory positionState,
+        StakingAMStateForSurplus memory surplusState
     ) public {
-        // Given : account_ != zero address
+        // Given: The position is owned by account_.
         vm.assume(account_ != address(0));
-
-        // Given : owner of ERC721 positionId is Account
         stakedAerodromeAM.setOwnerOfPositionId(account_, positionId);
 
-        // Given : the aeroPool is allowed in the Registry
+        // And: The aeroPool is allowed in the Registry, with its aeroGauge onboarded on the Asset Module.
         aeroPool = createPoolAerodrome(address(mockERC20.token1), address(mockERC20.stable1), false);
         vm.prank(users.owner);
         aerodromePoolAM.addAsset(address(aeroPool));
-
-        // And : Valid aeroGauge
         aeroGauge = createGaugeAerodrome(aeroPool, AERO);
-
-        // And : Add asset and aeroGauge to the AM
         stakedAerodromeAM.addAsset(address(aeroGauge));
 
-        // Given: Valid state
-        (assetState, positionState) = givenValidStakingAMState(assetState, positionState, 0, type(uint128).max);
+        // And: A valid asset and position state is persisted.
+        (assetState, positionState) =
+            givenValidStakingAMState(assetState, positionState, surplusState, 0, type(uint128).max);
+        setStakedAerodromeAMState(assetState, positionState, surplusState, address(aeroPool), positionId);
 
-        // And: State is persisted.
-        setStakedAerodromeAMState(assetState, positionState, address(aeroPool), positionId);
-
-        // And : stakedAerodromeAM should have sufficient amount of reward tokens
+        // And: The reward of the position is non-zero, and the Asset Module holds it.
         uint256 currentRewardPosition = stakedAerodromeAM.rewardOf(positionId);
 
         // And: reward is non-zero.
         vm.assume(currentRewardPosition > 0);
+        deal(AERO, address(stakedAerodromeAM), surplusState.lastRewardBalance + currentRewardPosition);
 
-        deal(AERO, address(stakedAerodromeAM), currentRewardPosition);
-
-        // When : Account calls claimReward()
+        // When: account_ claims the reward of the position.
+        // Then: The reward is paid out.
         vm.startPrank(account_);
         vm.expectEmit();
         emit StakingAM.RewardPaid(positionId, address(stakedAerodromeAM.REWARD_TOKEN()), uint128(currentRewardPosition));
         uint256 rewards = stakedAerodromeAM.claimReward(positionId);
         vm.stopPrank();
 
-        // Then : claimed rewards are returned.
+        // And: The claimed reward is returned.
         assertEq(rewards, currentRewardPosition);
 
-        // And: Position state should be updated correctly.
+        // And: The position state is updated.
         StakingAM.PositionState memory newPositionState;
         (
             newPositionState.asset,
@@ -100,15 +89,11 @@ contract ClaimReward_Position_StakedAerodromeAM_Fuzz_Test is StakedAerodromeAM_F
         ) = stakedAerodromeAM.positionState(positionId);
         assertEq(newPositionState.asset, address(aeroPool));
         assertEq(newPositionState.amountStaked, positionState.amountStaked);
-        uint128 currentRewardPerToken;
-        unchecked {
-            currentRewardPerToken = assetState.lastRewardPerTokenGlobal
-                + uint128(assetState.currentRewardGlobal.mulDivDown(1e18, assetState.totalStaked));
-        }
+        uint128 currentRewardPerToken = currentRewardPerTokenGlobal(assetState);
         assertEq(newPositionState.lastRewardPerTokenPosition, currentRewardPerToken);
         assertEq(newPositionState.lastRewardPosition, 0);
 
-        // And : Asset values should be updated correctly
+        // And: The asset state is updated.
         StakingAM.AssetState memory newAssetState;
         (newAssetState.lastRewardPerTokenGlobal, newAssetState.totalStaked,) =
             stakedAerodromeAM.assetState(address(aeroPool));
@@ -120,48 +105,42 @@ contract ClaimReward_Position_StakedAerodromeAM_Fuzz_Test is StakedAerodromeAM_F
         address account_,
         uint96 positionId,
         StakingAMStateForAsset memory assetState,
-        StakingAM.PositionState memory positionState
+        StakingAM.PositionState memory positionState,
+        StakingAMStateForSurplus memory surplusState
     ) public {
-        // Given : account_ != zero address
+        // Given: The position is owned by account_.
         vm.assume(account_ != address(0));
-
-        // Given : owner of ERC721 positionId is Account
         stakedAerodromeAM.setOwnerOfPositionId(account_, positionId);
 
-        // Given : the aeroPool is allowed in the Registry
+        // And: The aeroPool is allowed in the Registry, with its aeroGauge onboarded on the Asset Module.
         aeroPool = createPoolAerodrome(address(mockERC20.token1), address(mockERC20.stable1), false);
         vm.prank(users.owner);
         aerodromePoolAM.addAsset(address(aeroPool));
-
-        // And : Valid aeroGauge
         aeroGauge = createGaugeAerodrome(aeroPool, AERO);
-
-        // And : Add asset and aeroGauge to the AM
         stakedAerodromeAM.addAsset(address(aeroGauge));
 
-        // Given: Valid state
-        (assetState, positionState) = givenValidStakingAMState(assetState, positionState, 0, type(uint128).max);
-
-        // And: reward is zero.
+        // And: A valid asset and position state, of which the reward for the position is zero.
+        (assetState, positionState) =
+            givenValidStakingAMState(assetState, positionState, surplusState, 0, type(uint128).max);
         positionState.lastRewardPosition = 0;
         positionState.lastRewardPerTokenPosition = assetState.lastRewardPerTokenGlobal;
         assetState.currentRewardGlobal = 0;
 
-        // And: State is persisted.
-        setStakedAerodromeAMState(assetState, positionState, address(aeroPool), positionId);
+        // And: The state is persisted.
+        setStakedAerodromeAMState(assetState, positionState, surplusState, address(aeroPool), positionId);
 
-        // When : Account calls claimReward()
+        // When: account_ claims the reward of the position.
         vm.startPrank(account_);
         uint256 rewards = stakedAerodromeAM.claimReward(positionId);
         vm.stopPrank();
 
-        // Then : No claimed rewards are returned.
+        // Then: No claimed rewards are returned.
         assertEq(rewards, 0);
 
-        // And : Account should have not received reward tokens.
+        // And: account_ did not receive reward tokens.
         assertEq(stakedAerodromeAM.REWARD_TOKEN().balanceOf(account_), 0);
 
-        // And: Position state should be updated correctly.
+        // And: The position state is updated.
         StakingAM.PositionState memory newPositionState;
         (
             newPositionState.asset,
@@ -174,7 +153,7 @@ contract ClaimReward_Position_StakedAerodromeAM_Fuzz_Test is StakedAerodromeAM_F
         assertEq(newPositionState.lastRewardPerTokenPosition, assetState.lastRewardPerTokenGlobal);
         assertEq(newPositionState.lastRewardPosition, 0);
 
-        // And : Asset values should be updated correctly
+        // And: The asset state is updated.
         StakingAM.AssetState memory newAssetState;
         (newAssetState.lastRewardPerTokenGlobal, newAssetState.totalStaked,) =
             stakedAerodromeAM.assetState(address(aeroPool));

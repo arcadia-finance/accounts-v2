@@ -50,26 +50,22 @@ contract SlipstreamFixture is ConcentratedLiquidityFixture, WETH9Fixture, Aerodr
 
         // Deploy the CLFactory.
         args = abi.encode(address(this), address(this), address(this), address(voter), poolImplementation);
-        deployCodeTo("CLFactory.sol", args, address(cLFactory));
+        deployCodeTo("SlipstreamCLFactoryExtension.sol", args, address(cLFactory));
 
         // Deploy the NonfungiblePositionManager, pass zero address for the NonfungibleTokenPositionDescriptor.
         args = abi.encode(address(this), address(cLFactory), address(weth9), address(0), "", "");
-        deployCodeTo(
-            "periphery/NonfungiblePositionManager.sol:NonfungiblePositionManager",
-            args,
-            address(slipstreamPositionManager)
-        );
+        deployCodeTo("SlipstreamNonfungiblePositionManagerExtension.sol", args, address(slipstreamPositionManager));
     }
 
     function deployCLGaugeFactory() internal {
         // Deploy CLGauge implementation.
         bytes memory args = abi.encode();
-        bytes memory bytecode = abi.encodePacked(vm.getCode("CLGauge.sol"), args);
+        bytes memory bytecode = abi.encodePacked(vm.getCode("SlipstreamCLGaugeExtension.sol"), args);
         address cLGauge_ = Utils.deployBytecode(bytecode);
 
         // Deploy the CLGaugeFactory.
         args = abi.encode(address(this), address(voter), address(slipstreamPositionManager), cLGauge_);
-        bytecode = abi.encodePacked(vm.getCode("CLGaugeFactory.sol"), args);
+        bytecode = abi.encodePacked(vm.getCode("SlipstreamCLGaugeFactoryExtension.sol"), args);
         address cLGaugeFactory_ = Utils.deployBytecode(bytecode);
         cLGaugeFactory = ICLGaugeFactory(cLGaugeFactory_);
 

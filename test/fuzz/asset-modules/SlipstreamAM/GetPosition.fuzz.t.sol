@@ -4,9 +4,8 @@
  */
 pragma solidity ^0.8.0;
 
-import { SlipstreamAM_Fuzz_Test } from "./_SlipstreamAM.fuzz.t.sol";
-
 import { NonfungiblePositionManagerMock } from "../../../utils/mocks/Slipstream/NonfungiblePositionManager.sol";
+import { SlipstreamAM_Fuzz_Test } from "./_SlipstreamAM.fuzz.t.sol";
 
 /**
  * @notice Fuzz tests for the function "_getPosition" of contract "SlipstreamAM".
@@ -16,7 +15,6 @@ contract GetPosition_SlipstreamAM_Fuzz_Test is SlipstreamAM_Fuzz_Test {
                               VARIABLES
     /////////////////////////////////////////////////////////////// */
 
-    uint256 internal assetId;
     address token0;
     address token1;
 
@@ -27,7 +25,6 @@ contract GetPosition_SlipstreamAM_Fuzz_Test is SlipstreamAM_Fuzz_Test {
     function setUp() public override {
         SlipstreamAM_Fuzz_Test.setUp();
 
-        (assetId,,) = addLiquidityCL(poolStable1Stable2, 100, 100, users.liquidityProvider, 0, 1, true);
         (token0, token1) = address(mockERC20.stable1) < address(mockERC20.stable2)
             ? (address(mockERC20.stable1), address(mockERC20.stable2))
             : (address(mockERC20.stable2), address(mockERC20.stable1));
@@ -38,67 +35,66 @@ contract GetPosition_SlipstreamAM_Fuzz_Test is SlipstreamAM_Fuzz_Test {
     /*//////////////////////////////////////////////////////////////
                               TESTS
     //////////////////////////////////////////////////////////////*/
-    function testFuzz_Success_getUnderlyingAssets_InAssetModule(
+    function testFuzz_Success_getPosition_InAssetModule(
+        uint96 assetId,
         NonfungiblePositionManagerMock.Position memory position,
         uint128 newLiquidity
     ) public {
-        // Given: Position is valid.
+        // Given: A valid position with liquidity.
         position = givenValidPosition(position);
-
-        // And: Liquidity is non-zero.
-        // forge-lint: disable-next-item(unsafe-typecast)
-        position.liquidity = uint128(bound(position.liquidity, 1, type(uint128).max));
-
-        // And: State is persisted.
+        vm.assume(position.liquidity != 0);
         nonfungiblePositionManagerMock.setPosition(address(poolStable1Stable2), assetId, position);
 
-        // And: The Slipstream position is added to the Asset Module.
+        // And: The position is added to the Asset Module.
         slipstreamAM.addAsset(assetId);
 
-        // And: The Liquidity of the position changes
-        uint256 oldLiquidity = position.liquidity;
+        // And: The liquidity of the position changes afterwards.
+        uint256 liquidityAtDeposit = position.liquidity;
         position.liquidity = newLiquidity;
         nonfungiblePositionManagerMock.setPosition(address(poolStable1Stable2), assetId, position);
 
-        // When: "getPosition is called."
+        // When: The position is read.
         (address token0_, address token1_, int24 tickLower, int24 tickUpper, uint128 liquidity) =
             slipstreamAM.getPosition(assetId);
 
-        // Then: The correct return variables are returned.
+        // Then: Both pool tokens and the tick range of the position are returned.
         assertEq(token0_, token0);
         assertEq(token1_, token1);
         assertEq(tickLower, position.tickLower);
         assertEq(tickUpper, position.tickUpper);
 
-        // And: the Liquidity when the position was added is returned.
-        assertEq(liquidity, oldLiquidity);
+        // And: The liquidity stored at the time of the deposit is returned.
+        assertEq(liquidity, liquidityAtDeposit);
     }
 
-    function testFuzz_Success_getUnderlyingAssets_NotInAssetModule(
+    function testFuzz_Success_getPosition_NotInAssetModule(
+        uint96 assetId,
         NonfungiblePositionManagerMock.Position memory position,
         uint128 newLiquidity
     ) public {
-        // Given: Position is valid.
+        // Given: A valid position that is not added to the Asset Module.
         position = givenValidPosition(position);
-
-        // And: State is persisted.
         nonfungiblePositionManagerMock.setPosition(address(poolStable1Stable2), assetId, position);
 
-        // When: "getPosition is called."
+        // When: The position is read.
         (address token0_, address token1_, int24 tickLower, int24 tickUpper, uint128 liquidity) =
             slipstreamAM.getPosition(assetId);
 
-        // Then: The correct return variables are returned.
+        // Then: Both pool tokens, the tick range and the current liquidity are returned.
         assertEq(token0_, token0);
         assertEq(token1_, token1);
         assertEq(tickLower, position.tickLower);
         assertEq(tickUpper, position.tickUpper);
         assertEq(liquidity, position.liquidity);
 
-        // And: The actual Liquidity is returned.
+        // And: The liquidity of the position changes.
         position.liquidity = newLiquidity;
         nonfungiblePositionManagerMock.setPosition(address(poolStable1Stable2), assetId, position);
+
+        // When: The position is read again.
         (,,,, liquidity) = slipstreamAM.getPosition(assetId);
+
+        // Then: The current liquidity is returned.
         assertEq(liquidity, newLiquidity);
     }
 }

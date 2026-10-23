@@ -103,7 +103,10 @@ contract ProcessIndirectDeposit_AbstractPrimaryAM_Fuzz_Test is AbstractPrimaryAM
         uint256 exposureUpperAssetToAsset,
         uint256 deltaExposureUpperAssetToAsset
     ) public {
-        // Given: "exposureAsset" is bigger or equal as "exposureAssetMax" (test-case).
+        // Given: The negated delta fits in an int256.
+        deltaExposureUpperAssetToAsset = bound(deltaExposureUpperAssetToAsset, 0, INT256_MIN);
+
+        // And: "exposureAsset" is bigger or equal as "exposureAssetMax" (test-case).
         uint256 expectedExposure;
         if (assetState.exposureAssetLast > deltaExposureUpperAssetToAsset) {
             expectedExposure = assetState.exposureAssetLast - deltaExposureUpperAssetToAsset;

@@ -6,6 +6,7 @@ pragma solidity ^0.8.0;
 
 import { AbstractStakingAM_Fuzz_Test, StakingAM, ERC20Mock } from "./_AbstractStakingAM.fuzz.t.sol";
 import { FixedPointMathLib } from "../../../../lib/solmate/src/utils/FixedPointMathLib.sol";
+import { stdError } from "../../../../lib/forge-std/src/StdError.sol";
 
 /**
  * @notice Fuzz tests for the function "increaseLiquidity" of contract "StakingAM".
@@ -60,10 +61,45 @@ contract IncreaseLiquidity_AbstractStakingAM_Fuzz_Test is AbstractStakingAM_Fuzz
         vm.stopPrank();
     }
 
+    function testFuzz_Revert_increaseLiquidity_TotalStakedOverflow(
+        uint8 assetDecimals,
+        uint96 positionId,
+        uint128 totalStaked,
+        uint128 amount,
+        address account_
+    ) public {
+        vm.assume(account_ != address(0));
+        vm.assume(account_ != address(stakingAM));
+
+        // Given : A staking token is added to the stakingAM.
+        address asset = addAsset(assetDecimals);
+        vm.assume(account_ != asset);
+
+        // And : Owner of positionId is account_.
+        stakingAM.setOwnerOfPositionId(account_, positionId);
+        stakingAM.setAssetInPosition(asset, positionId);
+
+        // And : The amount staked does not fit the uint128 total staked of the Asset.
+        totalStaked = uint128(bound(totalStaked, 1, type(uint128).max));
+        amount = uint128(bound(amount, type(uint128).max - totalStaked + 1, type(uint128).max));
+        stakingAM.setTotalStaked(asset, totalStaked);
+
+        deal(asset, account_, amount, true);
+        vm.startPrank(account_);
+        ERC20Mock(asset).approve(address(stakingAM), amount);
+
+        // When : A user increases the liquidity of the position.
+        // Then : It reverts on the checked addition of the total staked.
+        vm.expectRevert(stdError.arithmeticError);
+        stakingAM.increaseLiquidity(positionId, amount);
+        vm.stopPrank();
+    }
+
     function testFuzz_Success_increaseLiquidity(
         uint8 assetDecimals,
         StakingAMStateForAsset memory assetState,
         StakingAM.PositionState memory positionState,
+        StakingAMStateForSurplus memory surplusState,
         uint96 positionId,
         uint128 amount,
         address account_
@@ -74,10 +110,11 @@ contract IncreaseLiquidity_AbstractStakingAM_Fuzz_Test is AbstractStakingAM_Fuzz
             asset = addAsset(assetDecimals);
 
             // Given : Valid state
-            (assetState, positionState) = givenValidStakingAMState(assetState, positionState, 0, type(uint128).max - 1);
+            (assetState, positionState) =
+                givenValidStakingAMState(assetState, positionState, surplusState, 0, type(uint128).max - 1);
 
             // And: State is persisted.
-            setStakingAMState(assetState, positionState, asset, positionId);
+            setStakingAMState(assetState, positionState, surplusState, asset, positionId);
 
             // Given : Owner of positionId is Account
             stakingAM.setOwnerOfPositionId(account_, positionId);
@@ -110,11 +147,7 @@ contract IncreaseLiquidity_AbstractStakingAM_Fuzz_Test is AbstractStakingAM_Fuzz
         ) = stakingAM.positionState(positionId);
         assertEq(newPositionState.asset, asset);
         assertEq(newPositionState.amountStaked, positionState.amountStaked + amount);
-        uint128 currentRewardPerToken;
-        unchecked {
-            currentRewardPerToken = assetState.lastRewardPerTokenGlobal
-                + uint128(assetState.currentRewardGlobal.mulDivDown(1e18, assetState.totalStaked));
-        }
+        uint128 currentRewardPerToken = currentRewardPerTokenGlobal(assetState);
         assertEq(newPositionState.lastRewardPerTokenPosition, currentRewardPerToken);
         uint128 deltaRewardPerToken;
         unchecked {
@@ -128,5 +161,53 @@ contract IncreaseLiquidity_AbstractStakingAM_Fuzz_Test is AbstractStakingAM_Fuzz
         (newAssetState.lastRewardPerTokenGlobal, newAssetState.totalStaked,) = stakingAM.assetState(asset);
         assertEq(newAssetState.lastRewardPerTokenGlobal, currentRewardPerToken);
         assertEq(newAssetState.totalStaked, assetState.totalStaked + amount);
+
+        // And: The reward token balance is cached.
+        assertEq(stakingAM.getLastRewardBalance(), rewardToken.balanceOf(address(stakingAM)));
+    }
+
+    function testFuzz_Success_increaseLiquidity_BookedSurplusNotCredited(
+        uint8 assetDecimals,
+        StakingAMStateForSurplus memory surplusState,
+        uint128 amount,
+        uint128 amountSecond,
+        uint128 reward,
+        uint128 booked
+    ) public {
+        // Given: An Asset is added to the stakingAM.
+        address asset = addAsset(assetDecimals);
+
+        // And: Valid surplus state.
+        givenValidStakingAMState(surplusState);
+        setStakingAMState(surplusState);
+
+        // And: A position is staked, whose stake keeps the reward accumulator in range.
+        amount = uint128(bound(amount, 1e18, type(uint128).max / 2));
+        uint256 positionId = _stakeSolePosition(asset, amount);
+
+        // And: The staking contract will deliver a reward, of which the hook books a part for the recipient.
+        reward = uint128(bound(reward, 1, type(uint128).max));
+        booked = uint128(bound(booked, 1, reward));
+        stakingAM.setActualRewardBalance(asset, reward);
+        stakingAM.setBookedAmount(booked);
+        uint256 expectedReward = _credited(amount, reward - booked);
+
+        // And: The owner holds more of the Asset, keeping the total in a uint128.
+        amountSecond = uint128(bound(amountSecond, 1, type(uint128).max - amount));
+        deal(asset, users.liquidityProvider, amountSecond, true);
+        vm.startPrank(users.liquidityProvider);
+        ERC20Mock(asset).approve(address(stakingAM), amountSecond);
+
+        // When: The position increases its liquidity.
+        stakingAM.increaseLiquidity(positionId, amountSecond);
+        vm.stopPrank();
+
+        // Then: The position is credited the delivered reward less the booked part.
+        (,,, uint128 lastRewardPosition) = stakingAM.positionState(positionId);
+        assertEq(lastRewardPosition, expectedReward);
+
+        // And: The booked amount is not credited to the position.
+        assertEq(stakingAM.bookedSurplus(), surplusState.bookedSurplus + booked);
+        assertEq(stakingAM.getLastRewardBalance(), rewardToken.balanceOf(address(stakingAM)));
     }
 }

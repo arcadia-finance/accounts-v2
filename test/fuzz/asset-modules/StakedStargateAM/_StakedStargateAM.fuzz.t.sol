@@ -4,13 +4,12 @@
  */
 pragma solidity ^0.8.0;
 
-import { StargateAM_Fuzz_Test } from "../StargateAM/_StargateAM.fuzz.t.sol";
-
 import { ArcadiaOracle } from "../../../utils/mocks/oracles/ArcadiaOracle.sol";
 import { BitPackingLib } from "../../../../src/libraries/BitPackingLib.sol";
 import { ERC20Mock } from "../../../utils/mocks/tokens/ERC20Mock.sol";
 import { LPStakingTimeMock } from "../../../utils/mocks/Stargate/StargateLpStakingMock.sol";
 import { StakedStargateAMExtension } from "../../../utils/extensions/StakedStargateAMExtension.sol";
+import { StargateAM_Fuzz_Test } from "../StargateAM/_StargateAM.fuzz.t.sol";
 
 /**
  * @notice Common logic needed by "StakedStargateAM" fuzz tests.
@@ -53,7 +52,8 @@ abstract contract StakedStargateAM_Fuzz_Test is StargateAM_Fuzz_Test {
         erc20AM.addAsset(address(lpStakingTimeMock.eToken()), BitPackingLib.pack(BA_TO_QA_SINGLE, oracleStgToUsdArr));
 
         // Deploy the Staked Stargate AssetModule.
-        stakedStargateAM = new StakedStargateAMExtension(users.owner, address(registry), address(lpStakingTimeMock));
+        stakedStargateAM =
+            new StakedStargateAMExtension(users.owner, address(registry), address(lpStakingTimeMock), users.treasury);
         registry.addAssetModule(address(stakedStargateAM));
         stakedStargateAM.initialize();
         vm.stopPrank();

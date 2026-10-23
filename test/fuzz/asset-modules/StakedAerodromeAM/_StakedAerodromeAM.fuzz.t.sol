@@ -52,7 +52,8 @@ abstract contract StakedAerodromeAM_Fuzz_Test is Fuzz_Test, AbstractStakingAM_Fu
         registry.addAssetModule(address(aerodromePoolAM));
 
         // Deploy StakedAerodromeAM.
-        stakedAerodromeAM = new StakedAerodromeAMExtension(users.owner, address(registry), address(voter), AERO);
+        stakedAerodromeAM =
+            new StakedAerodromeAMExtension(users.owner, address(registry), address(voter), AERO, users.treasury);
         registry.addAssetModule(address(stakedAerodromeAM));
         stakedAerodromeAM.initialize();
         vm.stopPrank();
@@ -66,6 +67,7 @@ abstract contract StakedAerodromeAM_Fuzz_Test is Fuzz_Test, AbstractStakingAM_Fu
     function setStakedAerodromeAMState(
         StakingAMStateForAsset memory stakingAMStateForAsset,
         StakingAM.PositionState memory stakingAMStateForPosition,
+        StakingAMStateForSurplus memory stakingAMStateForSurplus,
         address asset,
         uint96 id
     ) internal {
@@ -82,5 +84,11 @@ abstract contract StakedAerodromeAM_Fuzz_Test is Fuzz_Test, AbstractStakingAM_Fu
         stakedAerodromeAM.setAmountStakedForPosition(id, stakingAMStateForPosition.amountStaked);
         stakingAMStateForPosition.asset = asset;
         stakedAerodromeAM.setAssetInPosition(asset, id);
+
+        deal(AERO, address(stakedAerodromeAM), stakingAMStateForSurplus.lastRewardBalance);
+        stakedAerodromeAM.setLastRewardBalance(stakingAMStateForSurplus.lastRewardBalance);
+        stakedAerodromeAM.setBookedSurplus(stakingAMStateForSurplus.bookedSurplus);
+        vm.prank(users.owner);
+        stakedAerodromeAM.setSurplusRecipient(stakingAMStateForSurplus.surplusRecipient);
     }
 }

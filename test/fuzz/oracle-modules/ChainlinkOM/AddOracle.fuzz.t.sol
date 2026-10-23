@@ -66,7 +66,8 @@ contract AddOracle_ChainlinkOM_Fuzz_Test is ChainlinkOM_Fuzz_Test {
         if (oracle.code.length == 0 && !isPrecompile(oracle)) {
             vm.expectRevert(bytes(""));
         } else {
-            vm.expectRevert(bytes(""));
+            // A contract that is not an oracle reverts with unknown data.
+            vm.expectRevert();
         }
         chainlinkOM.addOracle(oracle, baseAsset, quoteAsset, cutOffTime);
     }

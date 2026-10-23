@@ -10,14 +10,12 @@ import {
     StakingAM,
     ERC20Mock
 } from "./_StakedAerodromeAM.fuzz.t.sol";
-import { FixedPointMathLib } from "../../../../lib/solmate/src/utils/FixedPointMathLib.sol";
 
 /**
  * @notice Fuzz tests for the function "mint" of contract "StakedAerodromeAM".
  */
 // forge-lint: disable-next-item(unsafe-typecast)
 contract Mint_StakedAerodromeAM_Fuzz_Test is StakedAerodromeAM_Fuzz_Test {
-    using FixedPointMathLib for uint256;
     /* ///////////////////////////////////////////////////////////////
                               SETUP
     /////////////////////////////////////////////////////////////// */
@@ -26,25 +24,34 @@ contract Mint_StakedAerodromeAM_Fuzz_Test is StakedAerodromeAM_Fuzz_Test {
         StakedAerodromeAM_Fuzz_Test.setUp();
     }
 
+    /* ///////////////////////////////////////////////////////////////
+                              TESTS
+    /////////////////////////////////////////////////////////////// */
+
     function testFuzz_Revert_mint_ZeroAmount(address asset) public {
-        // The stake function should revert when trying to stake 0 amount.
+        // Given: Any asset.
+
+        // When: Calling mint() for a zero amount.
+        // Then: It reverts.
         vm.expectRevert(StakingAM.ZeroAmount.selector);
         stakedAerodromeAM.mint(asset, 0);
     }
 
     function testFuzz_Revert_mint_AssetNotAllowed(uint8 assetDecimals, uint128 amount, address account_) public {
-        // Given : Amount is greater than zero
+        // Given: Amount is greater than zero.
         amount = uint128(bound(amount, 1, type(uint128).max));
 
+        // And: An ERC20 with a realistic amount of decimals, not added to the Asset Module.
         assetDecimals = uint8(bound(assetDecimals, 0, 18));
         address asset = address(new ERC20Mock("Asset", "AST", assetDecimals));
 
+        // And: The Account holds a non-zero balance of it, approved to the Asset Module.
         deal(asset, account_, amount, true);
         vm.prank(account_);
         ERC20Mock(asset).approve(address(stakedAerodromeAM), amount);
 
-        // When : Calling Stake
-        // Then : The function should revert as the asset has not been added to the stakedAerodromeAM.
+        // When: Calling mint() for that asset.
+        // Then: It reverts.
         vm.prank(account_);
         vm.expectRevert(StakingAM.AssetNotAllowed.selector);
         stakedAerodromeAM.mint(asset, amount);
@@ -53,49 +60,53 @@ contract Mint_StakedAerodromeAM_Fuzz_Test is StakedAerodromeAM_Fuzz_Test {
     function testFuzz_Success_mint_TotalStakedForAssetGreaterThan0(
         AbstractStakingAM_Fuzz_Test.StakingAMStateForAsset memory assetState,
         uint128 amount,
-        address account_
+        address account_,
+        StakingAMStateForSurplus memory surplusState
     ) public canReceiveERC721(account_) {
+        // Given: The Account can hold a position.
         vm.assume(account_ != address(0));
 
-        // Given : the aeroPool is allowed in the Registry
+        // And: The aeroPool is allowed in the Registry.
         aeroPool = createPoolAerodrome(address(mockERC20.token1), address(mockERC20.stable1), false);
         vm.prank(users.owner);
         aerodromePoolAM.addAsset(address(aeroPool));
         vm.assume(account_ != address(aeroPool));
         vm.assume(account_ != aeroPool.poolFees());
 
-        // Given : Valid aeroGauge
+        // And: Valid aeroGauge.
         aeroGauge = createGaugeAerodrome(aeroPool, AERO);
         vm.assume(account_ != address(aeroGauge));
         vm.assume(account_ != address(voter));
 
-        // And : Add asset and aeroGauge to the AM
+        // And: Add asset and aeroGauge to the AM.
         stakedAerodromeAM.addAsset(address(aeroGauge));
 
         {
             // And: Valid state.
             StakingAM.PositionState memory positionState;
-            (assetState, positionState) = givenValidStakingAMState(assetState, positionState, 0, type(uint128).max - 1);
+            (assetState, positionState) =
+                givenValidStakingAMState(assetState, positionState, surplusState, 0, type(uint128).max - 1);
 
             // And: State is persisted.
-            setStakedAerodromeAMState(assetState, positionState, address(aeroPool), 0);
+            setStakedAerodromeAMState(assetState, positionState, surplusState, address(aeroPool), 0);
 
-            // And: updated totalStake should not be greater than uint128.
-            // And: Amount staked is greater than zero.
+            // And: Amount staked is non-zero and the updated totalStaked still fits a uint128.
             amount = uint128(bound(amount, 1, type(uint128).max - assetState.totalStaked));
 
+            // And: Account has a balance of aeroPool LP tokens, approved to the Asset Module.
             deal(address(aeroPool), account_, amount);
             vm.prank(account_);
             ERC20Mock(address(aeroPool)).approve(address(stakedAerodromeAM), amount);
         }
 
-        // When:  A user is staking via the Staking Module.
+        // When: A user is staking via the Staking Module.
+        // Then: The liquidity is increased.
         vm.startPrank(account_);
         vm.expectEmit();
         emit StakingAM.LiquidityIncreased(1, address(aeroPool), amount);
         uint256 positionId = stakedAerodromeAM.mint(address(aeroPool), amount);
 
-        // Then: Assets should have been transferred to the aeroGauge.
+        // And: Assets should have been transferred to the aeroGauge.
         assertEq(aeroGauge.balanceOf(address(stakedAerodromeAM)), amount);
 
         // And: New position has been minted to Account.
@@ -111,11 +122,7 @@ contract Mint_StakedAerodromeAM_Fuzz_Test is StakedAerodromeAM_Fuzz_Test {
         ) = stakedAerodromeAM.positionState(positionId);
         assertEq(newPositionState.asset, address(aeroPool));
         assertEq(newPositionState.amountStaked, amount);
-        uint128 currentRewardPerToken;
-        unchecked {
-            currentRewardPerToken = assetState.lastRewardPerTokenGlobal
-                + uint128(assetState.currentRewardGlobal.mulDivDown(1e18, assetState.totalStaked));
-        }
+        uint128 currentRewardPerToken = currentRewardPerTokenGlobal(assetState);
         assertEq(newPositionState.lastRewardPerTokenPosition, currentRewardPerToken);
         assertEq(newPositionState.lastRewardPosition, 0);
 
@@ -125,56 +132,63 @@ contract Mint_StakedAerodromeAM_Fuzz_Test is StakedAerodromeAM_Fuzz_Test {
             stakedAerodromeAM.assetState(address(aeroPool));
         assertEq(newAssetState.lastRewardPerTokenGlobal, currentRewardPerToken);
         assertEq(newAssetState.totalStaked, assetState.totalStaked + amount);
-        assertEq(stakedAerodromeAM.REWARD_TOKEN().balanceOf(address(stakedAerodromeAM)), assetState.currentRewardGlobal);
+        assertEq(
+            stakedAerodromeAM.REWARD_TOKEN().balanceOf(address(stakedAerodromeAM)),
+            surplusState.lastRewardBalance + assetState.currentRewardGlobal
+        );
     }
 
     function testFuzz_Success_mint_TotalStakedForAssetIsZero(
         StakingAMStateForAsset memory assetState,
         uint128 amount,
-        address account_
+        address account_,
+        StakingAMStateForSurplus memory surplusState
     ) public canReceiveERC721(account_) {
+        // Given: The Account can hold a position.
         vm.assume(account_ != address(0));
 
-        // Given : the aeroPool is allowed in the Registry
+        // And: The aeroPool is allowed in the Registry.
         aeroPool = createPoolAerodrome(address(mockERC20.token1), address(mockERC20.stable1), false);
         vm.prank(users.owner);
         aerodromePoolAM.addAsset(address(aeroPool));
         vm.assume(account_ != address(aeroPool));
         vm.assume(account_ != aeroPool.poolFees());
 
-        // Given : Valid aeroGauge
+        // And: Valid aeroGauge.
         aeroGauge = createGaugeAerodrome(aeroPool, AERO);
         vm.assume(account_ != address(aeroGauge));
         vm.assume(account_ != address(voter));
 
-        // And : Add asset and aeroGauge to the AM
+        // And: Add asset and aeroGauge to the AM.
         stakedAerodromeAM.addAsset(address(aeroGauge));
 
         // And: Valid state.
         StakingAM.PositionState memory positionState;
-        (assetState, positionState) = givenValidStakingAMState(assetState, positionState, 0, type(uint128).max - 1);
+        (assetState, positionState) =
+            givenValidStakingAMState(assetState, positionState, surplusState, 0, type(uint128).max - 1);
 
         // And: TotalStaked is 0.
         assetState.totalStaked = 0;
 
         // And: State is persisted.
-        setStakedAerodromeAMState(assetState, positionState, address(aeroPool), 0);
+        setStakedAerodromeAMState(assetState, positionState, surplusState, address(aeroPool), 0);
 
         // And: Amount staked is greater than zero.
-        amount = uint128(bound(amount, 1, type(uint128).max));
+        vm.assume(amount != 0);
 
-        // And : Account has a balanceOf aeroPool LP tokens
+        // And: Account has a balanceOf aeroPool LP tokens, approved to the Asset Module.
         deal(address(aeroPool), account_, amount);
         vm.prank(account_);
         ERC20Mock(address(aeroPool)).approve(address(stakedAerodromeAM), amount);
 
         // When: A user is staking via the Staking Module.
+        // Then: The liquidity is increased.
         vm.startPrank(account_);
         vm.expectEmit();
         emit StakingAM.LiquidityIncreased(1, address(aeroPool), amount);
         uint256 positionId = stakedAerodromeAM.mint(address(aeroPool), amount);
 
-        // Then: Assets should have been transferred to the aeroGauge.
+        // And: Assets should have been transferred to the aeroGauge.
         assertEq(aeroGauge.balanceOf(address(stakedAerodromeAM)), amount);
 
         // And: New position has been minted to Account.

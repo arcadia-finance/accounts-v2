@@ -5,14 +5,13 @@
 pragma solidity ^0.8.0;
 
 import { AbstractStakingAM_Fuzz_Test, StakingAM, ERC20Mock } from "./_AbstractStakingAM.fuzz.t.sol";
-import { FixedPointMathLib } from "../../../../lib/solmate/src/utils/FixedPointMathLib.sol";
+import { stdError } from "../../../../lib/forge-std/src/StdError.sol";
 
 /**
  * @notice Fuzz tests for the function "mint" of contract "StakingAM".
  */
 // forge-lint: disable-next-item(unsafe-typecast)
 contract Mint_AbstractStakingAM_Fuzz_Test is AbstractStakingAM_Fuzz_Test {
-    using FixedPointMathLib for uint256;
     /* ///////////////////////////////////////////////////////////////
                               SETUP
     /////////////////////////////////////////////////////////////// */
@@ -55,9 +54,39 @@ contract Mint_AbstractStakingAM_Fuzz_Test is AbstractStakingAM_Fuzz_Test {
         stakingAM.mint(asset, amount);
     }
 
+    function testFuzz_Revert_mint_TotalStakedOverflow(
+        uint8 assetDecimals,
+        uint128 totalStaked,
+        uint128 amount,
+        address account_
+    ) public {
+        vm.assume(account_ != address(0));
+        vm.assume(account_ != address(stakingAM));
+
+        // Given : An Asset is added to the stakingAM.
+        address asset = addAsset(assetDecimals);
+        vm.assume(account_ != asset);
+
+        // And : The amount staked does not fit the uint128 total staked of the Asset.
+        totalStaked = uint128(bound(totalStaked, 1, type(uint128).max));
+        amount = uint128(bound(amount, type(uint128).max - totalStaked + 1, type(uint128).max));
+        stakingAM.setTotalStaked(asset, totalStaked);
+
+        deal(asset, account_, amount, true);
+        vm.startPrank(account_);
+        ERC20Mock(asset).approve(address(stakingAM), amount);
+
+        // When : A user mints a position.
+        // Then : It reverts on the checked addition of the total staked.
+        vm.expectRevert(stdError.arithmeticError);
+        stakingAM.mint(asset, amount);
+        vm.stopPrank();
+    }
+
     function testFuzz_Success_mint_TotalStakedForAssetGreaterThan0(
         uint8 assetDecimals,
         StakingAMStateForAsset memory assetState,
+        StakingAMStateForSurplus memory surplusState,
         uint128 amount,
         address account_
     ) public canReceiveERC721(account_) {
@@ -73,10 +102,11 @@ contract Mint_AbstractStakingAM_Fuzz_Test is AbstractStakingAM_Fuzz_Test {
 
             // And: Valid state.
             StakingAM.PositionState memory positionState;
-            (assetState, positionState) = givenValidStakingAMState(assetState, positionState, 0, type(uint128).max - 1);
+            (assetState, positionState) =
+                givenValidStakingAMState(assetState, positionState, surplusState, 0, type(uint128).max - 1);
 
             // And: State is persisted.
-            setStakingAMState(assetState, positionState, asset, 0);
+            setStakingAMState(assetState, positionState, surplusState, asset, 0);
 
             // And: updated totalStake should not be greater than uint128.
             // And: Amount staked is greater than zero.
@@ -109,11 +139,7 @@ contract Mint_AbstractStakingAM_Fuzz_Test is AbstractStakingAM_Fuzz_Test {
         ) = stakingAM.positionState(positionId);
         assertEq(newPositionState.asset, asset);
         assertEq(newPositionState.amountStaked, amount);
-        uint128 currentRewardPerToken;
-        unchecked {
-            currentRewardPerToken = assetState.lastRewardPerTokenGlobal
-                + uint128(assetState.currentRewardGlobal.mulDivDown(1e18, assetState.totalStaked));
-        }
+        uint128 currentRewardPerToken = currentRewardPerTokenGlobal(assetState);
         assertEq(newPositionState.lastRewardPerTokenPosition, currentRewardPerToken);
         assertEq(newPositionState.lastRewardPosition, 0);
 
@@ -122,11 +148,15 @@ contract Mint_AbstractStakingAM_Fuzz_Test is AbstractStakingAM_Fuzz_Test {
         (newAssetState.lastRewardPerTokenGlobal, newAssetState.totalStaked,) = stakingAM.assetState(asset);
         assertEq(newAssetState.lastRewardPerTokenGlobal, currentRewardPerToken);
         assertEq(newAssetState.totalStaked, assetState.totalStaked + amount);
+
+        // And: The reward token balance is cached.
+        assertEq(stakingAM.getLastRewardBalance(), rewardToken.balanceOf(address(stakingAM)));
     }
 
     function testFuzz_Success_mint_TotalStakedForAssetIsZero(
         uint8 assetDecimals,
         StakingAMStateForAsset memory assetState,
+        StakingAMStateForSurplus memory surplusState,
         uint128 amount,
         address account_
     ) public canReceiveERC721(account_) {
@@ -140,13 +170,14 @@ contract Mint_AbstractStakingAM_Fuzz_Test is AbstractStakingAM_Fuzz_Test {
 
         // And: Valid state.
         StakingAM.PositionState memory positionState;
-        (assetState, positionState) = givenValidStakingAMState(assetState, positionState, 0, type(uint128).max - 1);
+        (assetState, positionState) =
+            givenValidStakingAMState(assetState, positionState, surplusState, 0, type(uint128).max - 1);
 
         // And: TotalStaked is 0.
         assetState.totalStaked = 0;
 
         // And: State is persisted.
-        setStakingAMState(assetState, positionState, asset, 0);
+        setStakingAMState(assetState, positionState, surplusState, asset, 0);
 
         // And: Amount staked is greater than zero.
         amount = uint128(bound(amount, 1, type(uint128).max));
@@ -185,5 +216,52 @@ contract Mint_AbstractStakingAM_Fuzz_Test is AbstractStakingAM_Fuzz_Test {
         (newAssetState.lastRewardPerTokenGlobal, newAssetState.totalStaked,) = stakingAM.assetState(asset);
         assertEq(newAssetState.lastRewardPerTokenGlobal, assetState.lastRewardPerTokenGlobal);
         assertEq(newAssetState.totalStaked, amount);
+
+        // And: The reward token balance is cached.
+        assertEq(stakingAM.getLastRewardBalance(), rewardToken.balanceOf(address(stakingAM)));
+    }
+
+    function testFuzz_Success_mint_BookedSurplusNotCredited(
+        uint8 assetDecimals,
+        StakingAMStateForSurplus memory surplusState,
+        uint128 amount,
+        uint128 amountSecond,
+        uint128 reward,
+        uint128 booked
+    ) public {
+        // Given: An Asset is added to the stakingAM.
+        address asset = addAsset(assetDecimals);
+
+        // And: Valid surplus state.
+        givenValidStakingAMState(surplusState);
+        setStakingAMState(surplusState);
+
+        // And: A position is staked, whose stake keeps the reward accumulator in range.
+        amount = uint128(bound(amount, 1e18, type(uint128).max / 2));
+        uint256 positionId = _stakeSolePosition(asset, amount);
+
+        // And: The staking contract will deliver a reward, of which the hook books a part for the recipient.
+        reward = uint128(bound(reward, 1, type(uint128).max));
+        booked = uint128(bound(booked, 1, reward));
+        stakingAM.setActualRewardBalance(asset, reward);
+        stakingAM.setBookedAmount(booked);
+        uint256 expectedReward = _credited(amount, reward - booked);
+
+        // And: A second staker holds the Asset, keeping the total in a uint128.
+        amountSecond = uint128(bound(amountSecond, 1, type(uint128).max - amount));
+        deal(asset, users.accountOwner, amountSecond, true);
+        vm.startPrank(users.accountOwner);
+        ERC20Mock(asset).approve(address(stakingAM), amountSecond);
+
+        // When: The second staker mints.
+        stakingAM.mint(asset, amountSecond);
+        vm.stopPrank();
+
+        // Then: The first position accrued the delivered reward less the booked part.
+        assertEq(stakingAM.rewardOf(positionId), expectedReward);
+
+        // And: The booked amount is not credited to the position.
+        assertEq(stakingAM.bookedSurplus(), surplusState.bookedSurplus + booked);
+        assertEq(stakingAM.getLastRewardBalance(), rewardToken.balanceOf(address(stakingAM)));
     }
 }

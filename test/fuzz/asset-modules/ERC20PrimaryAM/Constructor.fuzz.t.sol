@@ -5,7 +5,6 @@
 pragma solidity ^0.8.0;
 
 import { ERC20PrimaryAM_Fuzz_Test } from "./_ERC20PrimaryAM.fuzz.t.sol";
-
 import { ERC20PrimaryAMExtension } from "../../../utils/extensions/ERC20PrimaryAMExtension.sol";
 
 /**
@@ -23,7 +22,7 @@ contract Constructor_ERC20PrimaryAM_Fuzz_Test is ERC20PrimaryAM_Fuzz_Test {
     /*//////////////////////////////////////////////////////////////
                               TESTS
     //////////////////////////////////////////////////////////////*/
-    function testFuzz_Success_deployment(address registry_) public {
+    function testFuzz_Success_constructor(address registry_) public {
         vm.startPrank(users.owner);
         ERC20PrimaryAMExtension erc20AssetModule_ = new ERC20PrimaryAMExtension(users.owner, registry_);
         vm.stopPrank();

@@ -23,7 +23,7 @@ contract Constructor_RegistryL1_Fuzz_Test is RegistryL1_Fuzz_Test {
     /*//////////////////////////////////////////////////////////////
                               TESTS
     //////////////////////////////////////////////////////////////*/
-    function testFuzz_Success_deployment() public {
+    function testFuzz_Success_constructor() public {
         vm.prank(users.owner);
         RegistryL1Extension registry_ = new RegistryL1Extension(users.owner, address(factory));
 

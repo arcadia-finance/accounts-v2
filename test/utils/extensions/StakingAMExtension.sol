@@ -8,8 +8,8 @@ import { AssetValueAndRiskFactors } from "../../../src/libraries/AssetValuationL
 import { StakingAM } from "../../../src/asset-modules/abstracts/AbstractStakingAM.sol";
 
 abstract contract StakingAMExtension is StakingAM {
-    constructor(address owner_, address registry, string memory name_, string memory symbol_)
-        StakingAM(owner_, registry, name_, symbol_)
+    constructor(address owner_, address registry, string memory name_, string memory symbol_, address surplusRecipient_)
+        StakingAM(owner_, registry, name_, symbol_, surplusRecipient_)
     { }
 
     function addAsset(address asset) public {
@@ -41,6 +41,18 @@ abstract contract StakingAMExtension is StakingAM {
         positionState[id].amountStaked = uint128(amount);
     }
 
+    function getLastRewardBalance() public view returns (uint256 lastRewardBalance_) {
+        lastRewardBalance_ = lastRewardBalance;
+    }
+
+    function setLastRewardBalance(uint256 lastRewardBalance_) public {
+        lastRewardBalance = lastRewardBalance_;
+    }
+
+    function setBookedSurplus(uint256 bookedSurplus_) public {
+        bookedSurplus = bookedSurplus_;
+    }
+
     function getIdCounter() public view returns (uint256 lastId_) {
         lastId_ = lastPositionId;
     }
@@ -53,12 +65,12 @@ abstract contract StakingAMExtension is StakingAM {
         _ownerOf[positionId] = owner_;
     }
 
-    function getRewardBalances(AssetState memory assetState_, PositionState memory positionState_)
-        public
-        view
-        returns (AssetState memory, PositionState memory)
-    {
-        return _getRewardBalances(assetState_, positionState_);
+    function getRewardBalances(
+        AssetState memory assetState_,
+        PositionState memory positionState_,
+        uint256 currentReward
+    ) public pure returns (AssetState memory, PositionState memory) {
+        return _getRewardBalances(assetState_, positionState_, currentReward);
     }
 
     function mintIdTo(address to, uint256 tokenId) public {

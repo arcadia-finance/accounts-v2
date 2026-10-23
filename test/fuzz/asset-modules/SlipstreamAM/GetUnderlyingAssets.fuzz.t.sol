@@ -5,6 +5,7 @@
 pragma solidity ^0.8.0;
 
 import { SlipstreamAM_Fuzz_Test } from "./_SlipstreamAM.fuzz.t.sol";
+import { TickMath } from "../../../../src/asset-modules/UniswapV3/libraries/TickMath.sol";
 
 /**
  * @notice Fuzz tests for the function "_getUnderlyingAssets" of contract "SlipstreamAM".
@@ -15,7 +16,6 @@ contract GetUnderlyingAssets_SlipstreamAM_Fuzz_Test is SlipstreamAM_Fuzz_Test {
                               VARIABLES
     /////////////////////////////////////////////////////////////// */
 
-    uint256 internal id;
     address token0;
     address token1;
 
@@ -26,7 +26,6 @@ contract GetUnderlyingAssets_SlipstreamAM_Fuzz_Test is SlipstreamAM_Fuzz_Test {
     function setUp() public override {
         SlipstreamAM_Fuzz_Test.setUp();
 
-        (id,,) = addLiquidityCL(poolStable1Stable2, 100, 100, users.liquidityProvider, 0, 1, true);
         (token0, token1) = address(mockERC20.stable1) < address(mockERC20.stable2)
             ? (address(mockERC20.stable1), address(mockERC20.stable2))
             : (address(mockERC20.stable2), address(mockERC20.stable1));
@@ -37,30 +36,46 @@ contract GetUnderlyingAssets_SlipstreamAM_Fuzz_Test is SlipstreamAM_Fuzz_Test {
     /*//////////////////////////////////////////////////////////////
                               TESTS
     //////////////////////////////////////////////////////////////*/
-    function testFuzz_Success_getUnderlyingAssets_InAssetModulea() public {
-        vm.prank(users.owner);
-        slipstreamAM.addAsset(id);
+    function testFuzz_Success_getUnderlyingAssets_InAssetModule(uint128 liquidity, int24 tickLower, int24 tickUpper)
+        public
+    {
+        // Given: A valid liquidity position in the stable1/stable2 pool.
+        tickLower = int24(bound(tickLower, TickMath.MIN_TICK, TickMath.MAX_TICK - 1));
+        tickUpper = int24(bound(tickUpper, tickLower + 1, TickMath.MAX_TICK));
+        liquidity = uint128(bound(liquidity, 1, poolStable1Stable2.maxLiquidityPerTick()));
+        (uint256 assetId,,) =
+            addLiquidityCL(poolStable1Stable2, liquidity, users.liquidityProvider, tickLower, tickUpper, false);
 
-        bytes32 assetKey = bytes32(abi.encodePacked(uint96(id), address(nonfungiblePositionManagerMock)));
-        bytes32[] memory expectedUnderlyingAssetKeys = new bytes32[](2);
-        expectedUnderlyingAssetKeys[0] = bytes32(abi.encodePacked(uint96(0), token0));
-        expectedUnderlyingAssetKeys[1] = bytes32(abi.encodePacked(uint96(0), token1));
+        // And: The position is added to the Asset Module.
+        slipstreamAM.addAsset(assetId);
 
-        bytes32[] memory actualUnderlyingAssetKeys = slipstreamAM.getUnderlyingAssets(assetKey);
+        // When: The underlying assets of the position are queried.
+        bytes32[] memory actualUnderlyingAssetKeys = slipstreamAM.getUnderlyingAssets(
+            bytes32(abi.encodePacked(uint96(assetId), address(slipstreamPositionManager)))
+        );
 
-        assertEq(actualUnderlyingAssetKeys[0], expectedUnderlyingAssetKeys[0]);
-        assertEq(actualUnderlyingAssetKeys[1], expectedUnderlyingAssetKeys[1]);
+        // Then: The stored keys of both pool tokens are returned.
+        assertEq(actualUnderlyingAssetKeys[0], bytes32(abi.encodePacked(uint96(0), token0)));
+        assertEq(actualUnderlyingAssetKeys[1], bytes32(abi.encodePacked(uint96(0), token1)));
     }
 
-    function testFuzz_Success_getUnderlyingAssets_NotInAssetModule() public view {
-        bytes32 assetKey = bytes32(abi.encodePacked(uint96(id), address(nonfungiblePositionManagerMock)));
-        bytes32[] memory expectedUnderlyingAssetKeys = new bytes32[](2);
-        expectedUnderlyingAssetKeys[0] = bytes32(abi.encodePacked(uint96(0), token0));
-        expectedUnderlyingAssetKeys[1] = bytes32(abi.encodePacked(uint96(0), token1));
+    function testFuzz_Success_getUnderlyingAssets_NotInAssetModule(uint128 liquidity, int24 tickLower, int24 tickUpper)
+        public
+    {
+        // Given: A valid liquidity position in the stable1/stable2 pool, not added to the Asset Module.
+        tickLower = int24(bound(tickLower, TickMath.MIN_TICK, TickMath.MAX_TICK - 1));
+        tickUpper = int24(bound(tickUpper, tickLower + 1, TickMath.MAX_TICK));
+        liquidity = uint128(bound(liquidity, 1, poolStable1Stable2.maxLiquidityPerTick()));
+        (uint256 assetId,,) =
+            addLiquidityCL(poolStable1Stable2, liquidity, users.liquidityProvider, tickLower, tickUpper, false);
 
-        bytes32[] memory actualUnderlyingAssetKeys = slipstreamAM.getUnderlyingAssets(assetKey);
+        // When: The underlying assets of the position are queried.
+        bytes32[] memory actualUnderlyingAssetKeys = slipstreamAM.getUnderlyingAssets(
+            bytes32(abi.encodePacked(uint96(assetId), address(slipstreamPositionManager)))
+        );
 
-        assertEq(actualUnderlyingAssetKeys[0], expectedUnderlyingAssetKeys[0]);
-        assertEq(actualUnderlyingAssetKeys[1], expectedUnderlyingAssetKeys[1]);
+        // Then: The keys of both pool tokens are read from the position manager.
+        assertEq(actualUnderlyingAssetKeys[0], bytes32(abi.encodePacked(uint96(0), token0)));
+        assertEq(actualUnderlyingAssetKeys[1], bytes32(abi.encodePacked(uint96(0), token1)));
     }
 }

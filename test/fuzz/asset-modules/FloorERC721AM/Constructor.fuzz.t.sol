@@ -5,7 +5,6 @@
 pragma solidity ^0.8.0;
 
 import { FloorERC721AM_Fuzz_Test } from "./_FloorERC721AM.fuzz.t.sol";
-
 import { FloorERC721AMExtension } from "../../../utils/extensions/FloorERC721AMExtension.sol";
 
 /**
@@ -23,7 +22,7 @@ contract Constructor_FloorERC721AM_Fuzz_Test is FloorERC721AM_Fuzz_Test {
     /*//////////////////////////////////////////////////////////////
                               TESTS
     //////////////////////////////////////////////////////////////*/
-    function testFuzz_Success_deployment(address registry_) public {
+    function testFuzz_Success_constructor(address registry_) public {
         vm.startPrank(users.owner);
         // forge-lint: disable-next-line(mixed-case-variable)
         FloorERC721AMExtension floorERC721AM_ = new FloorERC721AMExtension(users.owner, registry_);

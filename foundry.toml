@@ -9,6 +9,7 @@ isolate = false
 fuzz = { runs = 50, max_test_rejects = 100_000_000}
 no_match_path = "**/{script/,test/fork/}*"
 compilation_restrictions = [
+    { paths = "lib/metadex-slipstream/contracts/**", version = "=0.7.6" },
     { paths = "lib/slipstream/contracts/**", version = "=0.7.6" },
     { paths = "lib/v3-core/contracts/**", version = "=0.7.6" },
     { paths = "lib/v3-periphery/contracts/**", version = "=0.7.6" },
@@ -19,15 +20,29 @@ remappings = [
     "@uniswap/v3-core/contracts/=lib/v3-core/contracts/",
     "@uniswap/v3-periphery/contracts/=lib/v3-periphery/contracts/",
     "@uniswap/v4-core/=lib/v4-periphery/lib/v4-core/",
+    "lib/metadex-slipstream:contracts/=lib/metadex-slipstream/contracts/",
     "contracts/=lib/slipstream/contracts",
     "solmate/=lib/solmate/",
     "lib/openzeppelin-contracts-upgradeable-v4.9:@openzeppelin/=lib/openzeppelin-contracts-v4.9/",
     "lib/merkl-contracts:@openzeppelin/contracts/=lib/openzeppelin-contracts-v4.9/contracts/",
     "lib/merkl-contracts:@openzeppelin/contracts-upgradeable/=lib/openzeppelin-contracts-upgradeable-v4.9/contracts/",
+    "lib/metadex:V3/=lib/metadex/V3/src/",
+    "lib/metadex:@nomad-xyz/src/=lib/excessively-safe-call-value/src/",
+    "lib/metadex:@openzeppelin/contracts/=lib/openzeppelin-contracts-v5/contracts/",
+    "lib/metadex:@solady/=lib/solady/src/",
+    "lib/metadex-slipstream:@nomad-xyz/excessively-safe-call/=lib/excessively-safe-call/",
+    "lib/metadex-slipstream:@openzeppelin/=lib/openzeppelin-contracts-v3.4/",
     "lib/slipstream:@openzeppelin/=lib/slipstream/lib/openzeppelin-contracts/",
     "lib/v3-periphery:@openzeppelin/=lib/openzeppelin-contracts-v3.4/",
     "lib/v4-periphery:@openzeppelin/=lib/v4-periphery/lib/v4-core/lib/openzeppelin-contracts/",
     "lib/v4-periphery/lib/v4-core:@openzeppelin/=lib/v4-periphery/lib/v4-core/lib/openzeppelin-contracts/",
+]
+libraries = [
+    "lib/metadex/V3/src/libraries/AllocationLogicLibrary.sol:AllocationLogicLibrary:0x3000000000000000000000000000000000000001",
+    "lib/metadex/V3/src/libraries/LeafAllocationLibrary.sol:LeafAllocationLibrary:0x3000000000000000000000000000000000000002",
+    "lib/metadex/V3/src/libraries/RewardsLogicLibrary.sol:RewardsLogicLibrary:0x3000000000000000000000000000000000000003",
+    "lib/metadex/V3/src/libraries/VotingRewardsFactoryLibrary.sol:VotingRewardsFactoryLibrary:0x3000000000000000000000000000000000000004",
+    "lib/metadex-slipstream/contracts/core/libraries/CLPoolNonSwapPath.sol:CLPoolNonSwapPath:0x3000000000000000000000000000000000000005",
 ]
 fs_permissions = [{ access = "read", path = "./out"}, { access = "write", path = "./script/out"}]
 # Transient storage composability warning (known safe pattern in AccountsGuard):
@@ -43,8 +58,11 @@ ignored_error_codes = [2394, 2424, 3860, 4591, 5574, 8429]
 # Test-only submodules: not used in src/, safe to suppress all warnings.
 ignored_warnings_from = [
     "lib/forge-std-v1.13/",
+    "lib/metadex/",
+    "lib/metadex-slipstream/",
     "lib/openzeppelin-contracts-upgradeable-v4.9/",
     "lib/openzeppelin-contracts-v4.9/",
+    "lib/openzeppelin-contracts-v5/",
     "lib/slipstream/",
 ]
 
@@ -82,15 +100,29 @@ exclude_lints = [
 ignore = [
     "**/RemoveMerklOperator.fuzz.t.sol",
     "**/SetMerklOperators.fuzz.t.sol",
+    # Solc 0.7.6 emits no AST the linter can read, every file below is pinned to that pragma.
     "**/merkl/**/*",
     "**/test/CompilePragma7Dot6.t.sol",
     "**/test/utils/extensions/CLQuoterV2Extension.sol",
+    "**/test/utils/extensions/Metadex03CLQuoterV2Extension.sol",
     "**/test/utils/extensions/QuoterV2Extension.sol",
+    "**/test/utils/fixtures/metadex03/extensions/Metadex03CLFactoryExtension.sol",
+    "**/test/utils/fixtures/metadex03/extensions/Metadex03CLGaugeFactoryExtension.sol",
+    "**/test/utils/fixtures/metadex03/extensions/Metadex03CLPoolExtension.sol",
+    "**/test/utils/fixtures/metadex03/extensions/Metadex03CLSwapRouterExtension.sol",
+    "**/test/utils/fixtures/metadex03/extensions/Metadex03NonfungiblePositionManagerExtension.sol",
+    "**/test/utils/fixtures/metadex03/extensions/interfaces/IMetadex03FactoryRegistry.sol",
     "**/test/utils/fixtures/slipstream/extensions/CLPoolExtension.sol",
+    "**/test/utils/fixtures/slipstream/extensions/SlipstreamCLFactoryExtension.sol",
+    "**/test/utils/fixtures/slipstream/extensions/SlipstreamCLGaugeExtension.sol",
+    "**/test/utils/fixtures/slipstream/extensions/SlipstreamCLGaugeFactoryExtension.sol",
+    "**/test/utils/fixtures/slipstream/extensions/SlipstreamCLSwapRouterExtension.sol",
+    "**/test/utils/fixtures/slipstream/extensions/SlipstreamNonfungiblePositionManagerExtension.sol",
     "**/test/utils/fixtures/uniswap-v3/extensions/NonfungiblePositionManagerExtension.sol",
     "**/test/utils/fixtures/uniswap-v3/extensions/UniswapV3FactoryExtension.sol",
     "**/test/utils/fixtures/uniswap-v3/extensions/UniswapV3PoolDeployerExtension.sol",
     "**/test/utils/fixtures/uniswap-v3/extensions/UniswapV3PoolExtension.sol",
+    "**/test/utils/mocks/Metadex03/MockSwapHook.sol",
 ]
 
 [profile.dev]
@@ -101,3 +133,17 @@ fuzz = { runs = 200, max_test_rejects = 100_000_000}
 
 [profile.hf]
 fuzz = { runs = 2_000, max_test_rejects = 1_000_000_000}
+
+[profile.coverage]
+additional_compiler_profiles = [
+    { name = "optimized", via_ir = false, optimizer = true, optimizer_runs = 200 },
+]
+compilation_restrictions = [
+    { paths = "lib/**", optimizer_runs = 200 },
+    { paths = "test/**", optimizer_runs = 200 },
+    { paths = "lib/metadex-slipstream/contracts/**", version = "=0.7.6" },
+    { paths = "lib/slipstream/contracts/**", version = "=0.7.6" },
+    { paths = "lib/v3-core/contracts/**", version = "=0.7.6" },
+    { paths = "lib/v3-periphery/contracts/**", version = "=0.7.6" },
+    { paths = "lib/swap-router-contracts/contracts/**", version = "=0.7.6" },
+]

@@ -4,13 +4,13 @@
  */
 pragma solidity ^0.8.0;
 
-import { StakedSlipstreamAM_Fuzz_Test } from "./_StakedSlipstreamAM.fuzz.t.sol";
-
 import { ERC20 } from "../../../../lib/solmate/src/tokens/ERC20.sol";
 import { FixedPoint128 } from "../../../../src/asset-modules/UniswapV3/libraries/FixedPoint128.sol";
 import { FullMath } from "../../../../src/asset-modules/UniswapV3/libraries/FullMath.sol";
 import { StakedSlipstreamAM } from "../../../../src/asset-modules/Slipstream/StakedSlipstreamAM.sol";
+import { StakedSlipstreamAM_Fuzz_Test } from "./_StakedSlipstreamAM.fuzz.t.sol";
 import { StdStorage, stdStorage } from "../../../../lib/forge-std/src/Test.sol";
+import { TickMath } from "../../../../src/asset-modules/UniswapV3/libraries/TickMath.sol";
 
 /**
  * @notice Fuzz tests for the function "claimReward" of contract "StakedSlipstreamAM".
@@ -31,34 +31,35 @@ contract ClaimReward_StakedSlipstreamAM_Fuzz_Test is StakedSlipstreamAM_Fuzz_Tes
     /*//////////////////////////////////////////////////////////////
                               TESTS
     //////////////////////////////////////////////////////////////*/
-    function testFuzz_Revert_claimReward_NonExistingId(uint256 assetId) public {
-        // Given: assetId is not staked.
+    function testFuzz_Revert_claimReward_NonExistingId(uint256 assetId, address sender) public {
+        // Given: The asset id is not staked, so its owner reads as the zero address.
 
-        // When: sender claims rewards.
-        // Then: Transaction reverts.
+        // And: The sender is the caller, which the zero address can never be.
+        vm.assume(sender != address(0));
+        vm.prank(sender);
+
+        // When: The sender claims the reward.
+        // Then: It reverts.
         vm.expectRevert(StakedSlipstreamAM.NotOwner.selector);
         stakedSlipstreamAM.claimReward(assetId);
     }
 
-    function testFuzz_Revert_claimReward_NonOwner(StakedSlipstreamAM.PositionState memory position, address nonOwner)
-        public
-    {
-        // Given: sender is not the owner.
+    function testFuzz_Revert_claimReward_NonOwner(
+        StakedSlipstreamAM.PositionState memory position,
+        address nonOwner,
+        int24 tick
+    ) public {
+        // Given: A staked position of the liquidity provider.
+        tick = int24(bound(tick, TickMath.MIN_TICK, TickMath.MAX_TICK - 1));
+        deployAndAddGauge(tick);
+        position = givenValidPosition(position);
+        uint256 assetId = _stakePosition(position);
+
+        // And: The sender is not the owner of the position.
         vm.assume(nonOwner != users.liquidityProvider);
 
-        // And: assetId is minted.
-        deployAndAddGauge(0);
-        position = givenValidPosition(position);
-        uint256 assetId = addLiquidity(position);
-
-        // And: Position is staked.
-        vm.startPrank(users.liquidityProvider);
-        slipstreamPositionManager.approve(address(stakedSlipstreamAM), assetId);
-        stakedSlipstreamAM.mint(assetId);
-        vm.stopPrank();
-
-        // When: sender claims rewards.
-        // Then: Transaction reverts.
+        // When: The sender claims the reward.
+        // Then: It reverts.
         vm.prank(nonOwner);
         vm.expectRevert(StakedSlipstreamAM.NotOwner.selector);
         stakedSlipstreamAM.claimReward(assetId);
@@ -67,82 +68,123 @@ contract ClaimReward_StakedSlipstreamAM_Fuzz_Test is StakedSlipstreamAM_Fuzz_Tes
     function testFuzz_Success_claimReward_NonZeroReward(
         StakedSlipstreamAM.PositionState memory position,
         uint256 rewardGrowthGlobalX128Last,
-        uint256 rewardGrowthGlobalX128Current,
+        uint256 rewardGrowthDeltaX128,
         int24 tick
     ) public {
-        // Given : a valid position.
+        // Given: A valid position with the current tick of the pool in its range.
         position = givenValidPosition(position, 1);
-
-        // And : the current tick of the pool is in range (can't be equal to tickUpper, but can be equal to tickLower).
-        // forge-lint: disable-next-item(unsafe-typecast)
         tick = int24(bound(tick, position.tickLower, position.tickUpper - 1));
         deployAndAddGauge(tick);
 
-        // Given : An initial rewardGrowthGlobalX128.
+        // And: An initial rewardGrowthGlobalX128.
         stdstore.target(address(pool))
             .sig(pool.rewardGrowthGlobalX128.selector)
             .checked_write(rewardGrowthGlobalX128Last);
 
-        // And : assetId is minted.
-        uint256 assetId = addLiquidity(position);
+        // And: The position is staked.
+        uint256 assetId = _stakePosition(position);
 
-        // And: Position is staked.
-        vm.startPrank(users.liquidityProvider);
-        slipstreamPositionManager.approve(address(stakedSlipstreamAM), assetId);
-        stakedSlipstreamAM.mint(assetId);
-        vm.stopPrank();
+        // And: The reward is not zero and fits the uint128 the RewardPaid event narrows it to.
+        uint256 liquidity = getActualLiquidity(position);
+        rewardGrowthDeltaX128 = bound(
+            rewardGrowthDeltaX128,
+            FixedPoint128.Q128 / liquidity + 1,
+            FullMath.mulDiv(type(uint128).max - 1, FixedPoint128.Q128, liquidity)
+        );
+        uint256 rewardsExpected = FullMath.mulDiv(rewardGrowthDeltaX128, liquidity, FixedPoint128.Q128);
 
-        // And : Rewards are earned.
-        vm.warp(block.timestamp + 1);
+        // And: The gauge holds the reward token and the pool has the reserve to pay any reward.
         deal(AERO, address(gauge), type(uint256).max, true);
         stdstore.target(address(pool)).sig(pool.rewardReserve.selector).checked_write(type(uint256).max);
+
+        // And: The reward is earned.
+        vm.warp(block.timestamp + 1);
+        uint256 rewardGrowthGlobalX128Current;
+        unchecked {
+            rewardGrowthGlobalX128Current = rewardGrowthGlobalX128Last + rewardGrowthDeltaX128;
+        }
         stdstore.target(address(pool))
             .sig(pool.rewardGrowthGlobalX128.selector)
             .checked_write(rewardGrowthGlobalX128Current);
 
-        // And : Rewards amount is not zero.
-        uint256 rewardGrowthInsideX128;
-        unchecked {
-            rewardGrowthInsideX128 = rewardGrowthGlobalX128Current - rewardGrowthGlobalX128Last;
-        }
-        uint256 liquidity = getActualLiquidity(position);
-        uint256 rewardsExpected = FullMath.mulDiv(rewardGrowthInsideX128, liquidity, FixedPoint128.Q128);
-        vm.assume(rewardsExpected > 0);
-
-        // When : Owner calls claimReward.
-        // Then : correct event is emitted.
+        // When: The liquidity provider claims the reward.
+        // Then: The RewardPaid event is emitted.
         vm.prank(users.liquidityProvider);
-        vm.expectEmit();
-        // forge-lint: disable-next-item(unsafe-typecast)
+        vm.expectEmit(address(stakedSlipstreamAM));
         emit StakedSlipstreamAM.RewardPaid(assetId, AERO, uint128(rewardsExpected));
         uint256 rewards = stakedSlipstreamAM.claimReward(assetId);
 
-        // Then : The correct rewards amount is returned.
+        // And: The reward is returned and paid to the owner.
         assertEq(rewards, rewardsExpected);
-
-        // And: Balance of owner increased.
         assertEq(ERC20(AERO).balanceOf(users.liquidityProvider), rewardsExpected);
     }
 
-    function testFuzz_Success_claimReward_ZeroReward(StakedSlipstreamAM.PositionState memory position) public {
-        // Given : a valid position.
+    function testFuzz_Success_claimReward_ZeroReward(StakedSlipstreamAM.PositionState memory position, int24 tick)
+        public
+    {
+        // Given: A staked position of the liquidity provider, on a gauge that accrued nothing.
+        tick = int24(bound(tick, TickMath.MIN_TICK, TickMath.MAX_TICK - 1));
+        deployAndAddGauge(tick);
         position = givenValidPosition(position, 1);
-        deployAndAddGauge(0);
+        uint256 assetId = _stakePosition(position);
 
-        // And : assetId is minted.
-        uint256 assetId = addLiquidity(position);
-
-        // And: Position is staked.
-        vm.startPrank(users.liquidityProvider);
-        slipstreamPositionManager.approve(address(stakedSlipstreamAM), assetId);
-        stakedSlipstreamAM.mint(assetId);
-        vm.stopPrank();
-
-        // When : claimReward is called.
+        // When: The liquidity provider claims the reward.
         vm.prank(users.liquidityProvider);
         uint256 rewards = stakedSlipstreamAM.claimReward(assetId);
 
-        // Then : The 0 rewards amount is returned.
+        // Then: No reward is returned.
         assertEq(rewards, 0);
+    }
+
+    function testFuzz_Success_claimReward_BookedSurplusNotPaid(
+        StakedSlipstreamAM.PositionState memory position,
+        uint256 reward,
+        uint256 booked,
+        int24 tick,
+        address recipient
+    ) public {
+        // Given: A staked position with a reward earned.
+        (uint256 assetId, uint256 earned) = _initStakedPositionWithEarned(position, tick, reward, recipient);
+
+        // And: The hook will book a part of the delivery for the recipient.
+        booked = bound(booked, 1, earned);
+        stakedSlipstreamAM.setBookedAmount(booked);
+
+        // When: The liquidity provider claims the reward.
+        vm.prank(users.liquidityProvider);
+        uint256 rewards = stakedSlipstreamAM.claimReward(assetId);
+
+        // Then: The owner is paid the delivery less the booked part.
+        assertEq(rewards, earned - booked);
+        assertEq(ERC20(AERO).balanceOf(users.liquidityProvider), earned - booked);
+
+        // And: The booked part stays claimable for the recipient.
+        assertEq(stakedSlipstreamAM.claimableSurplus(), booked);
+    }
+
+    function testFuzz_Success_claimReward_DonationNotPaid(
+        StakedSlipstreamAM.PositionState memory position,
+        uint256 reward,
+        uint128 donation,
+        int24 tick,
+        address recipient
+    ) public {
+        // Given: A staked position with a reward earned.
+        (uint256 assetId, uint256 earned) = _initStakedPositionWithEarned(position, tick, reward, recipient);
+
+        // And: Reward tokens reached the Asset Module outside an interaction.
+        donation = uint128(bound(donation, 1, type(uint128).max));
+        deal(AERO, address(stakedSlipstreamAM), donation, false);
+
+        // When: The liquidity provider claims the reward.
+        vm.prank(users.liquidityProvider);
+        uint256 rewards = stakedSlipstreamAM.claimReward(assetId);
+
+        // Then: The owner is paid the delivery alone.
+        assertEq(rewards, earned);
+        assertEq(ERC20(AERO).balanceOf(users.liquidityProvider), earned);
+
+        // And: The donation stays claimable for the recipient.
+        assertEq(stakedSlipstreamAM.claimableSurplus(), donation);
     }
 }

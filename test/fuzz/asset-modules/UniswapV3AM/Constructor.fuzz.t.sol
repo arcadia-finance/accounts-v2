@@ -5,7 +5,6 @@
 pragma solidity ^0.8.0;
 
 import { UniswapV3AM_Fuzz_Test } from "./_UniswapV3AM.fuzz.t.sol";
-
 import { UniswapV3AMExtension } from "../../../utils/extensions/UniswapV3AMExtension.sol";
 
 /**
@@ -23,7 +22,7 @@ contract Constructor_UniswapV3AM_Fuzz_Test is UniswapV3AM_Fuzz_Test {
     /*//////////////////////////////////////////////////////////////
                               TESTS
     //////////////////////////////////////////////////////////////*/
-    function testFuzz_Success_deployment(address registry_) public {
+    function testFuzz_Success_constructor(address registry_) public {
         vm.startPrank(users.owner);
         UniswapV3AMExtension uniV3AssetModule_ =
             new UniswapV3AMExtension(users.owner, registry_, address(nonfungiblePositionManager));

@@ -213,88 +213,6 @@ contract GetUnderlyingAssetsAmounts_AerodromePoolAM_Fuzz_Test is AerodromePoolAM
         aeroPoolAM.getUnderlyingAssetsAmounts(address(creditorUsd), assetKey, testVars.assetAmount, underlyingAssetKeys);
     }
 
-    function testFuzz_Revert_getUnderlyingAssetsAmounts_Stable_XOverflows(TestVariables memory testVars) public {
-        // Given : aeroPool is stable.
-        testVars.stable = true;
-
-        // And : decimals should be max equal to 18.
-        testVars.decimals0 = bound(testVars.decimals0, 0, 18);
-        testVars.decimals1 = bound(testVars.decimals1, 0, 18);
-
-        // And : Reserves should not be zero and they should be deposited in same proportion.
-        bool d0BiggerD1 = testVars.decimals0 > testVars.decimals1;
-        uint256 decimalDifference = d0BiggerD1 ? 10 ** (testVars.decimals0 - testVars.decimals1) : 1;
-        // And: k does not overflow (-> r <= sqrt(sqrt(type(uint256).max * 10 ** (4 * decimals - 36) / 2)))
-        //                           -> r < 10 ** decimals * 15511800964 (approximated)
-        testVars.reserve0 = bound(
-            testVars.reserve0, MINIMUM_LIQUIDITY * decimalDifference + 1, 15_511_800_964 * 10 ** testVars.decimals0
-        );
-        // And : Reserves should be deposited in same proportion for first mint.
-        testVars.reserve0 = testVars.reserve0 / decimalDifference * decimalDifference;
-        testVars.reserve1 = convertToDecimals(testVars.reserve0, testVars.decimals0, testVars.decimals1);
-
-        uint256 k = getK(testVars.reserve0, testVars.reserve1, 10 ** testVars.decimals0, 10 ** testVars.decimals1);
-
-        // And: x overflows (test-case).
-        // With q = pLow / pHigh: t <= q, so d <= 2 * q + 1, and x overflows for k / (2 * q + 1) > type(uint256).max / 1e18.
-        // And: t does not round to zero (q >= 16 / 1e18).
-        vm.assume(k / (type(uint256).max / 1e18) >= 35);
-        uint256 qMax = (k / (type(uint256).max / 1e18) - 1) / 2;
-        testVars.priceToken0 = bound(testVars.priceToken0, 1, uint256(2 ** 127 - 1) * 16 / 1e18);
-        testVars.priceToken1 =
-            bound(testVars.priceToken1, testVars.priceToken0 * 1e18 / qMax + 1, testVars.priceToken0 * 1e18 / 16);
-
-        // And: state is persisted.
-        testVars = initAndSetValidStateInPoolFixture(testVars);
-
-        bytes32 assetKey = bytes32(abi.encodePacked(uint96(0), address(aeroPool)));
-
-        bytes32[] memory underlyingAssetKeys = new bytes32[](2);
-        underlyingAssetKeys[0] = bytes32(abi.encodePacked(uint96(0), testVars.token0));
-        underlyingAssetKeys[1] = bytes32(abi.encodePacked(uint96(0), testVars.token1));
-
-        // And : Pool is added to the AM
-        vm.prank(users.owner);
-        aeroPoolAM.addAsset(address(aeroPool));
-
-        // When : Calling getUnderlyingAssetsAmounts()
-        // Then: It should revert
-        vm.expectRevert(bytes(""));
-        aeroPoolAM.getUnderlyingAssetsAmounts(address(creditorUsd), assetKey, testVars.assetAmount, underlyingAssetKeys);
-    }
-
-    function testFuzz_Revert_getUnderlyingAssetsAmounts_Stable_PricesTooFarApart(
-        TestVariables memory testVars,
-        bool token0Cheapest
-    ) public {
-        // Given : Valid state
-        testVars = givenValidTestVarsStable(testVars);
-
-        // And: t rounds to zero (test-case), d is zero.
-        // For pHigh >= pLow * 1e18: ratio <= 1e18 + 2, c = 1e18 and t = 0.
-        uint256 pLow = bound(testVars.priceToken0, 1, uint256(2 ** 127 - 1) / 1e18);
-        uint256 pHigh = bound(testVars.priceToken1, pLow * 1e18, 2 ** 127 - 1);
-        (testVars.priceToken0, testVars.priceToken1) = token0Cheapest ? (pLow, pHigh) : (pHigh, pLow);
-
-        // And: state is persisted.
-        testVars = initAndSetValidStateInPoolFixture(testVars);
-
-        bytes32 assetKey = bytes32(abi.encodePacked(uint96(0), address(aeroPool)));
-
-        bytes32[] memory underlyingAssetKeys = new bytes32[](2);
-        underlyingAssetKeys[0] = bytes32(abi.encodePacked(uint96(0), testVars.token0));
-        underlyingAssetKeys[1] = bytes32(abi.encodePacked(uint96(0), testVars.token1));
-
-        // And : Pool is added to the AM
-        vm.prank(users.owner);
-        aeroPoolAM.addAsset(address(aeroPool));
-
-        // When : Calling getUnderlyingAssetsAmounts()
-        // Then: It should revert
-        vm.expectRevert(bytes(""));
-        aeroPoolAM.getUnderlyingAssetsAmounts(address(creditorUsd), assetKey, testVars.assetAmount, underlyingAssetKeys);
-    }
-
     function testFuzz_Revert_getUnderlyingAssetsAmounts_Stable_OverflowUnderlyingAssetAmount0(TestVariables memory testVars)
         public
     {
@@ -571,6 +489,153 @@ contract GetUnderlyingAssetsAmounts_AerodromePoolAM_Fuzz_Test is AerodromePoolAM
         assertGe(k, kNew);
     }
 
+    function testFuzz_Success_getUnderlyingAssetsAmounts_Stable_PricesTooFarApart(
+        TestVariables memory testVars,
+        bool token0Cheapest
+    ) public {
+        // Given : Valid state
+        testVars = givenValidTestVarsStable(testVars);
+
+        // And: t rounds to zero (test-case), d is zero.
+        // For pHigh >= pLow * 1e18: ratio <= 1e18 + 2, c = 1e18 and t = 0.
+        uint256 pLow = bound(testVars.priceToken0, 1, uint256(2 ** 127 - 1) / 1e18);
+        uint256 pHigh = bound(testVars.priceToken1, pLow * 1e18, 2 ** 127 - 1);
+        (testVars.priceToken0, testVars.priceToken1) = token0Cheapest ? (pLow, pHigh) : (pHigh, pLow);
+
+        // And: state is persisted.
+        testVars = initAndSetValidStateInPoolFixture(testVars);
+
+        bytes32 assetKey = bytes32(abi.encodePacked(uint96(0), address(aeroPool)));
+
+        bytes32[] memory underlyingAssetKeys = new bytes32[](2);
+        underlyingAssetKeys[0] = bytes32(abi.encodePacked(uint96(0), testVars.token0));
+        underlyingAssetKeys[1] = bytes32(abi.encodePacked(uint96(0), testVars.token1));
+
+        // And : Pool is added to the AM
+        vm.prank(users.owner);
+        aeroPoolAM.addAsset(address(aeroPool));
+
+        // When: The underlying asset amounts are queried.
+        (uint256[] memory underlyingAssetsAmounts, AssetValueAndRiskFactors[] memory rateUnderlyingAssetsToUsd) = aeroPoolAM.getUnderlyingAssetsAmounts(
+            address(creditorUsd), assetKey, testVars.assetAmount, underlyingAssetKeys
+        );
+        (uint256 trustedReserve0, uint256 trustedReserve1) =
+            aeroPoolAM.getTrustedReservesStable(address(aeroPool), rateUnderlyingAssetsToUsd);
+
+        // Then: Nothing is valued, the trusted reserves are zero.
+        assertEq(underlyingAssetsAmounts[0], 0);
+        assertEq(underlyingAssetsAmounts[1], 0);
+        assertEq(trustedReserve0, 0);
+        assertEq(trustedReserve1, 0);
+    }
+
+    function testFuzz_Success_getUnderlyingAssetsAmounts_Stable_LargeKExtremeRatio(TestVariables memory testVars)
+        public
+    {
+        // Given : aeroPool is stable.
+        testVars.stable = true;
+
+        // And : decimals should be max equal to 18.
+        testVars.decimals0 = bound(testVars.decimals0, 0, 18);
+        testVars.decimals1 = bound(testVars.decimals1, 0, 18);
+
+        // And : Reserves should not be zero and they should be deposited in same proportion.
+        bool d0BiggerD1 = testVars.decimals0 > testVars.decimals1;
+        uint256 decimalDifference = d0BiggerD1 ? 10 ** (testVars.decimals0 - testVars.decimals1) : 1;
+        // And: k does not overflow (-> r <= sqrt(sqrt(type(uint256).max * 10 ** (4 * decimals - 36) / 2)))
+        //                           -> r < 10 ** decimals * 15511800964 (approximated)
+        testVars.reserve0 = bound(
+            testVars.reserve0, MINIMUM_LIQUIDITY * decimalDifference + 1, 15_511_800_964 * 10 ** testVars.decimals0
+        );
+        // And : Reserves should be deposited in same proportion for first mint.
+        testVars.reserve0 = testVars.reserve0 / decimalDifference * decimalDifference;
+        testVars.reserve1 = convertToDecimals(testVars.reserve0, testVars.decimals0, testVars.decimals1);
+
+        uint256 k = getK(testVars.reserve0, testVars.reserve1, 10 ** testVars.decimals0, 10 ** testVars.decimals1);
+
+        // And: x overflows (test-case).
+        // With q = pLow / pHigh: t <= q, so d <= 2 * q + 1, and x overflows for k / (2 * q + 1) > type(uint256).max / 1e18.
+        // And: t does not round to zero (q >= 16 / 1e18).
+        vm.assume(k / (type(uint256).max / 1e18) >= 35);
+        uint256 qMax = (k / (type(uint256).max / 1e18) - 1) / 2;
+        testVars.priceToken0 = bound(testVars.priceToken0, 1, uint256(2 ** 127 - 1) * 16 / 1e18);
+        testVars.priceToken1 =
+            bound(testVars.priceToken1, testVars.priceToken0 * 1e18 / qMax + 1, testVars.priceToken0 * 1e18 / 16);
+
+        // And: The valued amount is at most the supply of the pool.
+        testVars.assetAmount =
+            bound(testVars.assetAmount, 0, FixedPointMathLib.sqrt(testVars.reserve0 * testVars.reserve1));
+
+        // And: state is persisted.
+        testVars = initAndSetValidStateInPoolFixture(testVars);
+
+        bytes32 assetKey = bytes32(abi.encodePacked(uint96(0), address(aeroPool)));
+
+        bytes32[] memory underlyingAssetKeys = new bytes32[](2);
+        underlyingAssetKeys[0] = bytes32(abi.encodePacked(uint96(0), testVars.token0));
+        underlyingAssetKeys[1] = bytes32(abi.encodePacked(uint96(0), testVars.token1));
+
+        // And : Pool is added to the AM
+        vm.prank(users.owner);
+        aeroPoolAM.addAsset(address(aeroPool));
+
+        // When: The underlying asset amounts are queried.
+        (, AssetValueAndRiskFactors[] memory rateUnderlyingAssetsToUsd) = aeroPoolAM.getUnderlyingAssetsAmounts(
+            address(creditorUsd), assetKey, testVars.assetAmount, underlyingAssetKeys
+        );
+        (uint256 trustedReserve0, uint256 trustedReserve1) =
+            aeroPoolAM.getTrustedReservesStable(address(aeroPool), rateUnderlyingAssetsToUsd);
+
+        // Then: The trusted reserves never overestimate the invariant k.
+        uint256 kTrusted = getK(trustedReserve0, trustedReserve1, 10 ** testVars.decimals0, 10 ** testVars.decimals1);
+        assertLe(kTrusted, k);
+
+        // And: Where rounding allows, the trusted reserves match the external prices and k.
+        uint256 x = trustedReserve0 * 10 ** (18 - testVars.decimals0);
+        uint256 y = trustedReserve1 * 10 ** (18 - testVars.decimals1);
+        if (trustedReserve0 > 1e10 && trustedReserve1 > 1e10 && getRatio(x, y) >= 1e12) {
+            assertApproxEqRel(getMarginalPrice(x, y), testVars.priceToken0 * 1e18 / testVars.priceToken1, 1e9);
+            assertApproxEqRel(kTrusted / 1e18, k / 1e18, 1e10);
+        }
+    }
+
+    function testFuzz_Success_getUnderlyingAssetsAmounts_Stable_RatioDownToOneWei(
+        TestVariables memory testVars,
+        bool token0Cheapest
+    ) public {
+        // Given: A stable pool in a valid state.
+        testVars = givenValidTestVarsStable(testVars);
+
+        // And: The cheaper token is priced at one wei, the other at any supported price.
+        uint256 pHigh = bound(testVars.priceToken1, 1, 2 ** 127 - 1);
+        (testVars.priceToken0, testVars.priceToken1) = token0Cheapest ? (uint256(1), pHigh) : (pHigh, uint256(1));
+
+        // And: state is persisted.
+        testVars = initAndSetValidStateInPoolFixture(testVars);
+
+        bytes32 assetKey = bytes32(abi.encodePacked(uint96(0), address(aeroPool)));
+
+        bytes32[] memory underlyingAssetKeys = new bytes32[](2);
+        underlyingAssetKeys[0] = bytes32(abi.encodePacked(uint96(0), testVars.token0));
+        underlyingAssetKeys[1] = bytes32(abi.encodePacked(uint96(0), testVars.token1));
+
+        // And : Pool is added to the AM
+        vm.prank(users.owner);
+        aeroPoolAM.addAsset(address(aeroPool));
+
+        // When: The underlying asset amounts are queried.
+        (, AssetValueAndRiskFactors[] memory rateUnderlyingAssetsToUsd) = aeroPoolAM.getUnderlyingAssetsAmounts(
+            address(creditorUsd), assetKey, testVars.assetAmount, underlyingAssetKeys
+        );
+        (uint256 trustedReserve0, uint256 trustedReserve1) =
+            aeroPoolAM.getTrustedReservesStable(address(aeroPool), rateUnderlyingAssetsToUsd);
+
+        // Then: The trusted reserves never overestimate the invariant k.
+        uint256 k = getK(testVars.reserve0, testVars.reserve1, 10 ** testVars.decimals0, 10 ** testVars.decimals1);
+        uint256 kTrusted = getK(trustedReserve0, trustedReserve1, 10 ** testVars.decimals0, 10 ** testVars.decimals1);
+        assertLe(kTrusted, k);
+    }
+
     function testFuzz_Success_getUnderlyingAssetsAmounts_Stable_ZeroRate0(TestVariables memory testVars) public {
         // Given : Valid state
         testVars = givenValidTestVarsStable(testVars);
@@ -699,13 +764,6 @@ contract GetUnderlyingAssetsAmounts_AerodromePoolAM_Fuzz_Test is AerodromePoolAM
         vm.assume(testVars.reserve0 >= 1e6 * 10 ** testVars.decimals0);
         testVars.priceToken0 = bound(testVars.priceToken0, 1e15, 1e21);
         testVars.priceToken1 = bound(testVars.priceToken1, testVars.priceToken0 / 1e3, testVars.priceToken0 * 1e3);
-
-        // And: x does not overflow.
-        uint256 q = getRatio(testVars.priceToken0, testVars.priceToken1);
-        vm.assume(
-            getK(testVars.reserve0, testVars.reserve1, 10 ** testVars.decimals0, 10 ** testVars.decimals1) / (q / 8)
-                <= type(uint256).max / 1e18
-        );
 
         // And: state is persisted.
         testVars = initAndSetValidStateInPoolFixture(testVars);

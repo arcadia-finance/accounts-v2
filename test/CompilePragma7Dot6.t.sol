@@ -10,10 +10,31 @@ import { CLFactory } from "../lib/slipstream/contracts/core/CLFactory.sol";
 import { CLPoolExtension } from "./utils/fixtures/slipstream/extensions/CLPoolExtension.sol";
 import { CLGauge } from "../lib/slipstream/contracts/gauge/CLGauge.sol";
 import { CLGaugeFactory } from "../lib/slipstream/contracts/gauge/CLGaugeFactory.sol";
+import { CLFactory as Metadex03CLFactory } from "../lib/metadex-slipstream/contracts/core/CLFactory.sol";
+import { CLGauge as Metadex03CLGauge } from "../lib/metadex-slipstream/contracts/gauge/CLGauge.sol";
+import {
+    CLGaugeFactory as Metadex03CLGaugeFactory
+} from "../lib/metadex-slipstream/contracts/gauge/CLGaugeFactory.sol";
+import { Metadex03CLPoolExtension } from "./utils/fixtures/metadex03/extensions/Metadex03CLPoolExtension.sol";
+import {
+    NonfungiblePositionManager as Metadex03NonfungiblePositionManager
+} from "../lib/metadex-slipstream/contracts/periphery/NonfungiblePositionManager.sol";
+import { SwapRouter as Metadex03SwapRouter } from "../lib/metadex-slipstream/contracts/periphery/SwapRouter.sol";
 import { NonfungiblePositionManager } from "../lib/slipstream/contracts/periphery/NonfungiblePositionManager.sol";
 import {
     NonfungiblePositionManagerExtension
 } from "./utils/fixtures/uniswap-v3/extensions/NonfungiblePositionManagerExtension.sol";
+import { SlipstreamCLFactoryExtension } from "./utils/fixtures/slipstream/extensions/SlipstreamCLFactoryExtension.sol";
+import { SlipstreamCLGaugeExtension } from "./utils/fixtures/slipstream/extensions/SlipstreamCLGaugeExtension.sol";
+import {
+    SlipstreamCLGaugeFactoryExtension
+} from "./utils/fixtures/slipstream/extensions/SlipstreamCLGaugeFactoryExtension.sol";
+import {
+    SlipstreamCLSwapRouterExtension
+} from "./utils/fixtures/slipstream/extensions/SlipstreamCLSwapRouterExtension.sol";
+import {
+    SlipstreamNonfungiblePositionManagerExtension
+} from "./utils/fixtures/slipstream/extensions/SlipstreamNonfungiblePositionManagerExtension.sol";
 import { Test } from "../lib/forge-std-v1.13/src/Test.sol";
 import { UniswapV3FactoryExtension } from "./utils/fixtures/uniswap-v3/extensions/UniswapV3FactoryExtension.sol";
 import { UniswapV3PoolExtension } from "./utils/fixtures/uniswap-v3/extensions/UniswapV3PoolExtension.sol";

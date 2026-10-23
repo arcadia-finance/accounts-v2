@@ -5,7 +5,7 @@
 pragma solidity ^0.8.0;
 
 import { AbstractStakingAM_Fuzz_Test } from "./_AbstractStakingAM.fuzz.t.sol";
-
+import { RegistryErrors } from "../../../../src/libraries/Errors.sol";
 import { StakingAMMock } from "../../../utils/mocks/asset-modules/StakingAMMock.sol";
 
 /**
@@ -26,8 +26,9 @@ contract Initialize_AbstractStakingAM_Fuzz_Test is AbstractStakingAM_Fuzz_Test {
 
     function testFuzz_Revert_initialize_NotOwner(address _unprivilegedAddress) public {
         vm.prank(users.owner);
-        StakingAMMock assetModule =
-            new StakingAMMock(users.owner, address(registry), "StakingAMTest", "SMT", address(rewardToken));
+        StakingAMMock assetModule = new StakingAMMock(
+            users.owner, address(registry), "StakingAMTest", "SMT", address(rewardToken), users.treasury
+        );
 
         // Given : unprivileged address is not the owner of the AM.
         vm.assume(_unprivilegedAddress != users.owner);
@@ -40,9 +41,28 @@ contract Initialize_AbstractStakingAM_Fuzz_Test is AbstractStakingAM_Fuzz_Test {
         vm.stopPrank();
     }
 
-    function testFuzz_success_initialize() public {
-        StakingAMMock assetModule =
-            new StakingAMMock(users.owner, address(registry), "StakingAMTest", "SMT", address(rewardToken));
+    function testFuzz_Revert_initialize_AlreadyInitialized() public {
+        StakingAMMock assetModule = new StakingAMMock(
+            users.owner, address(registry), "StakingAMTest", "SMT", address(rewardToken), users.treasury
+        );
+
+        // Given : The Asset Module is initialized.
+        vm.prank(users.owner);
+        registry.addAssetModule(address(assetModule));
+        vm.prank(users.owner);
+        assetModule.initialize();
+
+        // When : Calling initialize() a second time.
+        // Then : It reverts, the Asset Module is already an asset in the Registry.
+        vm.prank(users.owner);
+        vm.expectRevert(RegistryErrors.AssetAlreadyInRegistry.selector);
+        assetModule.initialize();
+    }
+
+    function testFuzz_Success_initialize() public {
+        StakingAMMock assetModule = new StakingAMMock(
+            users.owner, address(registry), "StakingAMTest", "SMT", address(rewardToken), users.treasury
+        );
 
         // Given : Asset Module is added to the Registry.
         vm.prank(users.owner);

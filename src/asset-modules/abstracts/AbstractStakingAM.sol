@@ -25,6 +25,7 @@ import { Strings } from "../../libraries/Strings.sol";
  *  - Withdrawing the Assets from staked positions.
  *  - Claiming reward tokens.
  */
+// forge-lint: disable-next-item(missing-events-arithmetic)
 abstract contract StakingAM is DerivedAM, ERC721, ReentrancyGuard {
     using FixedPointMathLib for uint256;
     using Strings for uint256;
@@ -43,6 +44,15 @@ abstract contract StakingAM is DerivedAM, ERC721, ReentrancyGuard {
 
     // The id of last minted position.
     uint256 internal lastPositionId;
+
+    // The reward token balance after the last interaction.
+    uint256 internal lastRewardBalance;
+
+    // The reward tokens booked for the recipient, not claimed yet.
+    uint256 public bookedSurplus;
+
+    // The recipient of every reward token that is not owed to a position.
+    address public surplusRecipient;
 
     // The baseURI of the ERC721 tokens.
     // forge-lint: disable-next-item(mixed-case-variable)
@@ -84,6 +94,8 @@ abstract contract StakingAM is DerivedAM, ERC721, ReentrancyGuard {
     event LiquidityDecreased(uint256 indexed positionId, address indexed asset, uint128 amount);
     event LiquidityIncreased(uint256 indexed positionId, address indexed asset, uint128 amount);
     event RewardPaid(uint256 indexed positionId, address indexed reward, uint128 amount);
+    event SurplusClaimed(address indexed surplusRecipient, uint256 amount);
+    event SurplusRecipientSet(address indexed surplusRecipient);
 
     /* //////////////////////////////////////////////////////////////
                                 ERRORS
@@ -91,6 +103,8 @@ abstract contract StakingAM is DerivedAM, ERC721, ReentrancyGuard {
 
     error AssetNotAllowed();
     error NotOwner();
+    error NotRecipient();
+    error RecipientNotValid();
     error ZeroAmount();
 
     /* //////////////////////////////////////////////////////////////
@@ -102,12 +116,15 @@ abstract contract StakingAM is DerivedAM, ERC721, ReentrancyGuard {
      * @param registry The contract address of the Registry.
      * @param name_ Name of the Staking Module.
      * @param symbol_ Symbol of the Staking Module.
+     * @param surplusRecipient_ The recipient of every reward token that is not owed to a position.
      * @dev The ASSET_TYPE, necessary for the deposit and withdraw logic in the Accounts, is "2" for ERC721 tokens.
      */
-    constructor(address owner_, address registry, string memory name_, string memory symbol_)
+    constructor(address owner_, address registry, string memory name_, string memory symbol_, address surplusRecipient_)
         DerivedAM(owner_, registry, 2)
         ERC721(name_, symbol_)
-    { }
+    {
+        _setSurplusRecipient(surplusRecipient_);
+    }
 
     /* //////////////////////////////////////////////////////////////
                                INITIALIZE
@@ -117,7 +134,7 @@ abstract contract StakingAM is DerivedAM, ERC721, ReentrancyGuard {
      * @notice This function will add this contract as an asset in the Registry.
      * @dev Will revert if called more than once.
      */
-    function initialize() external onlyOwner {
+    function initialize() public virtual onlyOwner {
         inAssetModule[address(this)] = true;
 
         // forge-lint: disable-next-line(unsafe-typecast)
@@ -300,23 +317,33 @@ abstract contract StakingAM is DerivedAM, ERC721, ReentrancyGuard {
         // Create a new positionState.
         PositionState memory positionState_;
         positionState_.asset = asset;
+        unchecked {
+            positionId = lastPositionId + 1;
+        }
+
+        // Stake Asset in external staking contract and claim any pending rewards.
+        uint256 rewardBalance = REWARD_TOKEN.balanceOf(address(this));
+        uint256 surplus = _stakeAndClaim(positionId, asset, amount);
+
+        // Book the surplus of donations and/or excess reward tokens not belonging to the position.
+        bookedSurplus += rewardBalance - lastRewardBalance + surplus;
 
         // Calculate the new reward balances.
-        (assetState_, positionState_) = _getRewardBalances(assetState_, positionState_);
+        uint256 currentRewardBalance = REWARD_TOKEN.balanceOf(address(this));
+        (assetState_, positionState_) =
+            _getRewardBalances(assetState_, positionState_, currentRewardBalance - rewardBalance - surplus);
 
         // Calculate the new staked amounts.
         assetState_.totalStaked = assetState_.totalStaked + amount;
         positionState_.amountStaked = amount;
 
         // Store the new positionState and assetState.
-        unchecked {
-            positionId = ++lastPositionId;
-        }
+        lastPositionId = positionId;
         positionState[positionId] = positionState_;
         assetState[asset] = assetState_;
 
-        // Stake Asset in external staking contract and claim any pending rewards.
-        _stakeAndClaim(asset, amount);
+        // Store the current reward balance.
+        lastRewardBalance = currentRewardBalance;
 
         // Mint the new position.
         _safeMint(msg.sender, positionId);
@@ -342,8 +369,17 @@ abstract contract StakingAM is DerivedAM, ERC721, ReentrancyGuard {
         // forge-lint: disable-next-item(solmate-safe-transfer-lib)
         ERC20(asset).safeTransferFrom(msg.sender, address(this), amount);
 
+        // Stake Asset in external staking contract and claim any pending rewards.
+        uint256 rewardBalance = REWARD_TOKEN.balanceOf(address(this));
+        uint256 surplus = _stakeAndClaim(positionId, asset, amount);
+
+        // Book the surplus of donations and/or excess reward tokens not belonging to the position.
+        bookedSurplus += rewardBalance - lastRewardBalance + surplus;
+
         // Calculate the new reward balances.
-        (assetState_, positionState_) = _getRewardBalances(assetState_, positionState_);
+        uint256 currentRewardBalance = REWARD_TOKEN.balanceOf(address(this));
+        (assetState_, positionState_) =
+            _getRewardBalances(assetState_, positionState_, currentRewardBalance - rewardBalance - surplus);
 
         // Calculate the new staked amounts.
         assetState_.totalStaked = assetState_.totalStaked + amount;
@@ -353,8 +389,8 @@ abstract contract StakingAM is DerivedAM, ERC721, ReentrancyGuard {
         positionState[positionId] = positionState_;
         assetState[asset] = assetState_;
 
-        // Stake Asset in external staking contract and claim any pending rewards.
-        _stakeAndClaim(asset, amount);
+        // Store the current reward balance.
+        lastRewardBalance = currentRewardBalance;
 
         emit LiquidityIncreased(positionId, asset, amount);
     }
@@ -388,8 +424,17 @@ abstract contract StakingAM is DerivedAM, ERC721, ReentrancyGuard {
         address asset = positionState_.asset;
         AssetState memory assetState_ = assetState[asset];
 
+        // Withdraw the Assets from external staking contract and claim any pending rewards.
+        uint256 rewardBalance = REWARD_TOKEN.balanceOf(address(this));
+        uint256 surplus = _withdrawAndClaim(positionId, asset, amount);
+
+        // Book the surplus of donations and/or excess reward tokens not belonging to the position.
+        bookedSurplus += rewardBalance - lastRewardBalance + surplus;
+
         // Calculate the new reward balances.
-        (assetState_, positionState_) = _getRewardBalances(assetState_, positionState_);
+        uint256 currentRewardBalance = REWARD_TOKEN.balanceOf(address(this));
+        (assetState_, positionState_) =
+            _getRewardBalances(assetState_, positionState_, currentRewardBalance - rewardBalance - surplus);
 
         // Calculate the new staked amounts.
         assetState_.totalStaked = assetState_.totalStaked - amount;
@@ -409,9 +454,6 @@ abstract contract StakingAM is DerivedAM, ERC721, ReentrancyGuard {
         }
         assetState[asset] = assetState_;
 
-        // Withdraw the Assets from external staking contract and claim any pending rewards.
-        _withdrawAndClaim(asset, amount);
-
         // Pay out the rewards to the position owner.
         if (rewards > 0) {
             // Transfer reward
@@ -420,6 +462,9 @@ abstract contract StakingAM is DerivedAM, ERC721, ReentrancyGuard {
             // forge-lint: disable-next-line(unsafe-typecast)
             emit RewardPaid(positionId, address(REWARD_TOKEN), uint128(rewards));
         }
+
+        // Store the current reward balance.
+        lastRewardBalance = currentRewardBalance - rewards;
 
         // Transfer the asset back to the position owner.
         // forge-lint: disable-next-item(solmate-safe-transfer-lib)
@@ -440,8 +485,17 @@ abstract contract StakingAM is DerivedAM, ERC721, ReentrancyGuard {
         address asset = positionState_.asset;
         AssetState memory assetState_ = assetState[asset];
 
+        // Claim the pending rewards from the external staking contract.
+        uint256 rewardBalance = REWARD_TOKEN.balanceOf(address(this));
+        uint256 surplus = _claimReward(positionId, asset);
+
+        // Book the surplus of donations and/or excess reward tokens not belonging to the position.
+        bookedSurplus += rewardBalance - lastRewardBalance + surplus;
+
         // Calculate the new reward balances.
-        (assetState_, positionState_) = _getRewardBalances(assetState_, positionState_);
+        uint256 currentRewardBalance = REWARD_TOKEN.balanceOf(address(this));
+        (assetState_, positionState_) =
+            _getRewardBalances(assetState_, positionState_, currentRewardBalance - rewardBalance - surplus);
 
         // Rewards are paid out to the owner on a claimReward.
         // -> Reset the balances of the pending rewards.
@@ -452,9 +506,6 @@ abstract contract StakingAM is DerivedAM, ERC721, ReentrancyGuard {
         positionState[positionId] = positionState_;
         assetState[asset] = assetState_;
 
-        // Claim the pending rewards from the external staking contract.
-        _claimReward(asset);
-
         // Pay out the share of the reward owed to the position owner.
         if (rewards > 0) {
             // Transfer reward
@@ -463,6 +514,9 @@ abstract contract StakingAM is DerivedAM, ERC721, ReentrancyGuard {
             // forge-lint: disable-next-line(unsafe-typecast)
             emit RewardPaid(positionId, address(REWARD_TOKEN), uint128(rewards));
         }
+
+        // Store the current reward balance.
+        lastRewardBalance = currentRewardBalance - rewards;
     }
 
     /**
@@ -475,35 +529,95 @@ abstract contract StakingAM is DerivedAM, ERC721, ReentrancyGuard {
     }
 
     /*///////////////////////////////////////////////////////////////
+                              SURPLUS
+    ///////////////////////////////////////////////////////////////*/
+
+    /**
+     * @notice Sets the recipient of every reward token that is not owed to a position.
+     * @param surplusRecipient_ The contract address of the recipient.
+     */
+    function setSurplusRecipient(address surplusRecipient_) external onlyOwner {
+        _setSurplusRecipient(surplusRecipient_);
+    }
+
+    /**
+     * @notice Sets the recipient of every reward token that is not owed to a position.
+     * @param surplusRecipient_ The contract address of the recipient.
+     */
+    function _setSurplusRecipient(address surplusRecipient_) internal {
+        if (surplusRecipient_ == address(0) || surplusRecipient_ == address(this)) revert RecipientNotValid();
+
+        surplusRecipient = surplusRecipient_;
+        emit SurplusRecipientSet(surplusRecipient_);
+    }
+
+    /**
+     * @notice Returns the reward tokens that are not owed to a position.
+     * @return surplus The amount a claim pays the recipient.
+     */
+    function claimableSurplus() public view returns (uint256 surplus) {
+        surplus = bookedSurplus + REWARD_TOKEN.balanceOf(address(this)) - lastRewardBalance;
+    }
+
+    /**
+     * @notice Pays the recipient the reward tokens that are not owed to a position.
+     */
+    function claimSurplus() external nonReentrant {
+        if (msg.sender != surplusRecipient) revert NotRecipient();
+
+        uint256 amount = claimableSurplus();
+        if (amount == 0) return;
+
+        lastRewardBalance -= bookedSurplus;
+        delete bookedSurplus;
+        // forge-lint: disable-next-item(solmate-safe-transfer-lib)
+        REWARD_TOKEN.safeTransfer(msg.sender, amount);
+        emit SurplusClaimed(msg.sender, amount);
+    }
+
+    /*///////////////////////////////////////////////////////////////
                     INTERACTIONS STAKING CONTRACT
     ///////////////////////////////////////////////////////////////*/
 
     /**
      * @notice Stakes an amount of Asset in the external staking contract and claims pending rewards.
+     * @param positionId The id of the position.
      * @param asset The Asset to stake.
      * @param amount The amount of Asset to stake.
+     * @return surplus The claimed amount that is not owed to a position.
      */
-    function _stakeAndClaim(address asset, uint256 amount) internal virtual;
+    function _stakeAndClaim(uint256 positionId, address asset, uint256 amount)
+        internal
+        virtual
+        returns (uint256 surplus);
 
     /**
      * @notice Unstakes and withdraws the Asset from the external contract and claims pending rewards.
+     * @param positionId The id of the position.
      * @param asset The Asset to withdraw.
      * @param amount The amount of Asset to unstake and withdraw.
+     * @return surplus The claimed amount that is not owed to a position.
      */
-    function _withdrawAndClaim(address asset, uint256 amount) internal virtual;
+    function _withdrawAndClaim(uint256 positionId, address asset, uint256 amount)
+        internal
+        virtual
+        returns (uint256 surplus);
 
     /**
      * @notice Claims the rewards available for this contract.
+     * @param positionId The id of the position.
      * @param asset The Asset for which rewards will be claimed.
+     * @return surplus The claimed amount that is not owed to a position.
      */
-    function _claimReward(address asset) internal virtual;
+    function _claimReward(uint256 positionId, address asset) internal virtual returns (uint256 surplus);
 
     /**
      * @notice Returns the amount of reward tokens that can be claimed by this contract for a specific Asset.
+     * @param positionId The id of the position.
      * @param asset The Asset that is earning rewards from staking.
      * @return currentReward The amount of rewards tokens that can be claimed.
      */
-    function _getCurrentReward(address asset) internal view virtual returns (uint256 currentReward);
+    function _getCurrentReward(uint256 positionId, address asset) internal view virtual returns (uint256 currentReward);
 
     /*///////////////////////////////////////////////////////////////
                          REWARDS VIEW FUNCTIONS
@@ -520,7 +634,8 @@ abstract contract StakingAM is DerivedAM, ERC721, ReentrancyGuard {
         AssetState memory assetState_ = assetState[positionState_.asset];
 
         // Calculate the new reward balances.
-        (, positionState_) = _getRewardBalances(assetState_, positionState_);
+        (, positionState_) =
+            _getRewardBalances(assetState_, positionState_, _getCurrentReward(positionId, positionState_.asset));
 
         currentRewardClaimable = positionState_.lastRewardPosition;
     }
@@ -529,19 +644,18 @@ abstract contract StakingAM is DerivedAM, ERC721, ReentrancyGuard {
      * @notice Calculates the current global and position specific reward balances.
      * @param assetState_ Struct with the old rewards state of the Asset.
      * @param positionState_ Struct with the old rewards state of the position.
+     * @param currentReward The amount of reward tokens to distribute over the staked Asset.
      * @return currentAssetState Struct with the current rewards state of the Asset.
      * @return currentPositionState Struct with the current rewards state of the position.
      */
-    function _getRewardBalances(AssetState memory assetState_, PositionState memory positionState_)
-        internal
-        view
-        returns (AssetState memory, PositionState memory)
-    {
+    function _getRewardBalances(
+        AssetState memory assetState_,
+        PositionState memory positionState_,
+        uint256 currentReward
+    ) internal pure virtual returns (AssetState memory, PositionState memory) {
         if (assetState_.totalStaked > 0) {
-            // Calculate the new assetState
-            // Fetch the current reward balance from the staking contract and calculate the change in RewardPerToken.
-            uint256 deltaRewardPerToken =
-                _getCurrentReward(positionState_.asset).mulDivDown(1e18, assetState_.totalStaked);
+            // Calculate the change in RewardPerToken.
+            uint256 deltaRewardPerToken = currentReward.mulDivDown(1e18, assetState_.totalStaked);
             // Cap the delta at the largest value the accumulator can represent, so an overflow can't
             // block valuation.
             // Excess is lost, but a realistic reward accrual never approaches type(uint128).max.

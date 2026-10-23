@@ -23,7 +23,7 @@ contract Constructor_NativeTokenAM_Fuzz_Test is NativeTokenAM_Fuzz_Test {
     /*//////////////////////////////////////////////////////////////
                               TESTS
     //////////////////////////////////////////////////////////////*/
-    function testFuzz_Revert_deployment_Max18Decimals(address registry_, uint256 decimals_) public {
+    function testFuzz_Revert_constructor_Max18Decimals(address registry_, uint256 decimals_) public {
         decimals_ = bound(decimals_, 19, type(uint256).max);
 
         vm.prank(users.owner);
@@ -31,7 +31,7 @@ contract Constructor_NativeTokenAM_Fuzz_Test is NativeTokenAM_Fuzz_Test {
         new NativeTokenAMExtension(users.owner, registry_, decimals_);
     }
 
-    function testFuzz_Success_deployment(address registry_, uint256 decimals_) public {
+    function testFuzz_Success_constructor(address registry_, uint256 decimals_) public {
         decimals_ = bound(decimals_, 0, 18);
 
         vm.prank(users.owner);

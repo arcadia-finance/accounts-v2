@@ -26,20 +26,28 @@ contract GetUnderlyingAssetsAmounts_AbstractStakingAM_Fuzz_Test is AbstractStaki
     function testFuzz_Success_getUnderlyingAssetsAmounts_amountGreaterThan0(
         uint96 positionId,
         uint128 amountStaked,
+        uint128 otherStaked,
         uint128 pendingEmissions,
         address underLyingAsset
     ) public {
-        // And : pendingEmissions is smaller than type(uint128).max / 1e18
-        // forge-lint: disable-next-item(unsafe-typecast)
-        pendingEmissions = uint128(bound(pendingEmissions, 0, type(uint128).max / 1e18));
+        uint256 expectedReward;
+        {
+            // Given : The position and the other stakers together fit the uint128 total staked of the Asset.
+            // forge-lint: disable-next-item(unsafe-typecast)
+            otherStaked = uint128(bound(otherStaked, 0, type(uint128).max - amountStaked));
 
-        // And : Set valid state in AM
-        stakingAM.setAssetInPosition(underLyingAsset, positionId);
-        stakingAM.setAmountStakedForPosition(positionId, amountStaked);
-        stakingAM.setTotalStakedForAsset(underLyingAsset, amountStaked);
+            // And : Set valid state in AM
+            stakingAM.setAssetInPosition(underLyingAsset, positionId);
+            stakingAM.setAmountStakedForPosition(positionId, amountStaked);
+            stakingAM.setTotalStakedForAsset(underLyingAsset, amountStaked + otherStaked);
+            stakingAM.setActualRewardBalance(underLyingAsset, pendingEmissions);
 
-        // Avoid stack too deep
-        uint96 positionIdStack = positionId;
+            // And : The pending emissions are shared over the total staked.
+            StakingAMStateForAsset memory assetState;
+            assetState.totalStaked = amountStaked + otherStaked;
+            assetState.currentRewardGlobal = pendingEmissions;
+            expectedReward = uint256(currentRewardPerTokenGlobal(assetState)) * amountStaked / 1e18;
+        }
 
         bytes32[] memory underlyingAssetKeys = new bytes32[](2);
         underlyingAssetKeys[0] = stakingAM.getKeyFromAsset(underLyingAsset, 0);
@@ -52,7 +60,8 @@ contract GetUnderlyingAssetsAmounts_AbstractStakingAM_Fuzz_Test is AbstractStaki
 
         // Then : Asset amounts returned should be correct.
         assertEq(underlyingAssetsAmounts[0], amountStaked);
-        assertEq(underlyingAssetsAmounts[1], stakingAM.rewardOf(positionIdStack));
+        assertEq(underlyingAssetsAmounts[1], expectedReward);
+        assertEq(underlyingAssetsAmounts[1], stakingAM.rewardOf(positionId));
 
         // And: No rateUnderlyingAssetsToUsd are returned.
         assertEq(rateUnderlyingAssetsToUsd.length, 0);

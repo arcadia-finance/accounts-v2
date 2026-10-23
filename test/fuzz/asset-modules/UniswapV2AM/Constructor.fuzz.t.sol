@@ -5,7 +5,6 @@
 pragma solidity ^0.8.0;
 
 import { UniswapV2AM_Fuzz_Test } from "./_UniswapV2AM.fuzz.t.sol";
-
 import { UniswapV2AMExtension } from "../../../utils/extensions/UniswapV2AMExtension.sol";
 
 /**
@@ -23,7 +22,7 @@ contract Constructor_UniswapV2AM_Fuzz_Test is UniswapV2AM_Fuzz_Test {
     /*//////////////////////////////////////////////////////////////
                               TESTS
     //////////////////////////////////////////////////////////////*/
-    function testFuzz_Success_deployment(address registry_) public {
+    function testFuzz_Success_constructor(address registry_) public {
         vm.startPrank(users.owner);
         // forge-lint: disable-next-line(mixed-case-variable)
         UniswapV2AMExtension uniswapV2AM_ = new UniswapV2AMExtension(users.owner, registry_, address(uniswapV2Factory));
