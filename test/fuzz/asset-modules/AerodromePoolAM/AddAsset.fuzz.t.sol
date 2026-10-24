@@ -6,11 +6,11 @@ pragma solidity ^0.8.0;
 
 import { AerodromePoolAM } from "../../../../src/asset-modules/Aerodrome-Finance/AerodromePoolAM.sol";
 import { AerodromePoolAM_Fuzz_Test } from "./_AerodromePoolAM.fuzz.t.sol";
+import { ERC20Mock } from "../../../utils/mocks/tokens/ERC20Mock.sol";
 
 /**
  * @notice Fuzz tests for the function "addAsset" of contract "AerodromePoolAM".
  */
-// forge-lint: disable-next-item(unsafe-typecast)
 contract AddAsset_AerodromePoolAM_Fuzz_Test is AerodromePoolAM_Fuzz_Test {
     /* ///////////////////////////////////////////////////////////////
                               SETUP
@@ -23,121 +23,131 @@ contract AddAsset_AerodromePoolAM_Fuzz_Test is AerodromePoolAM_Fuzz_Test {
     /* ///////////////////////////////////////////////////////////////
                               TESTS
     /////////////////////////////////////////////////////////////// */
-    function testFuzz_Revert_addAsset_Stable_NotOwner(address sender, address asset) public {
-        // Given : sender is not the owner.
+    function testFuzz_Revert_addAsset_NotOwner(address sender, address asset) public {
+        // Given: The sender is not the owner.
         vm.assume(sender != users.owner);
 
-        // When : An asset is added to the AM.
-        // Then : It should revert.
+        // When: An asset is added to the AM.
+        // Then: It reverts.
         vm.prank(sender);
         vm.expectRevert("UNAUTHORIZED");
         aeroPoolAM.addAsset(asset);
     }
 
     function testFuzz_Revert_addAsset_InvalidPool(address asset) public {
-        // Given : The asset is not a aeroPool in the the Aerodrome Factory.
+        // Given: The asset is not a pool in the Aerodrome Factory.
         vm.assume(asset != address(aeroPool));
 
-        // When : An asset is added to the AM.
-        // Then : It should revert.
+        // When: An asset is added to the AM.
+        // Then: It reverts.
         vm.prank(users.owner);
         vm.expectRevert(AerodromePoolAM.InvalidPool.selector);
         aeroPoolAM.addAsset(asset);
     }
 
     function testFuzz_Revert_addAsset_Token0NotAllowed(bool isStable, address token0) public canReceiveERC721(token0) {
-        // Given : The asset is a aeroPool in the the Aerodrome Factory.
+        // Given: A pool of the fuzzed type whose token0 is not in the Registry and whose token1 is.
         aeroPoolFactory.setPool(address(aeroPool));
-
-        // Given : The asset is an Aerodrome aeroPool.
         aeroPool.setStable(isStable);
-
-        // Given : Token1 is added to the Registry, token0 is not.
         aeroPool.setTokens(token0, address(mockERC20.token1));
 
-        // When : An asset is added to the AM.
-        // Then : It should revert.
+        // When: An asset is added to the AM.
+        // Then: It reverts.
         vm.prank(users.owner);
         vm.expectRevert(AerodromePoolAM.AssetNotAllowed.selector);
         aeroPoolAM.addAsset(address(aeroPool));
     }
 
     function testFuzz_Revert_addAsset_Token1NotAllowed(bool isStable, address token1) public canReceiveERC721(token1) {
-        // Given : The asset is a aeroPool in the the Aerodrome Factory.
+        // Given: A pool of the fuzzed type whose token1 is not in the Registry and whose token0 is.
         aeroPoolFactory.setPool(address(aeroPool));
-
-        // Given : The asset is an Aerodrome Volatile aeroPool.
         aeroPool.setStable(isStable);
-
-        // Given : Token0 is added to the Registry, token1 is not.
         aeroPool.setTokens(address(mockERC20.token1), token1);
 
-        // When : An asset is added to the AM.
-        // Then : It should revert.
+        // When: An asset is added to the AM.
+        // Then: It reverts.
         vm.prank(users.owner);
         vm.expectRevert(AerodromePoolAM.AssetNotAllowed.selector);
         aeroPoolAM.addAsset(address(aeroPool));
     }
 
-    function testFuzz_Success_addAsset_VolatilePool() public {
-        // Given : Valid initial state
+    function testFuzz_Success_addAsset_VolatilePool(uint8 decimals0, uint8 decimals1) public {
+        // Given: Two allowed tokens.
+        // forge-lint: disable-next-item(unsafe-typecast)
+        decimals0 = uint8(bound(decimals0, 0, 18));
+        // forge-lint: disable-next-item(unsafe-typecast)
+        decimals1 = uint8(bound(decimals1, 0, 18));
+        ERC20Mock tokenA = new ERC20Mock("Token A", "TOKA", decimals0);
+        ERC20Mock tokenB = new ERC20Mock("Token B", "TOKB", decimals1);
+        (ERC20Mock token0, ERC20Mock token1) = address(tokenA) < address(tokenB) ? (tokenA, tokenB) : (tokenB, tokenA);
+        addAssetToArcadia(address(token0), 1e18);
+        addAssetToArcadia(address(token1), 1e18);
+
+        // And: The pool holds that pair and is volatile.
+        aeroPool.setTokens(address(token0), address(token1));
         aeroPool.setStable(false);
 
-        // When : An asset is added to the AM.
+        // When: An asset is added to the AM.
         vm.prank(users.owner);
         aeroPoolAM.addAsset(address(aeroPool));
 
-        // Then : It should return the correct values
+        // Then: The pool is in the Registry and in the Asset Module.
         assertTrue(registry.inRegistry(address(aeroPool)));
         assertTrue(aeroPoolAM.inAssetModule(address(aeroPool)));
+
+        // And: Both pool tokens are its underlying assets.
+        // forge-lint: disable-next-item(unsafe-typecast)
         bytes32 assetKey = bytes32(abi.encodePacked(uint96(0), address(aeroPool)));
         bytes32[] memory underlyingAssetKeys = aeroPoolAM.getUnderlyingAssets(assetKey);
-        if (address(mockERC20.token1) < address(mockERC20.stable1)) {
-            assertEq(underlyingAssetKeys[0], bytes32(abi.encodePacked(uint96(0), address(mockERC20.token1))));
-            assertEq(underlyingAssetKeys[1], bytes32(abi.encodePacked(uint96(0), address(mockERC20.stable1))));
-        } else {
-            assertEq(underlyingAssetKeys[0], bytes32(abi.encodePacked(uint96(0), address(mockERC20.stable1))));
-            assertEq(underlyingAssetKeys[1], bytes32(abi.encodePacked(uint96(0), address(mockERC20.token1))));
-        }
+        // forge-lint: disable-next-item(unsafe-typecast)
+        assertEq(underlyingAssetKeys[0], bytes32(abi.encodePacked(uint96(0), address(token0))));
+        // forge-lint: disable-next-item(unsafe-typecast)
+        assertEq(underlyingAssetKeys[1], bytes32(abi.encodePacked(uint96(0), address(token1))));
 
-        // And : assetToInformation is empty.
+        // And: The stored information is empty.
         (bool stable, uint64 unitCorrection0, uint64 unitCorrection1) = aeroPoolAM.assetToInformation(address(aeroPool));
         assertFalse(stable);
         assertEq(unitCorrection0, 0);
         assertEq(unitCorrection1, 0);
     }
 
-    function testFuzz_Success_addAsset_StablePool() public {
-        // Given : Valid initial state
+    function testFuzz_Success_addAsset_StablePool(uint8 decimals0, uint8 decimals1) public {
+        // Given: Two allowed tokens.
+        // forge-lint: disable-next-item(unsafe-typecast)
+        decimals0 = uint8(bound(decimals0, 0, 18));
+        // forge-lint: disable-next-item(unsafe-typecast)
+        decimals1 = uint8(bound(decimals1, 0, 18));
+        ERC20Mock tokenA = new ERC20Mock("Token A", "TOKA", decimals0);
+        ERC20Mock tokenB = new ERC20Mock("Token B", "TOKB", decimals1);
+        (ERC20Mock token0, ERC20Mock token1) = address(tokenA) < address(tokenB) ? (tokenA, tokenB) : (tokenB, tokenA);
+        addAssetToArcadia(address(token0), 1e18);
+        addAssetToArcadia(address(token1), 1e18);
+
+        // And: The pool holds that pair and is stable.
+        aeroPool.setTokens(address(token0), address(token1));
         aeroPool.setStable(true);
 
-        // When : An asset is added to the AM by owner.
+        // When: An asset is added to the AM.
         vm.prank(users.owner);
         aeroPoolAM.addAsset(address(aeroPool));
 
-        // Then : It should return the correct values
+        // Then: The pool is in the Registry and in the Asset Module.
         assertTrue(registry.inRegistry(address(aeroPool)));
         assertTrue(aeroPoolAM.inAssetModule(address(aeroPool)));
+
+        // And: Both pool tokens are its underlying assets.
+        // forge-lint: disable-next-item(unsafe-typecast)
         bytes32 assetKey = bytes32(abi.encodePacked(uint96(0), address(aeroPool)));
-
         bytes32[] memory underlyingAssetKeys = aeroPoolAM.getUnderlyingAssets(assetKey);
-        if (address(mockERC20.token1) < address(mockERC20.stable1)) {
-            assertEq(underlyingAssetKeys[0], bytes32(abi.encodePacked(uint96(0), address(mockERC20.token1))));
-            assertEq(underlyingAssetKeys[1], bytes32(abi.encodePacked(uint96(0), address(mockERC20.stable1))));
-        } else {
-            assertEq(underlyingAssetKeys[0], bytes32(abi.encodePacked(uint96(0), address(mockERC20.stable1))));
-            assertEq(underlyingAssetKeys[1], bytes32(abi.encodePacked(uint96(0), address(mockERC20.token1))));
-        }
+        // forge-lint: disable-next-item(unsafe-typecast)
+        assertEq(underlyingAssetKeys[0], bytes32(abi.encodePacked(uint96(0), address(token0))));
+        // forge-lint: disable-next-item(unsafe-typecast)
+        assertEq(underlyingAssetKeys[1], bytes32(abi.encodePacked(uint96(0), address(token1))));
 
+        // And: The unit corrections normalise both tokens to 18 decimals.
         (bool stable, uint64 unitCorrection0, uint64 unitCorrection1) = aeroPoolAM.assetToInformation(address(aeroPool));
         assertTrue(stable);
-
-        if (address(mockERC20.token1) < address(mockERC20.stable1)) {
-            assertEq(unitCorrection0, 10 ** (18 - mockERC20.token1.decimals()));
-            assertEq(unitCorrection1, 10 ** (18 - mockERC20.stable1.decimals()));
-        } else {
-            assertEq(unitCorrection0, 10 ** (18 - mockERC20.stable1.decimals()));
-            assertEq(unitCorrection1, 10 ** (18 - mockERC20.token1.decimals()));
-        }
+        assertEq(unitCorrection0, 10 ** (18 - token0.decimals()));
+        assertEq(unitCorrection1, 10 ** (18 - token1.decimals()));
     }
 }

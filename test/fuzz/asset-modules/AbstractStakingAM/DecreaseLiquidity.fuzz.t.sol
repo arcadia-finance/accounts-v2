@@ -6,7 +6,6 @@ pragma solidity ^0.8.0;
 
 import { AbstractStakingAM_Fuzz_Test, StakingAM, ERC20Mock } from "./_AbstractStakingAM.fuzz.t.sol";
 import { Constants } from "../../Fuzz.t.sol";
-import { FixedPointMathLib } from "../../../../lib/solmate/src/utils/FixedPointMathLib.sol";
 import { stdError } from "../../../../lib/forge-std/src/StdError.sol";
 
 /**
@@ -14,8 +13,6 @@ import { stdError } from "../../../../lib/forge-std/src/StdError.sol";
  */
 // forge-lint: disable-next-item(unsafe-typecast)
 contract DecreaseLiquidity_AbstractStakingAM_Fuzz_Test is AbstractStakingAM_Fuzz_Test {
-    using FixedPointMathLib for uint256;
-
     /* ///////////////////////////////////////////////////////////////
                               SETUP
     /////////////////////////////////////////////////////////////// */
@@ -61,6 +58,7 @@ contract DecreaseLiquidity_AbstractStakingAM_Fuzz_Test is AbstractStakingAM_Fuzz
         address account_,
         StakingAMStateForAsset memory assetState,
         StakingAM.PositionState memory positionState,
+        StakingAMStateForSurplus memory surplusState,
         address asset,
         uint128 amount
     ) public canReceiveERC721(account_) {
@@ -69,10 +67,11 @@ contract DecreaseLiquidity_AbstractStakingAM_Fuzz_Test is AbstractStakingAM_Fuzz
         vm.assume(account_ != address(stakingAM));
         vm.assume(account_ != address(rewardToken));
         // Given : Valid state
-        (assetState, positionState) = givenValidStakingAMState(assetState, positionState, 1, type(uint128).max - 1);
+        (assetState, positionState) =
+            givenValidStakingAMState(assetState, positionState, surplusState, 1, type(uint128).max - 1);
 
         // And: State is persisted.
-        setStakingAMState(assetState, positionState, asset, positionId);
+        setStakingAMState(assetState, positionState, surplusState, asset, positionId);
 
         // Given : Position is minted to the Account
         stakingAM.mintIdTo(account_, positionId);
@@ -93,7 +92,8 @@ contract DecreaseLiquidity_AbstractStakingAM_Fuzz_Test is AbstractStakingAM_Fuzz
         uint96 positionId,
         address account_,
         StakingAMStateForAsset memory assetState,
-        StakingAM.PositionState memory positionState
+        StakingAM.PositionState memory positionState,
+        StakingAMStateForSurplus memory surplusState
     ) public canReceiveERC721(account_) {
         // Given : account_ != zero address
         vm.assume(account_ != address(0));
@@ -104,10 +104,11 @@ contract DecreaseLiquidity_AbstractStakingAM_Fuzz_Test is AbstractStakingAM_Fuzz
         vm.assume(account_ != asset);
 
         // Given : Valid state
-        (assetState, positionState) = givenValidStakingAMState(assetState, positionState, 1, type(uint128).max);
+        (assetState, positionState) =
+            givenValidStakingAMState(assetState, positionState, surplusState, 1, type(uint128).max);
 
         // And: State is persisted.
-        setStakingAMState(assetState, positionState, asset, positionId);
+        setStakingAMState(assetState, positionState, surplusState, asset, positionId);
 
         // Given : Position is minted to the Account
         stakingAM.mintIdTo(account_, positionId);
@@ -117,7 +118,7 @@ contract DecreaseLiquidity_AbstractStakingAM_Fuzz_Test is AbstractStakingAM_Fuzz
         deal(asset, address(stakingAM), positionState.amountStaked, true);
         uint256 currentRewardAccount = stakingAM.rewardOf(positionId);
         vm.assume(currentRewardAccount > 0);
-        deal(address(rewardToken), address(stakingAM), currentRewardAccount, true);
+        deal(address(rewardToken), address(stakingAM), surplusState.lastRewardBalance + currentRewardAccount, true);
 
         // When : Account withdraws full position from stakingAM
         vm.startPrank(account_);
@@ -154,14 +155,11 @@ contract DecreaseLiquidity_AbstractStakingAM_Fuzz_Test is AbstractStakingAM_Fuzz
         // And: Asset state should be updated correctly.
         StakingAM.AssetState memory newAssetState;
         (newAssetState.lastRewardPerTokenGlobal, newAssetState.totalStaked,) = stakingAM.assetState(asset);
-        uint256 deltaReward = assetState.currentRewardGlobal;
-        uint128 currentRewardPerToken;
-        unchecked {
-            currentRewardPerToken =
-                assetState.lastRewardPerTokenGlobal + uint128(deltaReward * 1e18 / assetState.totalStaked);
-        }
-        assertEq(newAssetState.lastRewardPerTokenGlobal, currentRewardPerToken);
+        assertEq(newAssetState.lastRewardPerTokenGlobal, currentRewardPerTokenGlobal(assetState));
         assertEq(newAssetState.totalStaked, assetState.totalStaked - positionState.amountStaked);
+
+        // And: The reward token balance is cached.
+        assertEq(stakingAM.getLastRewardBalance(), rewardToken.balanceOf(address(stakingAM)));
     }
 
     function testFuzz_Success_decreaseLiquidity_NonZeroReward_PartialWithdraw(
@@ -170,6 +168,7 @@ contract DecreaseLiquidity_AbstractStakingAM_Fuzz_Test is AbstractStakingAM_Fuzz
         address account_,
         StakingAMStateForAsset memory assetState,
         StakingAM.PositionState memory positionState,
+        StakingAMStateForSurplus memory surplusState,
         uint128 amount
     ) public canReceiveERC721(account_) {
         // Given : account_ != zero address
@@ -184,10 +183,11 @@ contract DecreaseLiquidity_AbstractStakingAM_Fuzz_Test is AbstractStakingAM_Fuzz
             vm.assume(account_ != asset);
 
             // Given : Valid state
-            (assetState, positionState) = givenValidStakingAMState(assetState, positionState, 2, type(uint128).max);
+            (assetState, positionState) =
+                givenValidStakingAMState(assetState, positionState, surplusState, 2, type(uint128).max);
 
             // And: State is persisted.
-            setStakingAMState(assetState, positionState, asset, positionId);
+            setStakingAMState(assetState, positionState, surplusState, asset, positionId);
 
             // Given : Position is minted to the Account
             stakingAM.mintIdTo(account_, positionId);
@@ -197,7 +197,7 @@ contract DecreaseLiquidity_AbstractStakingAM_Fuzz_Test is AbstractStakingAM_Fuzz
             deal(asset, address(stakingAM), positionState.amountStaked, true);
             currentRewardAccount = stakingAM.rewardOf(positionId);
             vm.assume(currentRewardAccount > 0);
-            deal(address(rewardToken), address(stakingAM), currentRewardAccount, true);
+            deal(address(rewardToken), address(stakingAM), surplusState.lastRewardBalance + currentRewardAccount, true);
         }
 
         // And : amount withdrawn is smaller as the staked balance.
@@ -232,11 +232,7 @@ contract DecreaseLiquidity_AbstractStakingAM_Fuzz_Test is AbstractStakingAM_Fuzz
         ) = stakingAM.positionState(positionId);
         assertEq(newPositionState.asset, asset);
         assertEq(newPositionState.amountStaked, positionState.amountStaked - amount);
-        uint128 currentRewardPerToken;
-        unchecked {
-            currentRewardPerToken = assetState.lastRewardPerTokenGlobal
-                + uint128(assetState.currentRewardGlobal.mulDivDown(1e18, assetState.totalStaked));
-        }
+        uint128 currentRewardPerToken = currentRewardPerTokenGlobal(assetState);
         assertEq(newPositionState.lastRewardPerTokenPosition, currentRewardPerToken);
         assertEq(newPositionState.lastRewardPosition, 0);
 
@@ -245,6 +241,9 @@ contract DecreaseLiquidity_AbstractStakingAM_Fuzz_Test is AbstractStakingAM_Fuzz
         (newAssetState.lastRewardPerTokenGlobal, newAssetState.totalStaked,) = stakingAM.assetState(asset);
         assertEq(newAssetState.lastRewardPerTokenGlobal, currentRewardPerToken);
         assertEq(newAssetState.totalStaked, assetState.totalStaked - amount);
+
+        // And: The reward token balance is cached.
+        assertEq(stakingAM.getLastRewardBalance(), rewardToken.balanceOf(address(stakingAM)));
     }
 
     function testFuzz_Success_decreaseLiquidity_ZeroReward_FullWithdraw(
@@ -252,6 +251,7 @@ contract DecreaseLiquidity_AbstractStakingAM_Fuzz_Test is AbstractStakingAM_Fuzz
         address account_,
         StakingAMStateForAsset memory assetState,
         StakingAM.PositionState memory positionState,
+        StakingAMStateForSurplus memory surplusState,
         uint8 assetDecimals
     ) public canReceiveERC721(account_) {
         // Given : account_ != zero address
@@ -263,7 +263,8 @@ contract DecreaseLiquidity_AbstractStakingAM_Fuzz_Test is AbstractStakingAM_Fuzz
         vm.assume(account_ != asset);
 
         // Given : Valid state
-        (assetState, positionState) = givenValidStakingAMState(assetState, positionState, 1, type(uint128).max);
+        (assetState, positionState) =
+            givenValidStakingAMState(assetState, positionState, surplusState, 1, type(uint128).max);
 
         // And: reward is zero.
         positionState.lastRewardPosition = 0;
@@ -271,7 +272,7 @@ contract DecreaseLiquidity_AbstractStakingAM_Fuzz_Test is AbstractStakingAM_Fuzz
         assetState.currentRewardGlobal = 0;
 
         // And: State is persisted.
-        setStakingAMState(assetState, positionState, asset, positionId);
+        setStakingAMState(assetState, positionState, surplusState, asset, positionId);
 
         // Given : Position is minted to the Account
         stakingAM.mintIdTo(account_, positionId);
@@ -315,6 +316,9 @@ contract DecreaseLiquidity_AbstractStakingAM_Fuzz_Test is AbstractStakingAM_Fuzz
         (newAssetState.lastRewardPerTokenGlobal, newAssetState.totalStaked,) = stakingAM.assetState(asset);
         assertEq(newAssetState.lastRewardPerTokenGlobal, assetState.lastRewardPerTokenGlobal);
         assertEq(newAssetState.totalStaked, assetState.totalStaked - positionState.amountStaked);
+
+        // And: The reward token balance is cached.
+        assertEq(stakingAM.getLastRewardBalance(), rewardToken.balanceOf(address(stakingAM)));
     }
 
     function testFuzz_Success_decreaseLiquidity_ZeroReward_PartialWithdraw(
@@ -323,6 +327,7 @@ contract DecreaseLiquidity_AbstractStakingAM_Fuzz_Test is AbstractStakingAM_Fuzz
         address account_,
         StakingAMStateForAsset memory assetState,
         StakingAM.PositionState memory positionState,
+        StakingAMStateForSurplus memory surplusState,
         uint128 amount
     ) public canReceiveERC721(account_) {
         // Given : account_ != zero address
@@ -336,7 +341,8 @@ contract DecreaseLiquidity_AbstractStakingAM_Fuzz_Test is AbstractStakingAM_Fuzz
             vm.assume(account_ != asset);
 
             // Given : Valid state
-            (assetState, positionState) = givenValidStakingAMState(assetState, positionState, 2, type(uint128).max);
+            (assetState, positionState) =
+                givenValidStakingAMState(assetState, positionState, surplusState, 2, type(uint128).max);
 
             // And: reward is zero.
             positionState.lastRewardPosition = 0;
@@ -344,7 +350,7 @@ contract DecreaseLiquidity_AbstractStakingAM_Fuzz_Test is AbstractStakingAM_Fuzz
             assetState.currentRewardGlobal = 0;
 
             // And: State is persisted.
-            setStakingAMState(assetState, positionState, asset, positionId);
+            setStakingAMState(assetState, positionState, surplusState, asset, positionId);
 
             // Given : Position is minted to the Account
             stakingAM.mintIdTo(account_, positionId);
@@ -391,89 +397,164 @@ contract DecreaseLiquidity_AbstractStakingAM_Fuzz_Test is AbstractStakingAM_Fuzz
         (newAssetState.lastRewardPerTokenGlobal, newAssetState.totalStaked,) = stakingAM.assetState(asset);
         assertEq(newAssetState.lastRewardPerTokenGlobal, assetState.lastRewardPerTokenGlobal);
         assertEq(newAssetState.totalStaked, assetState.totalStaked - amount);
+
+        // And: The reward token balance is cached.
+        assertEq(stakingAM.getLastRewardBalance(), rewardToken.balanceOf(address(stakingAM)));
     }
 
-    function testFuzz_Success_decreaseLiquidity_ValidAccountingFlow() public {
-        // Given : 2 actors and initial Asset amounts
-        address user1 = address(0x1);
-        address user2 = address(0x2);
-        uint128 user1InitBalance = uint128(1_000_000 * (10 ** Constants.STABLE_DECIMALS));
-        uint128 user2InitBalance = uint128(4_000_000 * (10 ** Constants.STABLE_DECIMALS));
+    function testFuzz_Success_decreaseLiquidity_ValidAccountingFlow(
+        StakingAMStateForSurplus memory surplusState,
+        uint128 user1InitBalance,
+        uint128 user2InitBalance,
+        uint128 user1AddedBalance,
+        uint128 user3Balance,
+        uint128 rewardAmount1,
+        uint128 rewardAmount2
+    ) public {
+        // Given : Every stake is non-zero, and all four together fit the uint128 total staked of the Asset.
+        user1InitBalance = uint128(bound(user1InitBalance, 1, type(uint128).max - 3));
+        user2InitBalance = uint128(bound(user2InitBalance, 1, type(uint128).max - user1InitBalance - 2));
+        user1AddedBalance =
+            uint128(bound(user1AddedBalance, 1, type(uint128).max - user1InitBalance - user2InitBalance - 1));
+        user3Balance = uint128(
+            bound(user3Balance, 1, type(uint128).max - user1InitBalance - user2InitBalance - user1AddedBalance)
+        );
 
-        // Given : Fund both users with amount of Assets
+        // And : User2 accumulates both tranches, which together have to fit its uint128 reward balance.
+        rewardAmount1 = uint128(bound(rewardAmount1, 1, type(uint128).max - 1));
+        rewardAmount2 = uint128(bound(rewardAmount2, 1, type(uint128).max - rewardAmount1));
+
+        // And : The rewardPerToken the Asset Module accumulates over each tranche.
+        uint128 rewardPerToken1;
+        uint128 deltaRewardPerToken2;
+        {
+            StakingAMStateForAsset memory assetState;
+            assetState.totalStaked = user1InitBalance + user2InitBalance;
+            assetState.currentRewardGlobal = rewardAmount1;
+            rewardPerToken1 = currentRewardPerTokenGlobal(assetState);
+
+            assetState.totalStaked = assetState.totalStaked + user1AddedBalance;
+            assetState.currentRewardGlobal = rewardAmount2;
+            assetState.lastRewardPerTokenGlobal = rewardPerToken1;
+            unchecked {
+                deltaRewardPerToken2 = currentRewardPerTokenGlobal(assetState) - rewardPerToken1;
+            }
+        }
+
         address asset = address(mockERC20.stable1);
-        deal(asset, user1, user1InitBalance, true);
-        deal(asset, user2, user2InitBalance, true);
-
-        // Given : Add asset to stakingAM
         stakingAM.addAsset(asset);
+        address user3 = address(0x3);
 
-        // Given : Both users stake in the stakingAM
-        vm.prank(user1);
+        // And : Valid surplus state.
+        givenValidStakingAMState(surplusState);
+        setStakingAMState(surplusState);
+
+        // And : Both users stake in the stakingAM.
+        deal(asset, address(0x1), user1InitBalance, true);
+        vm.startPrank(address(0x1));
         ERC20Mock(asset).approve(address(stakingAM), user1InitBalance);
-        vm.prank(user2);
-        ERC20Mock(asset).approve(address(stakingAM), user2InitBalance);
-
-        vm.prank(user1);
         stakingAM.mint(asset, user1InitBalance);
-        vm.prank(user2);
+        vm.stopPrank();
+
+        deal(asset, address(0x2), user2InitBalance, true);
+        vm.startPrank(address(0x2));
+        ERC20Mock(asset).approve(address(stakingAM), user2InitBalance);
         stakingAM.mint(asset, user2InitBalance);
+        vm.stopPrank();
 
-        // Given : Mock rewards
-        uint128 rewardAmount1 = uint128(1_000_000 * (10 ** Constants.TOKEN_DECIMALS));
+        // And : A first reward tranche accrues over both stakes.
         stakingAM.setActualRewardBalance(asset, rewardAmount1);
-        deal(address(rewardToken), address(stakingAM), type(uint256).max, true);
 
-        // When : User1 claims rewards
-        // Then : He should receive 1/5 of the rewardAmount1
-        vm.prank(user1);
+        // When : User1 claims.
+        // Then : He receives his share of the first tranche.
+        vm.prank(address(0x1));
         stakingAM.claimReward(1);
+        uint256 expectedUser1Reward = uint256(rewardPerToken1) * user1InitBalance / Constants.WAD;
+        assertEq(rewardToken.balanceOf(address(0x1)), expectedUser1Reward);
 
-        assertEq(rewardToken.balanceOf(user1), rewardAmount1 / 5);
-
-        // Given : User 1 stakes additional tokens and stakes
-        uint128 user1AddedBalance = uint128(3_000_000 * (10 ** Constants.STABLE_DECIMALS));
-        deal(asset, user1, user1AddedBalance, true);
-        vm.prank(user1);
+        // And : User1 stakes additional Assets.
+        deal(asset, address(0x1), user1AddedBalance, true);
+        vm.startPrank(address(0x1));
         ERC20Mock(asset).approve(address(stakingAM), user1AddedBalance);
-
-        vm.prank(user1);
         stakingAM.increaseLiquidity(1, user1AddedBalance);
+        vm.stopPrank();
 
-        // Given : Add 1 mio more rewards
-        uint128 rewardAmount2 = uint128(1_000_000 * (10 ** Constants.TOKEN_DECIMALS));
+        // And : A second reward tranche accrues.
         stakingAM.setActualRewardBalance(asset, rewardAmount2);
 
-        // Given : A third user stakes while there is no reward increase (this shouldn't accrue rewards for him and not impact other user rewards)
-        address user3 = address(0x3);
-        deal(asset, user3, user1AddedBalance, true);
-        vm.prank(user3);
-        ERC20Mock(asset).approve(address(stakingAM), user1AddedBalance);
+        // And : User3 stakes after the second tranche accrued.
+        deal(asset, user3, user3Balance, true);
+        vm.startPrank(user3);
+        ERC20Mock(asset).approve(address(stakingAM), user3Balance);
+        uint256 positionId3 = stakingAM.mint(asset, user3Balance);
+        vm.stopPrank();
 
-        vm.prank(user3);
-        stakingAM.mint(asset, user1AddedBalance);
-
-        // When : User1 withdraws
-        // Then : He should receive half of rewardAmount2
-        vm.prank(user1);
+        // When : User1 withdraws his full position.
+        // Then : He receives his share of the second tranche on top of the first.
+        vm.prank(address(0x1));
         stakingAM.decreaseLiquidity(1, user1InitBalance + user1AddedBalance);
 
-        assertEq(rewardToken.balanceOf(user1), (rewardAmount1 / 5) + (rewardAmount2 / 2));
-        assertEq(mockERC20.stable1.balanceOf(user1), user1InitBalance + user1AddedBalance);
+        expectedUser1Reward += uint256(deltaRewardPerToken2) * (user1InitBalance + user1AddedBalance) / Constants.WAD;
+        assertEq(rewardToken.balanceOf(address(0x1)), expectedUser1Reward);
+        assertEq(ERC20Mock(asset).balanceOf(address(0x1)), user1InitBalance + user1AddedBalance);
 
-        // When : User2 withdraws
-        // Then : He should receive 4/5 of rewards1 + 1/2 of rewards2
-        vm.prank(user2);
+        // When : User2 withdraws his full position.
+        // Then : He receives his share of both tranches.
+        vm.prank(address(0x2));
         stakingAM.decreaseLiquidity(2, user2InitBalance);
 
-        assertEq(rewardToken.balanceOf(user2), ((4 * rewardAmount1) / 5) + (rewardAmount2 / 2));
-        assertEq(mockERC20.stable1.balanceOf(user2), user2InitBalance);
+        uint128 rewardPerToken2;
+        unchecked {
+            rewardPerToken2 = rewardPerToken1 + deltaRewardPerToken2;
+        }
+        assertEq(rewardToken.balanceOf(address(0x2)), uint256(rewardPerToken2) * user2InitBalance / Constants.WAD);
+        assertEq(ERC20Mock(asset).balanceOf(address(0x2)), user2InitBalance);
 
-        // When : User3 calls getRewards()
-        // Then : He should not have accrued any rewards
+        // When : User3 claims.
+        // Then : He accrued nothing, he was not staked while either tranche accrued.
         vm.prank(user3);
-        stakingAM.claimReward(3);
-
+        stakingAM.claimReward(positionId3);
         assertEq(rewardToken.balanceOf(user3), 0);
+
+        // And: The reward token balance is cached.
+        assertEq(stakingAM.getLastRewardBalance(), rewardToken.balanceOf(address(stakingAM)));
+    }
+
+    function testFuzz_Success_decreaseLiquidity_BookedSurplusNotCredited(
+        uint8 assetDecimals,
+        StakingAMStateForSurplus memory surplusState,
+        uint128 amount,
+        uint128 reward,
+        uint128 booked
+    ) public {
+        // Given: An Asset is added to the stakingAM.
+        address asset = addAsset(assetDecimals);
+
+        // And: Valid surplus state.
+        givenValidStakingAMState(surplusState);
+        setStakingAMState(surplusState);
+
+        // And: A position is staked, whose stake keeps the reward accumulator in range.
+        amount = uint128(bound(amount, 1e18, type(uint128).max / 2));
+        uint256 positionId = _stakeSolePosition(asset, amount);
+
+        // And: The staking contract will deliver a reward, of which the hook books a part for the recipient.
+        reward = uint128(bound(reward, 1, type(uint128).max));
+        booked = uint128(bound(booked, 1, reward));
+        stakingAM.setActualRewardBalance(asset, reward);
+        stakingAM.setBookedAmount(booked);
+        uint256 expectedReward = _credited(amount, reward - booked);
+
+        // When: The owner withdraws its full position.
+        vm.prank(users.liquidityProvider);
+        uint256 rewards = stakingAM.decreaseLiquidity(positionId, amount);
+
+        // Then: The owner is paid the delivered reward less the booked part.
+        assertEq(rewards, expectedReward);
+        assertEq(rewardToken.balanceOf(users.liquidityProvider), expectedReward);
+
+        // And: The booked amount is not credited to the position.
+        assertEq(stakingAM.bookedSurplus(), surplusState.bookedSurplus + booked);
+        assertEq(stakingAM.getLastRewardBalance(), rewardToken.balanceOf(address(stakingAM)));
     }
 }

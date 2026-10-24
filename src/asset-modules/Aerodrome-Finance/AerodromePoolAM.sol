@@ -77,13 +77,13 @@ contract AerodromePoolAM is DerivedAM {
      * Since tokens with very high supply might cause an overflow in _getTrustedReservesStable().
      */
     function addAsset(address pool) external onlyOwner {
-        if (!AERO_FACTORY.isPool(pool)) revert InvalidPool();
+        if (!_isPool(pool)) revert InvalidPool();
 
         (address token0, address token1) = IAeroPool(pool).tokens();
         if (!IRegistry(REGISTRY).isAllowed(token0, 0)) revert AssetNotAllowed();
         if (!IRegistry(REGISTRY).isAllowed(token1, 0)) revert AssetNotAllowed();
 
-        if (IAeroPool(pool).stable()) {
+        if (_isStablePool(pool)) {
             assetToInformation[pool] = AssetInformation({
                 stable: true,
                 unitCorrection0: uint64(10 ** (18 - ERC20(token0).decimals())),
@@ -102,6 +102,24 @@ contract AerodromePoolAM is DerivedAM {
         // Will revert in Registry if Aerodrome Finance pool was already added.
         // forge-lint: disable-next-line(unsafe-typecast)
         IRegistry(REGISTRY).addAsset(uint96(ASSET_TYPE), pool);
+    }
+
+    /**
+     * @notice Returns if the pool was deployed by the protocol.
+     * @param pool The contract address of the pool.
+     * @return isPool_ Bool indicating if it is a pool.
+     */
+    function _isPool(address pool) internal view virtual returns (bool isPool_) {
+        isPool_ = AERO_FACTORY.isPool(pool);
+    }
+
+    /**
+     * @notice Returns if the pool uses the stable invariant.
+     * @param pool The contract address of the pool.
+     * @return isStable Bool indicating if it is stable.
+     */
+    function _isStablePool(address pool) internal view virtual returns (bool isStable) {
+        isStable = IAeroPool(pool).stable();
     }
 
     /*///////////////////////////////////////////////////////////////
@@ -272,6 +290,7 @@ contract AerodromePoolAM is DerivedAM {
      *     The invariant is symmetric in x and y, so for p0 > p1 both tokens are swapped:
      *     t is calculated with p0 and p1 interchanged, and x and y are interchanged in 5).
      *     At parity (p0 = p1) the pool is balanced: t = 1.
+     *     For p0 / p1 so small that t rounds to 0, both trusted reserves are 0.
      *  4) We plug 3) into 2) and solve for x:
      *     k = x⁴ * (t + t³)
      *     => x = ∜[k(r0, r1) / d]
@@ -332,13 +351,17 @@ contract AerodromePoolAM is DerivedAM {
 
         // Calculate x:
         // x = ∜[k(r0, r1) / d]
-        // => x = √{√[k / d]}
+        // => x = √[√k / √d]
         // => d = t * (1 + t²)
+        if (t == 0) return (0, 0);
         {
             // Round d up, so that x is never overestimated.
             uint256 d = t.mulDivUp(1e36 + t * t, 1e36); // 18 decimals.
-            // Sqrt halves the number of decimals.
-            uint256 x = FixedPointMathLib.sqrt(FixedPointMathLib.sqrt(FullMath.mulDiv(k, 1e18, d)) * 1e18); // 18 decimals.
+            // Round the square root of d up, so that x is never overestimated.
+            uint256 dScaled = d * 1e18;
+            uint256 sqrtD = FixedPointMathLib.sqrt(dScaled);
+            if (sqrtD * sqrtD < dScaled) ++sqrtD;
+            uint256 x = FixedPointMathLib.sqrt(FullMath.mulDiv(FixedPointMathLib.sqrt(k), 1e36, sqrtD)); // 18 decimals.
 
             // Bring the reserves from 18 decimals precision to the actual token decimals.
             // r0' = x / 10^(18 - D0).

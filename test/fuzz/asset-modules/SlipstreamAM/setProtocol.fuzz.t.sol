@@ -4,9 +4,8 @@
  */
 pragma solidity ^0.8.0;
 
-import { SlipstreamAM_Fuzz_Test } from "./_SlipstreamAM.fuzz.t.sol";
-
 import { RegistryErrors } from "../../../../src/libraries/Errors.sol";
+import { SlipstreamAM_Fuzz_Test } from "./_SlipstreamAM.fuzz.t.sol";
 import { SlipstreamAMExtension } from "../../../utils/extensions/SlipstreamAMExtension.sol";
 
 /**
@@ -27,41 +26,54 @@ contract SetProtocol_SlipstreamAM_Fuzz_Test is SlipstreamAM_Fuzz_Test {
                               TESTS
     //////////////////////////////////////////////////////////////*/
     function testFuzz_Revert_setProtocol_NonOwner(address unprivilegedAddress_) public {
+        // Given: The caller is not the owner of the Asset Module.
         vm.assume(unprivilegedAddress_ != users.owner);
-        vm.startPrank(unprivilegedAddress_);
+        vm.prank(unprivilegedAddress_);
 
+        // When: The protocol is set.
+        // Then: It reverts.
         vm.expectRevert("UNAUTHORIZED");
         slipstreamAM.setProtocol();
-        vm.stopPrank();
     }
 
-    function testFuzz_Revert_setProtocol_ProtocolNotAddedToReg() public {
+    function testFuzz_Revert_setProtocol_ProtocolNotAddedToReg(address owner_) public {
+        // Given: An Asset Module that is not registered in the Registry.
         vm.prank(users.owner);
-        slipstreamAM = new SlipstreamAMExtension(users.owner, address(registry), address(slipstreamPositionManager));
+        slipstreamAM = new SlipstreamAMExtension(owner_, address(registry), address(slipstreamPositionManager));
 
-        vm.startPrank(users.owner);
+        // When: The protocol is set.
+        // Then: It reverts.
+        vm.prank(owner_);
         vm.expectRevert(RegistryErrors.OnlyAssetModule.selector);
         slipstreamAM.setProtocol();
-        vm.stopPrank();
     }
 
-    function testFuzz_Revert_setProtocol_OverwriteExistingProtocol() public {
+    function testFuzz_Revert_setProtocol_OverwriteExistingProtocol(address owner_) public {
+        // Given: A second registered Asset Module for the same NonfungiblePositionManager.
         vm.startPrank(users.owner);
-        vm.expectRevert(RegistryErrors.AssetAlreadyInRegistry.selector);
-        slipstreamAM.setProtocol();
-        vm.stopPrank();
-    }
-
-    function testFuzz_Success_setProtocol() public {
-        vm.startPrank(users.owner);
-        slipstreamAM =
-            new SlipstreamAMExtension(users.owner, address(registry), address(nonfungiblePositionManagerMock));
+        slipstreamAM = new SlipstreamAMExtension(owner_, address(registry), address(slipstreamPositionManager));
         registry.addAssetModule(address(slipstreamAM));
         vm.stopPrank();
 
-        vm.prank(users.owner);
+        // When: The protocol is set.
+        // Then: It reverts.
+        vm.prank(owner_);
+        vm.expectRevert(RegistryErrors.AssetAlreadyInRegistry.selector);
+        slipstreamAM.setProtocol();
+    }
+
+    function testFuzz_Success_setProtocol(address owner_) public {
+        // Given: A registered Asset Module for a NonfungiblePositionManager that is not in the Registry.
+        vm.startPrank(users.owner);
+        slipstreamAM = new SlipstreamAMExtension(owner_, address(registry), address(nonfungiblePositionManagerMock));
+        registry.addAssetModule(address(slipstreamAM));
+        vm.stopPrank();
+
+        // When: The protocol is set.
+        vm.prank(owner_);
         slipstreamAM.setProtocol();
 
+        // Then: The NonfungiblePositionManager is registered in the Asset Module and in the Registry.
         assertTrue(slipstreamAM.inAssetModule(address(nonfungiblePositionManagerMock)));
         assertTrue(registry.inRegistry(address(nonfungiblePositionManagerMock)));
     }

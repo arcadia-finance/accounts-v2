@@ -29,6 +29,7 @@ contract RewardOf_AbstractStakingAM_Fuzz_Test is AbstractStakingAM_Fuzz_Test {
     function testFuzz_Success_rewardOf(
         StakingAMStateForAsset memory assetState,
         StakingAM.PositionState memory positionState,
+        StakingAMStateForSurplus memory surplusState,
         uint96 positionId,
         uint8 assetDecimals
     ) public {
@@ -36,22 +37,17 @@ contract RewardOf_AbstractStakingAM_Fuzz_Test is AbstractStakingAM_Fuzz_Test {
         address asset = addAsset(assetDecimals);
 
         // Given : Valid state
-        (assetState, positionState) = givenValidStakingAMState(assetState, positionState, 1, type(uint128).max);
+        (assetState, positionState) =
+            givenValidStakingAMState(assetState, positionState, surplusState, 1, type(uint128).max);
 
         // And: State is persisted.
-        setStakingAMState(assetState, positionState, asset, positionId);
+        setStakingAMState(assetState, positionState, surplusState, asset, positionId);
 
         // When : Calling rewardOf()
         uint256 currentRewardPosition = stakingAM.rewardOf(positionId);
 
         // Then : It should return the correct value
-        uint256 deltaRewardGlobal = assetState.currentRewardGlobal;
-        uint128 rewardPerToken;
-        unchecked {
-            // forge-lint: disable-next-item(unsafe-typecast)
-            rewardPerToken = assetState.lastRewardPerTokenGlobal
-                + uint128(deltaRewardGlobal.mulDivDown(1e18, assetState.totalStaked));
-        }
+        uint128 rewardPerToken = currentRewardPerTokenGlobal(assetState);
         uint128 deltaRewardPerToken;
         unchecked {
             deltaRewardPerToken = rewardPerToken - positionState.lastRewardPerTokenPosition;

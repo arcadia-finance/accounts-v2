@@ -36,19 +36,23 @@ contract CalculateValueAndRiskFactors_StakedSlipstreamAM_Fuzz_Test is StakedSlip
         address creditor,
         uint256[3] memory underlyingAssetsAmounts
     ) public {
-        // Given: amounts do not overflow.
-        underlyingAssetsAmounts[0] = bound(underlyingAssetsAmounts[0], 0, type(uint64).max);
-        underlyingAssetsAmounts[1] = bound(underlyingAssetsAmounts[1], 0, type(uint64).max);
-        underlyingAssetsAmounts[2] = bound(underlyingAssetsAmounts[2], 0, type(uint64).max);
-        assetRates[0] = bound(assetRates[0], 0, type(uint64).max);
-        assetRates[1] = bound(assetRates[1], 0, type(uint64).max);
-        assetRates[2] = bound(assetRates[2], 0, type(uint64).max);
+        // Given: The first underlying asset has a non-zero usd value that does not overflow (test-case).
+        assetRates[0] = bound(assetRates[0], 1, type(uint256).max);
+        underlyingAssetsAmounts[0] =
+            bound(underlyingAssetsAmounts[0], (1e18 - 1) / assetRates[0] + 1, type(uint256).max / assetRates[0]);
+
+        // And: The usd value of the other underlying assets does not overflow.
+        underlyingAssetsAmounts[1] = bound(
+            underlyingAssetsAmounts[1], 0, assetRates[1] == 0 ? type(uint256).max : type(uint256).max / assetRates[1]
+        );
+        underlyingAssetsAmounts[2] = bound(
+            underlyingAssetsAmounts[2], 0, assetRates[2] == 0 ? type(uint256).max : type(uint256).max / assetRates[2]
+        );
 
         uint256 valuePrincipal =
             underlyingAssetsAmounts[0] * assetRates[0] / 1e18 + underlyingAssetsAmounts[1] * assetRates[1] / 1e18;
         uint256 valueReward = underlyingAssetsAmounts[2] * assetRates[2] / 1e18;
         uint256 expectedValueInUsd = valuePrincipal + valueReward;
-        vm.assume(expectedValueInUsd > 0);
 
         // And: Risk factors are below max risk factor.
         riskFactor = uint16(bound(riskFactor, 0, AssetValuationLib.ONE_4));

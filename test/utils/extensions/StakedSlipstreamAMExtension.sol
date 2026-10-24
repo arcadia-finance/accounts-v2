@@ -13,8 +13,13 @@ contract StakedSlipstreamAMExtension is StakedSlipstreamAM {
         address registry_,
         address nonfungiblePositionManager,
         address aerodromeVoter,
-        address rewardToken
-    ) StakedSlipstreamAM(owner_, registry_, nonfungiblePositionManager, aerodromeVoter, rewardToken) { }
+        address rewardToken,
+        address surplusRecipient_
+    )
+        StakedSlipstreamAM(
+            owner_, registry_, nonfungiblePositionManager, aerodromeVoter, rewardToken, surplusRecipient_
+        )
+    { }
 
     // forge-lint: disable-next-item(mixed-case-function,mixed-case-variable)
     function getCLFactory() public view returns (address cLFactory) {
@@ -79,5 +84,26 @@ contract StakedSlipstreamAMExtension is StakedSlipstreamAM {
 
     function setPoolToGauge(address pool, address gauge) public {
         poolToGauge[pool] = gauge;
+    }
+
+    uint256 public bookedAmount;
+
+    function setBookedAmount(uint256 amount) public {
+        bookedAmount = amount;
+    }
+
+    function _takeBookedAmount() private returns (uint256 surplus) {
+        surplus = bookedAmount;
+        bookedAmount = 0;
+    }
+
+    function _withdrawAndClaim(address gauge, uint256 positionId) internal override returns (uint256 surplus) {
+        super._withdrawAndClaim(gauge, positionId);
+        surplus = _takeBookedAmount();
+    }
+
+    function _claimReward(address gauge, uint256 positionId) internal override returns (uint256 surplus) {
+        super._claimReward(gauge, positionId);
+        surplus = _takeBookedAmount();
     }
 }

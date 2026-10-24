@@ -53,6 +53,9 @@ contract StakedSlipstreamAM is DerivedAM, ERC721, ReentrancyGuard {
                                 STORAGE
     ////////////////////////////////////////////////////////////// */
 
+    // The recipient of every reward token that is not owed to a position.
+    address public surplusRecipient;
+
     // The baseURI of the ERC721 tokens.
     // forge-lint: disable-next-item(mixed-case-variable)
     string public baseURI;
@@ -83,6 +86,8 @@ contract StakedSlipstreamAM is DerivedAM, ERC721, ReentrancyGuard {
     ////////////////////////////////////////////////////////////// */
 
     event RewardPaid(uint256 indexed positionId, address indexed reward, uint128 amount);
+    event SurplusClaimed(address indexed surplusRecipient, uint256 amount);
+    event SurplusRecipientSet(address indexed surplusRecipient);
 
     /* //////////////////////////////////////////////////////////////
                                 ERRORS
@@ -92,6 +97,8 @@ contract StakedSlipstreamAM is DerivedAM, ERC721, ReentrancyGuard {
     error GaugeNotValid();
     error InvalidId();
     error NotOwner();
+    error NotRecipient();
+    error RecipientNotValid();
     error RewardTokenNotAllowed();
     error RewardTokenNotValid();
     error ZeroLiquidity();
@@ -106,6 +113,7 @@ contract StakedSlipstreamAM is DerivedAM, ERC721, ReentrancyGuard {
      * @param nonFungiblePositionManager The contract address of the protocols NonFungiblePositionManager.
      * @param aerodromeVoter The contract address of the Aerodrome Finance Voter contract.
      * @param rewardToken The contract address of the Reward Token.
+     * @param surplusRecipient_ The recipient of every reward token that is not owed to a position.
      * @dev The ASSET_TYPE, necessary for the deposit and withdraw logic in the Accounts, is "2" for Slipstream Liquidity Positions (ERC721).
      */
     constructor(
@@ -113,12 +121,31 @@ contract StakedSlipstreamAM is DerivedAM, ERC721, ReentrancyGuard {
         address registry,
         address nonFungiblePositionManager,
         address aerodromeVoter,
-        address rewardToken
-    ) DerivedAM(owner_, registry, 2) ERC721("Arcadia Staked Slipstream Positions", "aSSLIPP") {
+        address rewardToken,
+        address surplusRecipient_
+    ) DerivedAM(owner_, registry, 2) ERC721(_tokenName(), _tokenSymbol()) {
+        _setSurplusRecipient(surplusRecipient_);
+
         AERO_VOTER = IAeroVoter(aerodromeVoter);
         REWARD_TOKEN = ERC20(rewardToken);
         NON_FUNGIBLE_POSITION_MANAGER = INonfungiblePositionManager(nonFungiblePositionManager);
         CL_FACTORY = NON_FUNGIBLE_POSITION_MANAGER.factory();
+    }
+
+    /**
+     * @notice Returns the name of the ERC721 tokens.
+     * @return name_ The name.
+     */
+    function _tokenName() internal pure virtual returns (string memory name_) {
+        name_ = "Arcadia Staked Slipstream Positions";
+    }
+
+    /**
+     * @notice Returns the symbol of the ERC721 tokens.
+     * @return symbol_ The symbol.
+     */
+    function _tokenSymbol() internal pure virtual returns (string memory symbol_) {
+        symbol_ = "aSSLIPP";
     }
 
     /* //////////////////////////////////////////////////////////////
@@ -147,7 +174,7 @@ contract StakedSlipstreamAM is DerivedAM, ERC721, ReentrancyGuard {
      * @param gauge The contract address of the gauge to stake Slipstream LP.
      * @dev Killed Gauges can be added, but no positions can be minted.
      */
-    function addGauge(address gauge) external onlyOwner {
+    function addGauge(address gauge) external virtual onlyOwner {
         if (!AERO_VOTER.isGauge(gauge)) revert GaugeNotValid();
         if (ICLGauge(gauge).rewardToken() != address(REWARD_TOKEN)) revert RewardTokenNotValid();
 
@@ -234,7 +261,7 @@ contract StakedSlipstreamAM is DerivedAM, ERC721, ReentrancyGuard {
         );
 
         // Get the staking rewards.
-        underlyingAssetsAmounts[2] = rewardOf(assetId);
+        underlyingAssetsAmounts[2] = _rewardAmount(assetId);
     }
 
     /**
@@ -425,12 +452,16 @@ contract StakedSlipstreamAM is DerivedAM, ERC721, ReentrancyGuard {
 
         // Stake the Liquidity Position.
         NON_FUNGIBLE_POSITION_MANAGER.approve(gauge, assetId);
-        ICLGauge(gauge).deposit(assetId);
+        uint256 rewardBalanceBefore = REWARD_TOKEN.balanceOf(address(this));
+        _stake(gauge, assetId);
 
         // If the Liquidity Position already collected fees,
         // these were claimed during the deposit and send to this contract.
         uint256 balance0 = ERC20(token0).balanceOf(address(this));
         uint256 balance1 = ERC20(token1).balanceOf(address(this));
+
+        if (token0 == address(REWARD_TOKEN)) balance0 = balance0 - rewardBalanceBefore;
+        else if (token1 == address(REWARD_TOKEN)) balance1 = balance1 - rewardBalanceBefore;
         // forge-lint: disable-next-item(solmate-safe-transfer-lib)
         if (balance0 > 0) ERC20(token0).safeTransfer(msg.sender, balance0);
         // forge-lint: disable-next-item(solmate-safe-transfer-lib)
@@ -450,9 +481,10 @@ contract StakedSlipstreamAM is DerivedAM, ERC721, ReentrancyGuard {
     function burn(uint256 positionId) external nonReentrant returns (uint256 rewards) {
         if (_ownerOf[positionId] != msg.sender) revert NotOwner();
 
-        // Unstake the Liquidity Position.
-        ICLGauge(positionState[positionId].gauge).withdraw(positionId);
-        rewards = REWARD_TOKEN.balanceOf(address(this));
+        // Unstake the Liquidity Position, which claims the emissions of the position.
+        uint256 rewardBalance = REWARD_TOKEN.balanceOf(address(this));
+        uint256 surplus = _withdrawAndClaim(positionState[positionId].gauge, positionId);
+        rewards = REWARD_TOKEN.balanceOf(address(this)) - rewardBalance - surplus;
 
         // Burn the position.
         delete positionState[positionId];
@@ -481,8 +513,9 @@ contract StakedSlipstreamAM is DerivedAM, ERC721, ReentrancyGuard {
         if (_ownerOf[positionId] != msg.sender) revert NotOwner();
 
         // Claim the rewards from the external staking contract.
-        ICLGauge(positionState[positionId].gauge).getReward(positionId);
-        rewards = REWARD_TOKEN.balanceOf(address(this));
+        uint256 rewardBalance = REWARD_TOKEN.balanceOf(address(this));
+        uint256 surplus = _claimReward(positionState[positionId].gauge, positionId);
+        rewards = REWARD_TOKEN.balanceOf(address(this)) - rewardBalance - surplus;
 
         // Pay out the rewards to the position owner.
         if (rewards > 0) {
@@ -494,13 +527,107 @@ contract StakedSlipstreamAM is DerivedAM, ERC721, ReentrancyGuard {
         }
     }
 
+    /*///////////////////////////////////////////////////////////////
+                              SURPLUS
+    ///////////////////////////////////////////////////////////////*/
+
+    /**
+     * @notice Sets the recipient of every reward token that is not owed to a position.
+     * @param surplusRecipient_ The contract address of the recipient.
+     */
+    function setSurplusRecipient(address surplusRecipient_) external onlyOwner {
+        _setSurplusRecipient(surplusRecipient_);
+    }
+
+    /**
+     * @notice Sets the recipient of every reward token that is not owed to a position.
+     * @param surplusRecipient_ The contract address of the recipient.
+     */
+    function _setSurplusRecipient(address surplusRecipient_) internal {
+        if (surplusRecipient_ == address(0) || surplusRecipient_ == address(this)) revert RecipientNotValid();
+
+        surplusRecipient = surplusRecipient_;
+        emit SurplusRecipientSet(surplusRecipient_);
+    }
+
+    /**
+     * @notice Returns the reward tokens that are not owed to a position.
+     * @return surplus The amount a claim pays the recipient.
+     */
+    function claimableSurplus() public view returns (uint256 surplus) {
+        surplus = REWARD_TOKEN.balanceOf(address(this));
+    }
+
+    /**
+     * @notice Pays the recipient the reward tokens that are not owed to a position.
+     */
+    function claimSurplus() external nonReentrant {
+        if (msg.sender != surplusRecipient) revert NotRecipient();
+
+        uint256 amount = claimableSurplus();
+        if (amount == 0) return;
+
+        // forge-lint: disable-next-item(solmate-safe-transfer-lib)
+        REWARD_TOKEN.safeTransfer(msg.sender, amount);
+        emit SurplusClaimed(msg.sender, amount);
+    }
+
+    /*///////////////////////////////////////////////////////////////
+                     INTERACTIONS STAKING CONTRACT
+    ///////////////////////////////////////////////////////////////*/
+
+    /**
+     * @notice Returns the amount of reward tokens valued as an Underlying Asset of a position.
+     * @param positionId The id of the position.
+     * @return rewards The amount of reward tokens valued for the position.
+     */
+    function _rewardAmount(uint256 positionId) internal view virtual returns (uint256 rewards) {
+        rewards = rewardOf(positionId);
+    }
+
     /**
      * @notice Returns the amount of reward tokens claimable by a position.
      * @param positionId The id of the position to check the rewards for.
      * @return rewards The current amount of reward tokens claimable by the owner of the position.
      */
-    function rewardOf(uint256 positionId) public view returns (uint256 rewards) {
+    function rewardOf(uint256 positionId) public view virtual returns (uint256 rewards) {
         rewards = ICLGauge(positionState[positionId].gauge).earned(address(this), positionId);
+    }
+
+    /**
+     * @notice Stakes the Liquidity Position in its gauge.
+     * @param gauge The contract address of the gauge.
+     * @param assetId The id of the Liquidity Position.
+     */
+    // forge-lint: disable-next-item(reentrancy-no-eth)
+    function _stake(address gauge, uint256 assetId) internal virtual {
+        ICLGauge(gauge).deposit(assetId);
+    }
+
+    /**
+     * @notice Unstakes the Liquidity Position from its gauge, which claims its emissions.
+     * @param gauge The contract address of the gauge.
+     * @param positionId The id of the position.
+     * @return The claimed amount that is not owed to a position.
+     */
+    // forge-lint: disable-next-item(reentrancy-no-eth)
+    function _withdrawAndClaim(address gauge, uint256 positionId) internal virtual returns (uint256) {
+        ICLGauge(gauge).withdraw(positionId);
+
+        return 0;
+    }
+
+    /**
+     * @notice Claims the emissions of the position from its gauge.
+     * @param gauge The contract address of the gauge.
+     * @param positionId The id of the position.
+     * @return The claimed amount that is not owed to a position.
+     */
+    // forge-lint: disable-next-item(reentrancy-no-eth)
+    function _claimReward(address gauge, uint256 positionId) internal virtual returns (uint256) {
+        ICLGauge(gauge).getReward(positionId);
+
+        return 0;
     }
 
     /*///////////////////////////////////////////////////////////////

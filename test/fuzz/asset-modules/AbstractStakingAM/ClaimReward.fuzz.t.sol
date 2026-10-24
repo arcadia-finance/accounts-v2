@@ -5,15 +5,12 @@
 pragma solidity ^0.8.0;
 
 import { AbstractStakingAM_Fuzz_Test, StakingAM } from "./_AbstractStakingAM.fuzz.t.sol";
-import { FixedPointMathLib } from "../../../../lib/solmate/src/utils/FixedPointMathLib.sol";
 
 /**
  * @notice Fuzz tests for the function "claimReward" of contract "StakingAM".
  */
 // forge-lint: disable-next-item(unsafe-typecast)
 contract ClaimReward_AbstractStakingAM_Fuzz_Test is AbstractStakingAM_Fuzz_Test {
-    using FixedPointMathLib for uint256;
-
     /* ///////////////////////////////////////////////////////////////
                               SETUP
     /////////////////////////////////////////////////////////////// */
@@ -46,6 +43,7 @@ contract ClaimReward_AbstractStakingAM_Fuzz_Test is AbstractStakingAM_Fuzz_Test 
         uint96 positionId,
         StakingAMStateForAsset memory assetState,
         StakingAM.PositionState memory positionState,
+        StakingAMStateForSurplus memory surplusState,
         uint8 assetDecimals
     ) public {
         // Given : account_ != zero address
@@ -58,17 +56,23 @@ contract ClaimReward_AbstractStakingAM_Fuzz_Test is AbstractStakingAM_Fuzz_Test 
         address asset = addAsset(assetDecimals);
 
         // Given: Valid state
-        (assetState, positionState) = givenValidStakingAMState(assetState, positionState, 0, type(uint128).max);
+        (assetState, positionState) =
+            givenValidStakingAMState(assetState, positionState, surplusState, 0, type(uint128).max);
 
         // And: State is persisted.
-        setStakingAMState(assetState, positionState, asset, positionId);
+        setStakingAMState(assetState, positionState, surplusState, asset, positionId);
 
         // Given : The claim function on the external staking contract is not implemented, thus we fund the stakingAM with reward tokens that should be transferred.
         uint256 currentRewardPosition = stakingAM.rewardOf(positionId);
 
         // And: reward is non-zero.
         vm.assume(currentRewardPosition > 0);
-        deal(address(stakingAM.REWARD_TOKEN()), address(stakingAM), currentRewardPosition, true);
+        deal(
+            address(stakingAM.REWARD_TOKEN()),
+            address(stakingAM),
+            surplusState.lastRewardBalance + currentRewardPosition,
+            true
+        );
 
         // When : Account calls claimReward()
         vm.startPrank(account_);
@@ -94,12 +98,7 @@ contract ClaimReward_AbstractStakingAM_Fuzz_Test is AbstractStakingAM_Fuzz_Test 
         ) = stakingAM.positionState(positionId);
         assertEq(newPositionState.asset, asset);
         assertEq(newPositionState.amountStaked, positionState.amountStaked);
-        uint128 currentRewardPerToken;
-        unchecked {
-            // forge-lint: disable-next-item(unsafe-typecast)
-            currentRewardPerToken = assetState.lastRewardPerTokenGlobal
-                + uint128(assetState.currentRewardGlobal.mulDivDown(1e18, assetState.totalStaked));
-        }
+        uint128 currentRewardPerToken = currentRewardPerTokenGlobal(assetState);
         assertEq(newPositionState.lastRewardPerTokenPosition, currentRewardPerToken);
         assertEq(newPositionState.lastRewardPosition, 0);
 
@@ -108,6 +107,9 @@ contract ClaimReward_AbstractStakingAM_Fuzz_Test is AbstractStakingAM_Fuzz_Test 
         (newAssetState.lastRewardPerTokenGlobal, newAssetState.totalStaked,) = stakingAM.assetState(asset);
         assertEq(newAssetState.lastRewardPerTokenGlobal, currentRewardPerToken);
         assertEq(newAssetState.totalStaked, assetState.totalStaked);
+
+        // And: The reward token balance is cached.
+        assertEq(stakingAM.getLastRewardBalance(), rewardToken.balanceOf(address(stakingAM)));
     }
 
     function testFuzz_Success_claimReward_ZeroReward(
@@ -115,6 +117,7 @@ contract ClaimReward_AbstractStakingAM_Fuzz_Test is AbstractStakingAM_Fuzz_Test 
         uint96 positionId,
         StakingAMStateForAsset memory assetState,
         StakingAM.PositionState memory positionState,
+        StakingAMStateForSurplus memory surplusState,
         uint8 assetDecimals
     ) public {
         // Given : account_ != zero address
@@ -127,7 +130,8 @@ contract ClaimReward_AbstractStakingAM_Fuzz_Test is AbstractStakingAM_Fuzz_Test 
         address asset = addAsset(assetDecimals);
 
         // Given: Valid state
-        (assetState, positionState) = givenValidStakingAMState(assetState, positionState, 0, type(uint128).max);
+        (assetState, positionState) =
+            givenValidStakingAMState(assetState, positionState, surplusState, 0, type(uint128).max);
 
         // And: reward is zero.
         positionState.lastRewardPosition = 0;
@@ -135,7 +139,7 @@ contract ClaimReward_AbstractStakingAM_Fuzz_Test is AbstractStakingAM_Fuzz_Test 
         assetState.currentRewardGlobal = 0;
 
         // And: State is persisted.
-        setStakingAMState(assetState, positionState, asset, positionId);
+        setStakingAMState(assetState, positionState, surplusState, asset, positionId);
 
         // When : Account calls claimReward()
         vm.startPrank(account_);
@@ -166,5 +170,91 @@ contract ClaimReward_AbstractStakingAM_Fuzz_Test is AbstractStakingAM_Fuzz_Test 
         (newAssetState.lastRewardPerTokenGlobal, newAssetState.totalStaked,) = stakingAM.assetState(asset);
         assertEq(newAssetState.lastRewardPerTokenGlobal, assetState.lastRewardPerTokenGlobal);
         assertEq(newAssetState.totalStaked, assetState.totalStaked);
+
+        // And: The reward token balance is cached.
+        assertEq(stakingAM.getLastRewardBalance(), rewardToken.balanceOf(address(stakingAM)));
+    }
+
+    function testFuzz_Success_claimReward_BookedSurplusNotCredited(
+        uint8 assetDecimals,
+        StakingAMStateForSurplus memory surplusState,
+        uint128 amount,
+        uint128 reward,
+        uint128 booked
+    ) public {
+        // Given: An Asset is added to the stakingAM.
+        address asset = addAsset(assetDecimals);
+
+        // And: Valid surplus state.
+        givenValidStakingAMState(surplusState);
+        setStakingAMState(surplusState);
+
+        // And: A position is staked, whose stake keeps the reward accumulator in range.
+        amount = uint128(bound(amount, 1e18, type(uint128).max / 2));
+        uint256 positionId = _stakeSolePosition(asset, amount);
+
+        // And: The staking contract will deliver a reward, of which the hook books a part for the recipient.
+        reward = uint128(bound(reward, 1, type(uint128).max));
+        booked = uint128(bound(booked, 1, reward));
+        stakingAM.setActualRewardBalance(asset, reward);
+        stakingAM.setBookedAmount(booked);
+        uint256 expectedReward = _credited(amount, reward - booked);
+
+        // When: The position claims.
+        vm.prank(users.liquidityProvider);
+        uint256 rewards = stakingAM.claimReward(positionId);
+
+        // Then: The owner is paid the delivered reward less the booked part.
+        assertEq(rewards, expectedReward);
+        assertEq(rewardToken.balanceOf(users.liquidityProvider), expectedReward);
+
+        // And: The booked amount is not credited to the position.
+        assertEq(stakingAM.bookedSurplus(), surplusState.bookedSurplus + booked);
+        assertEq(stakingAM.getLastRewardBalance(), rewardToken.balanceOf(address(stakingAM)));
+    }
+
+    function testFuzz_Success_claimReward_DonationNotCredited(
+        uint8 assetDecimals,
+        StakingAMStateForSurplus memory surplusState,
+        uint128 amount,
+        uint128 reward,
+        uint128 donation
+    ) public {
+        // Given: An Asset is added to the stakingAM.
+        address asset = addAsset(assetDecimals);
+
+        // And: Valid surplus state.
+        givenValidStakingAMState(surplusState);
+        setStakingAMState(surplusState);
+
+        // And: A position is staked, whose stake keeps the reward accumulator in range.
+        amount = uint128(bound(amount, 1e18, type(uint128).max / 2));
+        uint256 positionId = _stakeSolePosition(asset, amount);
+
+        // And: The staking contract will deliver a reward.
+        reward = uint128(bound(reward, 1, type(uint128).max));
+        stakingAM.setActualRewardBalance(asset, reward);
+
+        // And: Reward tokens reached the Asset Module outside an interaction.
+        donation = uint128(bound(donation, 1, type(uint128).max));
+        deal(address(rewardToken), address(stakingAM), surplusState.lastRewardBalance + donation, true);
+        uint256 expectedReward = _credited(amount, reward);
+
+        // When: The position claims.
+        vm.prank(users.liquidityProvider);
+        uint256 rewards = stakingAM.claimReward(positionId);
+
+        // Then: The owner is paid the delivered reward alone.
+        assertEq(rewards, expectedReward);
+        assertEq(rewardToken.balanceOf(users.liquidityProvider), expectedReward);
+
+        // And: The donation is booked for the recipient, the accrual rounding stays for the positions.
+        assertEq(stakingAM.bookedSurplus(), surplusState.bookedSurplus + donation);
+        assertEq(stakingAM.claimableSurplus(), surplusState.bookedSurplus + donation);
+        assertEq(
+            rewardToken.balanceOf(address(stakingAM)),
+            surplusState.lastRewardBalance + uint256(donation) + reward - expectedReward
+        );
+        assertEq(stakingAM.getLastRewardBalance(), rewardToken.balanceOf(address(stakingAM)));
     }
 }

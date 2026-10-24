@@ -185,11 +185,10 @@ abstract contract AerodromePoolAM_Fuzz_Test is Fuzz_Test, AerodromeFixture {
         testVars.priceToken0 = bound(testVars.priceToken0, 1, 2 ** 127 - 1);
         testVars.priceToken1 = bound(testVars.priceToken1, 1, 2 ** 127 - 1);
 
-        // And: t does not round to zero and x does not overflow.
-        // With q = pLow / pHigh: q / 4 <= t <= q and t <= d, so d >= q / 8 for q >= 16 / 1e18.
+        // And: t does not round to zero.
+        // With q = pLow / pHigh: q / 4 <= t <= q.
         uint256 q = getRatio(testVars.priceToken0, testVars.priceToken1);
         vm.assume(q >= 16);
-        vm.assume(k / (q / 8) <= type(uint256).max / 1e18);
 
         // And : assetAmount is maximum equal to aeroPool totalSupply.
         // Trusted reserves are smaller than 1.9e28 and totalSupply is smaller than 1.6e28,

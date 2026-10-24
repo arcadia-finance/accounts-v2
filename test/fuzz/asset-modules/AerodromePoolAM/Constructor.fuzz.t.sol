@@ -23,12 +23,18 @@ contract Constructor_AerodromePoolAM_Fuzz_Test is AerodromePoolAM_Fuzz_Test {
                               TESTS
     /////////////////////////////////////////////////////////////// */
 
-    function testFuzz_success_constructor(address aerodromeFactory) public {
-        AerodromePoolAMExtension assetModule =
-            new AerodromePoolAMExtension(users.owner, address(registry), aerodromeFactory);
+    function testFuzz_Success_constructor(address owner_, address registry_, address aerodromeFactory) public {
+        // Given:
 
+        // When: The Asset Module is deployed.
+        AerodromePoolAMExtension assetModule = new AerodromePoolAMExtension(owner_, registry_, aerodromeFactory);
+
+        // Then: The constructor arguments are stored.
+        assertEq(assetModule.owner(), owner_);
+        assertEq(assetModule.REGISTRY(), registry_);
         assertEq(address(assetModule.AERO_FACTORY()), aerodromeFactory);
+
+        // And: The asset type is the one of an ERC20.
         assertEq(assetModule.ASSET_TYPE(), 1);
-        assertEq(assetModule.REGISTRY(), address(registry));
     }
 }

@@ -41,6 +41,20 @@
 [submodule "lib/solady"]
 	path = lib/solady
 	url = https://github.com/Vectorized/solady
-[submodule "forge-std-v1.13"]
-	path = lib/forge-std-v1.13
-	url = https://github.com/foundry-rs/forge-std
+[submodule "lib/metadex"]
+	path = lib/metadex
+	url = https://github.com/dromos-labs/metadex-public
+[submodule "lib/metadex-slipstream"]
+	path = lib/metadex-slipstream
+	url = https://github.com/dromos-labs/metadex-slipstream-public
+[submodule "lib/openzeppelin-contracts-v5"]
+	path = lib/openzeppelin-contracts-v5
+	url = https://github.com/OpenZeppelin/openzeppelin-contracts
+	branch = v5.6.1
+[submodule "lib/excessively-safe-call"]
+	path = lib/excessively-safe-call
+	url = https://github.com/nomad-xyz/ExcessivelySafeCall
+	branch = @nomad-xyz/excessively-safe-call@0.0.1-rc.1
+[submodule "lib/excessively-safe-call-value"]
+	path = lib/excessively-safe-call-value
+	url = https://github.com/nomad-xyz/ExcessivelySafeCall

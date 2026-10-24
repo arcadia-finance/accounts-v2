@@ -12,6 +12,8 @@ interface ICLPoolExtension is ICLPool {
 
     function rewardReserve() external view returns (uint256 rewardReserve_);
 
+    function stakedLiquidity() external view returns (uint128 stakedLiquidity_);
+
     function token0() external view returns (address token0);
 
     function token1() external view returns (address token1);

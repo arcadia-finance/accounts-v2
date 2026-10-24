@@ -5,6 +5,8 @@
 pragma solidity ^0.8.0;
 
 import { ERC20Mock } from "../../../utils/mocks/tokens/ERC20Mock.sol";
+import { FixedPoint128 } from "../../../../src/asset-modules/UniswapV3/libraries/FixedPoint128.sol";
+import { FullMath } from "../../../../src/asset-modules/UniswapV3/libraries/FullMath.sol";
 import { Fuzz_Test } from "../../Fuzz.t.sol";
 import { ICLGauge } from "../../../../src/asset-modules/Slipstream/interfaces/ICLGauge.sol";
 import { ICLPoolExtension } from "../../../utils/fixtures/slipstream/extensions/interfaces/ICLPoolExtension.sol";
@@ -15,6 +17,7 @@ import {
 import { SlipstreamFixture } from "../../../utils/fixtures/slipstream/Slipstream.f.sol";
 import { StakedSlipstreamAM } from "../../../../src/asset-modules/Slipstream/StakedSlipstreamAM.sol";
 import { StakedSlipstreamAMExtension } from "../../../utils/extensions/StakedSlipstreamAMExtension.sol";
+import { StdStorage, stdStorage } from "../../../../lib/forge-std/src/Test.sol";
 import { TickMath } from "../../../../src/asset-modules/UniswapV3/libraries/TickMath.sol";
 
 /**
@@ -22,6 +25,8 @@ import { TickMath } from "../../../../src/asset-modules/UniswapV3/libraries/Tick
  */
 // forge-lint: disable-next-item(unsafe-typecast)
 abstract contract StakedSlipstreamAM_Fuzz_Test is Fuzz_Test, SlipstreamFixture {
+    using stdStorage for StdStorage;
+
     /* ///////////////////////////////////////////////////////////////
                               VARIABLES
     /////////////////////////////////////////////////////////////// */
@@ -76,13 +81,28 @@ abstract contract StakedSlipstreamAM_Fuzz_Test is Fuzz_Test, SlipstreamFixture {
         // Deploy StakedSlipstreamAM.
         vm.startPrank(users.owner);
         stakedSlipstreamAM = new StakedSlipstreamAMExtension(
-            users.owner, address(registry), address(slipstreamPositionManager), address(voter), AERO
+            users.owner, address(registry), address(slipstreamPositionManager), address(voter), AERO, users.treasury
         );
 
         // Add the Asset Module to the Registry.
         registry.addAssetModule(address(stakedSlipstreamAM));
         stakedSlipstreamAM.initialize();
         vm.stopPrank();
+    }
+
+    // Excludes the addresses whose Reward Token balance a sweep assertion reads.
+    function _givenValidRecipient(address recipient) internal view {
+        vm.assume(recipient != address(0));
+        vm.assume(recipient.code.length == 0);
+        vm.assume(recipient != users.accountOwner);
+        vm.assume(recipient != users.liquidityProvider);
+    }
+
+    function _givenSurplusRecipient(address recipient) internal {
+        _givenValidRecipient(recipient);
+
+        vm.prank(users.owner);
+        stakedSlipstreamAM.setSurplusRecipient(recipient);
     }
 
     function deployAndAddGauge(int24 tick) internal {
@@ -148,5 +168,63 @@ abstract contract StakedSlipstreamAM_Fuzz_Test is Fuzz_Test, SlipstreamFixture {
         (tokenId,,) = addLiquidityCL(
             pool, position.liquidity, users.liquidityProvider, position.tickLower, position.tickUpper, false
         );
+    }
+
+    // forge-lint: disable-next-item(reentrancy-no-eth)
+    function _stakePosition(StakedSlipstreamAM.PositionState memory position) internal returns (uint256 assetId) {
+        assetId = addLiquidity(position);
+        vm.startPrank(users.liquidityProvider);
+        slipstreamPositionManager.approve(address(stakedSlipstreamAM), assetId);
+        stakedSlipstreamAM.mint(assetId);
+        vm.stopPrank();
+    }
+
+    function _initStakedPositionWithEarned(
+        StakedSlipstreamAM.PositionState memory position,
+        int24 tick,
+        uint256 reward,
+        address recipient
+    ) internal returns (uint256 assetId, uint256 earned) {
+        _givenSurplusRecipient(recipient);
+
+        position = givenValidPosition(position, 1);
+        tick = int24(bound(tick, position.tickLower, position.tickUpper - 1));
+        deployAndAddGauge(tick);
+        assetId = _stakePosition(position);
+
+        uint256 liquidity = getActualLiquidity(position);
+        uint256 rewardGrowthDeltaX128 = bound(
+            reward,
+            FixedPoint128.Q128 / liquidity + 1,
+            FullMath.mulDiv(type(uint128).max - 1, FixedPoint128.Q128, liquidity)
+        );
+        earned = FullMath.mulDiv(rewardGrowthDeltaX128, liquidity, FixedPoint128.Q128);
+
+        deal(AERO, address(gauge), type(uint128).max, true);
+        stdstore.target(address(pool)).sig(pool.rewardReserve.selector).checked_write(type(uint256).max);
+
+        vm.warp(block.timestamp + 1);
+        stdstore.target(address(pool)).sig(pool.rewardGrowthGlobalX128.selector).checked_write(rewardGrowthDeltaX128);
+    }
+
+    function deployAndAddGaugeAtPrices(int24 tick, uint256 priceToken0, uint256 priceToken1) internal {
+        ERC20Mock tokenA = new ERC20Mock("Token A", "TOKENA", 18);
+        ERC20Mock tokenB = new ERC20Mock("Token B", "TOKENB", 18);
+        uint256 priceTokenA;
+        uint256 priceTokenB;
+        if (address(tokenA) < address(tokenB)) {
+            (token0, token1) = (tokenA, tokenB);
+            (priceTokenA, priceTokenB) = (priceToken0, priceToken1);
+        } else {
+            (token0, token1) = (tokenB, tokenA);
+            (priceTokenA, priceTokenB) = (priceToken1, priceToken0);
+        }
+        pool = createPoolCL(address(token0), address(token1), 1, TickMath.getSqrtRatioAtTick(tick), 300);
+        gauge = createGaugeCL(pool);
+        addAssetToArcadia(address(tokenA), int256(priceTokenA));
+        addAssetToArcadia(address(tokenB), int256(priceTokenB));
+
+        vm.prank(users.owner);
+        stakedSlipstreamAM.addGauge(address(gauge));
     }
 }

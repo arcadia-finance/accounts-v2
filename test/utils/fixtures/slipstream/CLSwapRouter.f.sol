@@ -24,7 +24,7 @@ contract CLSwapRouterFixture is Test {
         // Get the bytecode of the SwapRouterExtension.
         bytes memory args = abi.encode(factory_, weth9_);
         // forge-lint: disable-next-item(encode-packed-collision)
-        bytes memory bytecode = abi.encodePacked(vm.getCode("SwapRouter.sol"), args);
+        bytes memory bytecode = abi.encodePacked(vm.getCode("SlipstreamCLSwapRouterExtension.sol"), args);
 
         address swapRouter_ = Utils.deployBytecode(bytecode);
         clSwapRouter = ICLSwapRouter(swapRouter_);

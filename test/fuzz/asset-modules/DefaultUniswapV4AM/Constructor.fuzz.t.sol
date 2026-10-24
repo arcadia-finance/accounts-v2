@@ -22,7 +22,7 @@ contract Constructor_DefaultUniswapV4AM_Fuzz_Test is DefaultUniswapV4AM_Fuzz_Tes
     /*//////////////////////////////////////////////////////////////
                               TESTS
     //////////////////////////////////////////////////////////////*/
-    function testFuzz_Success_deployment(address registry_) public {
+    function testFuzz_Success_constructor(address registry_) public {
         vm.startPrank(users.owner);
         DefaultUniswapV4AMExtension uniV4AssetModule_ =
             new DefaultUniswapV4AMExtension(users.owner, registry_, address(positionManagerV4));

@@ -5,7 +5,7 @@ interface ICLGauge {
     function deposit(uint256 tokenId) external;
     function earned(address account, uint256 tokenId) external view returns (uint256);
     function getReward(uint256 tokenId) external;
-    function pool() external returns (address);
-    function rewardToken() external returns (address);
+    function pool() external view returns (address);
+    function rewardToken() external view returns (address);
     function withdraw(uint256 tokenId) external;
 }

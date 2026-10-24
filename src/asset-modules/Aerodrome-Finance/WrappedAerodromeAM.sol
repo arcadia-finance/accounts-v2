@@ -97,8 +97,24 @@ contract WrappedAerodromeAM is DerivedAM, ERC721, ReentrancyGuard {
      */
     constructor(address owner_, address registry)
         DerivedAM(owner_, registry, 2)
-        ERC721("Arcadia Wrapped Aerodrome Positions", "aWAEROP")
+        ERC721(_tokenName(), _tokenSymbol())
     { }
+
+    /**
+     * @notice Returns the name of the ERC721 tokens.
+     * @return name_ The name.
+     */
+    function _tokenName() internal pure virtual returns (string memory name_) {
+        name_ = "Arcadia Wrapped Aerodrome Positions";
+    }
+
+    /**
+     * @notice Returns the symbol of the ERC721 tokens.
+     * @return symbol_ The symbol.
+     */
+    function _tokenSymbol() internal pure virtual returns (string memory symbol_) {
+        symbol_ = "aWAEROP";
+    }
 
     /* //////////////////////////////////////////////////////////////
                                INITIALIZE
@@ -524,7 +540,7 @@ contract WrappedAerodromeAM is DerivedAM, ERC721, ReentrancyGuard {
      */
     // Reentrancy is blocked by the nonReentrant guard on every caller.
     // forge-lint: disable-next-item(reentrancy-no-eth)
-    function _claimFees(address pool) internal returns (uint256 fee0, uint256 fee1) {
+    function _claimFees(address pool) internal virtual returns (uint256 fee0, uint256 fee1) {
         (fee0, fee1) = IAeroPool(pool).claimFees();
     }
 

@@ -4,9 +4,8 @@
  */
 pragma solidity ^0.8.0;
 
-import { StandardERC4626AM_Fuzz_Test } from "./_StandardERC4626AM.fuzz.t.sol";
-
 import { ERC4626AMExtension } from "../../../utils/extensions/ERC4626AMExtension.sol";
+import { StandardERC4626AM_Fuzz_Test } from "./_StandardERC4626AM.fuzz.t.sol";
 
 /**
  * @notice Fuzz tests for the function "constructor" of contract "StandardERC4626AM".
@@ -23,7 +22,7 @@ contract Constructor_StandardERC4626AM_Fuzz_Test is StandardERC4626AM_Fuzz_Test 
     /*//////////////////////////////////////////////////////////////
                               TESTS
     //////////////////////////////////////////////////////////////*/
-    function testFuzz_Success_deployment(address registry_) public {
+    function testFuzz_Success_constructor(address registry_) public {
         vm.startPrank(users.owner);
         // forge-lint: disable-next-line(mixed-case-variable)
         ERC4626AMExtension erc4626AM_ = new ERC4626AMExtension(users.owner, registry_);

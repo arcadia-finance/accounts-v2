@@ -8,8 +8,8 @@ import { AssetValueAndRiskFactors } from "../../../src/libraries/AssetValuationL
 import { StakedStargateAM } from "../../../src/asset-modules/Stargate-Finance/StakedStargateAM.sol";
 
 contract StakedStargateAMExtension is StakedStargateAM {
-    constructor(address owner_, address registry, address stargateLpStaking_)
-        StakedStargateAM(owner_, registry, stargateLpStaking_)
+    constructor(address owner_, address registry, address stargateLpStaking_, address surplusRecipient_)
+        StakedStargateAM(owner_, registry, stargateLpStaking_, surplusRecipient_)
     { }
 
     function setAssetToPoolId(address asset, uint256 pid) public {
@@ -17,15 +17,19 @@ contract StakedStargateAMExtension is StakedStargateAM {
     }
 
     function getCurrentReward(address asset) public view returns (uint256 currentReward) {
-        currentReward = _getCurrentReward(asset);
+        currentReward = _getCurrentReward(0, asset);
     }
 
     function stake(address asset, uint256 amount) public {
-        _stakeAndClaim(asset, amount);
+        _stakeAndClaim(0, asset, amount);
     }
 
     function withdraw(address asset, uint256 amount) public {
-        _withdrawAndClaim(asset, amount);
+        _withdrawAndClaim(0, asset, amount);
+    }
+
+    function claimReward(address asset) public {
+        _claimReward(0, asset);
     }
 
     function calculateValueAndRiskFactors(

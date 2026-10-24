@@ -50,11 +50,16 @@ contract StakedAerodromeAM is StakingAM {
      * @param registry The address of the Registry.
      * @param aerodromeVoter The address of the Aerodrome Finance Voter contract.
      * @param rewardToken The contract address of the Reward Token.
+     * @param surplusRecipient_ The recipient of every reward token that is not owed to a position.
      * @dev The ASSET_TYPE, necessary for the deposit and withdraw logic in the Accounts, is "2" for ERC721 tokens.
      */
-    constructor(address owner_, address registry, address aerodromeVoter, address rewardToken)
-        StakingAM(owner_, registry, "Arcadia Staked Aerodrome Positions", "aSAEROP")
-    {
+    constructor(
+        address owner_,
+        address registry,
+        address aerodromeVoter,
+        address rewardToken,
+        address surplusRecipient_
+    ) StakingAM(owner_, registry, "Arcadia Staked Aerodrome Positions", "aSAEROP", surplusRecipient_) {
         REWARD_TOKEN = ERC20(rewardToken);
         AERO_VOTER = IAeroVoter(aerodromeVoter);
     }
@@ -90,10 +95,12 @@ contract StakedAerodromeAM is StakingAM {
 
     /**
      * @notice Stakes an amount of tokens in the external staking contract.
+     * param positionId The id of the position.
      * @param asset The contract address of the Asset to stake.
      * @param amount The amount of Asset to stake.
+     * @return The claimed amount that is not owed to a position.
      */
-    function _stakeAndClaim(address asset, uint256 amount) internal override {
+    function _stakeAndClaim(uint256, address asset, uint256 amount) internal override returns (uint256) {
         address gauge = assetToGauge[asset];
 
         // Claim rewards
@@ -102,14 +109,18 @@ contract StakedAerodromeAM is StakingAM {
         // Stake asset
         ERC20(asset).approve(gauge, amount);
         IAeroGauge(gauge).deposit(amount);
+
+        return 0;
     }
 
     /**
      * @notice Unstakes and withdraws the Asset from the external contract.
+     * param positionId The id of the position.
      * @param asset The contract address of the Asset to unstake and withdraw.
      * @param amount The amount of underlying tokens to unstake and withdraw.
+     * @return The claimed amount that is not owed to a position.
      */
-    function _withdrawAndClaim(address asset, uint256 amount) internal override {
+    function _withdrawAndClaim(uint256, address asset, uint256 amount) internal override returns (uint256) {
         address gauge = assetToGauge[asset];
 
         // Claim rewards
@@ -117,23 +128,30 @@ contract StakedAerodromeAM is StakingAM {
 
         // Withdraw asset
         IAeroGauge(gauge).withdraw(amount);
+
+        return 0;
     }
 
     /**
      * @notice Claims the rewards available for this contract.
+     * param positionId The id of the position.
      * @param asset The contract address of the Asset to claim the rewards for.
      * @dev Withdrawing a zero amount will trigger the claim for rewards.
+     * @return The claimed amount that is not owed to a position.
      */
-    function _claimReward(address asset) internal override {
+    function _claimReward(uint256, address asset) internal override returns (uint256) {
         IAeroGauge(assetToGauge[asset]).getReward(address(this));
+
+        return 0;
     }
 
     /**
      * @notice Returns the amount of reward tokens that can be claimed by this contract for a specific asset.
+     * param positionId The id of the position.
      * @param asset The Asset to get the current rewards for.
      * @return currentReward The amount of reward tokens that can be claimed.
      */
-    function _getCurrentReward(address asset) internal view override returns (uint256 currentReward) {
+    function _getCurrentReward(uint256, address asset) internal view override returns (uint256 currentReward) {
         currentReward = IAeroGauge(assetToGauge[asset]).earned(address(this));
     }
 }

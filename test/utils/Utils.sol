@@ -22,7 +22,7 @@ library Utils {
         uint256 privateKey,
         bytes32 domainSeparator,
         address spender
-    ) public pure returns (bytes memory sig) {
+    ) internal pure returns (bytes memory sig) {
         bytes32[] memory tokenPermissions = new bytes32[](permit.permitted.length);
         for (uint256 i = 0; i < permit.permitted.length; ++i) {
             tokenPermissions[i] = keccak256(abi.encode(_TOKEN_PERMISSIONS_TYPEHASH, permit.permitted[i]));
@@ -53,7 +53,7 @@ library Utils {
         uint256[] memory amounts,
         uint256 nonce,
         uint256 deadline_
-    ) public pure returns (IPermit2.PermitBatchTransferFrom memory) {
+    ) internal pure returns (IPermit2.PermitBatchTransferFrom memory) {
         IPermit2.TokenPermissions[] memory permitted = new IPermit2.TokenPermissions[](tokens.length);
         for (uint256 i = 0; i < tokens.length; ++i) {
             permitted[i] = IPermit2.TokenPermissions({ token: tokens[i], amount: amounts[i] });
@@ -66,8 +66,8 @@ library Utils {
      * @param staticArray The static array of addresses.
      * @return dynamicArray The dynamic array of addresses.
      */
-    function castArrayStaticToDynamic(address[2] calldata staticArray)
-        public
+    function castArrayStaticToDynamic(address[2] memory staticArray)
+        internal
         pure
         returns (address[] memory dynamicArray)
     {
@@ -83,8 +83,8 @@ library Utils {
         }
     }
 
-    function castArrayStaticToDynamic(address[3] calldata staticArray)
-        public
+    function castArrayStaticToDynamic(address[3] memory staticArray)
+        internal
         pure
         returns (address[] memory dynamicArray)
     {
@@ -105,8 +105,8 @@ library Utils {
      * @param staticArray The static array of uint256's.
      * @return dynamicArray The dynamic array of uint256's.
      */
-    function castArrayStaticToDynamic(uint256[2] calldata staticArray)
-        public
+    function castArrayStaticToDynamic(uint256[2] memory staticArray)
+        internal
         pure
         returns (uint256[] memory dynamicArray)
     {
@@ -122,8 +122,8 @@ library Utils {
         }
     }
 
-    function castArrayStaticToDynamic(uint256[3] calldata staticArray)
-        public
+    function castArrayStaticToDynamic(uint256[3] memory staticArray)
+        internal
         pure
         returns (uint256[] memory dynamicArray)
     {

@@ -47,10 +47,11 @@ contract StakedStargateAM is StakingAM {
      * @param owner_ The address of the Owner.
      * @param registry The address of the Registry.
      * @param lpStakingTime The address of the Stargate LP staking contract.
+     * @param surplusRecipient_ The recipient of every reward token that is not owed to a position.
      * @dev The ASSET_TYPE, necessary for the deposit and withdraw logic in the Accounts, is "2" for ERC721 tokens.
      */
-    constructor(address owner_, address registry, address lpStakingTime)
-        StakingAM(owner_, registry, "Arcadia Stargate Positions", "aSGP")
+    constructor(address owner_, address registry, address lpStakingTime, address surplusRecipient_)
+        StakingAM(owner_, registry, "Arcadia Stargate Positions", "aSGP", surplusRecipient_)
     {
         LP_STAKING_TIME = ILpStakingTime(lpStakingTime);
         REWARD_TOKEN = ERC20(address(LP_STAKING_TIME.eToken()));
@@ -86,43 +87,56 @@ contract StakedStargateAM is StakingAM {
 
     /**
      * @notice Stakes an amount of Asset in the external staking contract and claims pending rewards.
+     * param positionId The id of the position.
      * @param asset The contract address of the Asset to stake.
      * @param amount The amount of Asset to stake.
+     * @return The claimed amount that is not owed to a position.
      */
-    function _stakeAndClaim(address asset, uint256 amount) internal override {
+    function _stakeAndClaim(uint256, address asset, uint256 amount) internal override returns (uint256) {
         ERC20(asset).approve(address(LP_STAKING_TIME), amount);
 
         // Stake asset.
         // deposit() will also claim all pending rewards from the staking contract.
         LP_STAKING_TIME.deposit(assetToPid[asset], amount);
+
+        return 0;
     }
 
     /**
      * @notice Unstakes and withdraws the Asset from the external contract and claims pending rewards.
+     * param positionId The id of the position.
      * @param asset The contract address of the Asset to unstake and withdraw.
      * @param amount The amount of underlying tokens to unstake and withdraw.
+     * @return The claimed amount that is not owed to a position.
      */
-    function _withdrawAndClaim(address asset, uint256 amount) internal override {
+    function _withdrawAndClaim(uint256, address asset, uint256 amount) internal override returns (uint256) {
         // Withdraw asset.
         // withdraw() will also claim all pending rewards from the staking contract.
         LP_STAKING_TIME.withdraw(assetToPid[asset], amount);
+
+        return 0;
     }
 
     /**
      * @notice Claims the rewards available for this contract.
+     * param positionId The id of the position.
      * @param asset The contract address of the Asset to claim the rewards for.
      * @dev Withdrawing a zero amount will trigger the claim for rewards.
+     * @return The claimed amount that is not owed to a position.
      */
-    function _claimReward(address asset) internal override {
+    function _claimReward(uint256, address asset) internal override returns (uint256) {
         LP_STAKING_TIME.withdraw(assetToPid[asset], 0);
+
+        return 0;
     }
 
     /**
      * @notice Returns the amount of reward tokens that can be claimed by this contract for a specific asset.
+     * param positionId The id of the position.
      * @param asset The Asset to get the current rewards for.
      * @return currentReward The amount of reward tokens that can be claimed.
      */
-    function _getCurrentReward(address asset) internal view override returns (uint256 currentReward) {
+    function _getCurrentReward(uint256, address asset) internal view override returns (uint256 currentReward) {
         currentReward = LP_STAKING_TIME.pendingEmissionToken(assetToPid[asset], address(this));
     }
 }

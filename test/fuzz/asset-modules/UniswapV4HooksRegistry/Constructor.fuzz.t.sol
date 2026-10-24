@@ -23,7 +23,7 @@ contract Constructor_UniswapV4HooksRegistry_Fuzz_Test is UniswapV4HooksRegistry_
     /*//////////////////////////////////////////////////////////////
                               TESTS
     //////////////////////////////////////////////////////////////*/
-    function testFuzz_Success_deployment(address registry_) public {
+    function testFuzz_Success_constructor(address registry_) public {
         vm.startPrank(users.owner);
         UniswapV4HooksRegistryExtension v4HooksRegistry_ =
             new UniswapV4HooksRegistryExtension(users.owner, registry_, address(positionManagerV4));

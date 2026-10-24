@@ -4,9 +4,8 @@
  */
 pragma solidity ^0.8.0;
 
-import { StakedStargateAM_Fuzz_Test } from "./_StakedStargateAM.fuzz.t.sol";
-
 import { AssetValuationLib, AssetValueAndRiskFactors } from "../../../../src/libraries/AssetValuationLib.sol";
+import { StakedStargateAM_Fuzz_Test } from "./_StakedStargateAM.fuzz.t.sol";
 import { Utils } from "../../../utils/Utils.sol";
 
 /**
@@ -34,11 +33,13 @@ contract CalculateValueAndRiskFactors_StakedStargateAM_Fuzz_Test is StakedStarga
         address creditor,
         uint256[2] memory underlyingAssetsAmounts
     ) public {
-        // Given: amounts do not overflow.
-        underlyingAssetsAmounts[0] = bound(underlyingAssetsAmounts[0], 0, type(uint64).max);
-        underlyingAssetsAmounts[1] = bound(underlyingAssetsAmounts[1], 0, type(uint64).max);
-        assetRates[0] = bound(assetRates[0], 0, type(uint64).max);
-        assetRates[1] = bound(assetRates[1], 0, type(uint64).max);
+        // Given: The usd value of each underlying asset does not overflow.
+        underlyingAssetsAmounts[0] = bound(
+            underlyingAssetsAmounts[0], 0, assetRates[0] == 0 ? type(uint256).max : type(uint256).max / assetRates[0]
+        );
+        underlyingAssetsAmounts[1] = bound(
+            underlyingAssetsAmounts[1], 0, assetRates[1] == 0 ? type(uint256).max : type(uint256).max / assetRates[1]
+        );
 
         uint256 value0 = underlyingAssetsAmounts[0] * assetRates[0] / 1e18;
         uint256 value1 = underlyingAssetsAmounts[1] * assetRates[1] / 1e18;

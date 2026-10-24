@@ -21,7 +21,7 @@ contract Constructor_AccountPlaceholder_Fuzz_Test is AccountPlaceholder_Fuzz_Tes
     /*//////////////////////////////////////////////////////////////
                               TESTS
     //////////////////////////////////////////////////////////////*/
-    function testFuzz_Success_deployment(address factory_, address accountsGuard_, uint256 version) public {
+    function testFuzz_Success_constructor(address factory_, address accountsGuard_, uint256 version) public {
         vm.prank(users.owner);
         AccountPlaceholder account_ = new AccountPlaceholder(factory_, accountsGuard_, version);
 

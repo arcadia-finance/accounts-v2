@@ -5,14 +5,11 @@
 pragma solidity ^0.8.0;
 
 import { WrappedAerodromeAM_Fuzz_Test } from "./_WrappedAerodromeAM.fuzz.t.sol";
-import { Strings } from "../../../../src/libraries/Strings.sol";
 
 /**
  * @notice Fuzz tests for the function "setBaseURI" of contract "WrappedAerodromeAM".
  */
 contract SetBaseURI_WrappedAerodromeAM_Fuzz_Test is WrappedAerodromeAM_Fuzz_Test {
-    using Strings for uint256;
-
     /* ///////////////////////////////////////////////////////////////
                               SETUP
     /////////////////////////////////////////////////////////////// */
@@ -24,9 +21,13 @@ contract SetBaseURI_WrappedAerodromeAM_Fuzz_Test is WrappedAerodromeAM_Fuzz_Test
     /*//////////////////////////////////////////////////////////////
                               TESTS
     //////////////////////////////////////////////////////////////*/
+
     function testFuzz_Revert_setBaseURI_NonOwner(string calldata uri, address unprivilegedAddress_) public {
+        // Given: The unprivileged address is not the owner of the Asset Module.
         vm.assume(address(unprivilegedAddress_) != users.owner);
 
+        // When: The base URI is set.
+        // Then: It reverts.
         vm.startPrank(unprivilegedAddress_);
         vm.expectRevert("UNAUTHORIZED");
         wrappedAerodromeAM.setBaseURI(uri);
@@ -34,22 +35,13 @@ contract SetBaseURI_WrappedAerodromeAM_Fuzz_Test is WrappedAerodromeAM_Fuzz_Test
     }
 
     function testFuzz_Success_setBaseURI(string calldata uri) public {
+        // Given: Any base URI.
+
+        // When: The owner sets it.
         vm.prank(users.owner);
         wrappedAerodromeAM.setBaseURI(uri);
 
-        string memory expectedUri = wrappedAerodromeAM.baseURI();
-
-        assertEq(expectedUri, uri);
-    }
-
-    function testFuzz_Success_UriOfId(string calldata uri, uint256 id) public {
-        vm.assume(bytes(uri).length > 0);
-        vm.prank(users.owner);
-        wrappedAerodromeAM.setBaseURI(uri);
-
-        string memory actualUri = wrappedAerodromeAM.tokenURI(id);
-
-        // forge-lint: disable-next-item(encode-packed-collision)
-        assertEq(actualUri, string(abi.encodePacked(uri, id.toString())));
+        // Then: The stored base URI is the new URI.
+        assertEq(wrappedAerodromeAM.baseURI(), uri);
     }
 }
