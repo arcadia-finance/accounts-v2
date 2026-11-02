@@ -103,6 +103,7 @@ src
 └── libraries/
 test
 ├── fuzz/               Fuzz tests, one folder per contract
+├── gas/                Gas benchmarks
 ├── invariant/          Invariant tests
 └── utils/              Fixtures, mocks and test extensions
 ```
@@ -181,4 +182,8 @@ The core contracts are licensed under the Business Source License 1.1, see [LICE
 
 ## Links
 
-[Website](https://arcadia.finance) · [Docs](https://docs.arcadia.finance) · [Discord](https://discord.gg/PXcr8SEeTH) · [X](https://x.com/ArcadiaFi) · [Blog](https://arcadiafinance.medium.com/)
+- [Website](https://arcadia.finance)
+- [Docs](https://docs.arcadia.finance)
+- [Discord](https://discord.gg/PXcr8SEeTH)
+- [X](https://x.com/ArcadiaFi)
+- [Blog](https://arcadiafinance.medium.com/)
