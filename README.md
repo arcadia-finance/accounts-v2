@@ -169,7 +169,7 @@ The contracts in this repository have been reviewed in the following audits:
 
 All reports, including those for other Arcadia repositories, are in [arcadia-finance-audits](https://github.com/arcadia-finance/arcadia-finance-audits). See the docs for the protocol's [roles](https://docs.arcadia.finance/security-and-risk/roles), [risk management](https://docs.arcadia.finance/security-and-risk/risk) and [circuit breakers](https://docs.arcadia.finance/security-and-risk/circuit-breakers).
 
-Please report vulnerabilities privately to dev `[at]` arcadia.finance instead of opening a public issue.
+Please report vulnerabilities privately to [security@arcadia.finance](mailto:security@arcadia.finance) instead of opening a public issue. Rewards for eligible findings are paid through the [bug bounty program on HackenProof](https://hackenproof.com/programs/arcadia-finance-company-smart-contracts).
 
 ## Contributing
 
